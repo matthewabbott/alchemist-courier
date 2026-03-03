@@ -27,33 +27,26 @@ tests/        — xUnit test projects
 2. **Shape matrices are `bool[rows, cols]`** (row-major). Positions are `Vector2I(col, row)`.
 3. **Per-cell aspects** are indexed by flattened row-major order through true cells in the shape.
 4. **Namespace pattern:** `AlchemistCourier.Core.{System}` for core, `AlchemistCourier.Game.{System}` for game logic.
-5. **`.csproj` and `.sln` are gitignored** — Godot auto-generates them. Don't commit them (except test project `.csproj` files under `tests/`).
+5. **`.csproj` and `.sln` are committed.** Godot initially generates them, but we track them in git because we've added custom settings (`<Nullable>enable</Nullable>`, `<Compile Remove="tests/**" />`).
 
 ## Build & Test
 ```bash
-# Build main project (requires Alchemist-Courier.csproj to exist — see Bootstrap):
-dotnet build Alchemist-Courier.csproj
+# Build everything (main project + tests):
+dotnet build
 
-# Run Core unit tests (47 tests, ~36ms):
+# Run Core unit tests:
+dotnet test
+
+# Or target specific project:
+dotnet build Alchemist-Courier.csproj
 dotnet test tests/AlchemistCourier.Core.Tests/
 ```
 
-### Bootstrap (first time / fresh clone only)
-The main `Alchemist-Courier.csproj` and `.sln` are gitignored (Godot generates them).
-If they don't exist, you need Godot to create them **once**:
-- Open the project in Godot editor and click Build, OR
-- `godot --headless --build-solutions --quit`
-
-After that, `dotnet build` and `dotnet test` work from CLI without Godot.
-
-### Godot .csproj note
-`Alchemist-Courier.csproj` has a `<Compile Remove="tests/**" />` to exclude test files.
-If Godot regenerates this file, you may need to re-add that exclusion and `<Nullable>enable</Nullable>`.
+No bootstrap step needed — `.csproj` and `.sln` are in the repo. Fresh clone -> `dotnet restore` -> `dotnet build` works.
 
 ## Before Committing
-- Run `dotnet test tests/AlchemistCourier.Core.Tests/` — all tests must pass
+- Run `dotnet test` — all tests must pass
 - Verify no Godot imports in `src/Core/` files
-- Run `dotnet build Alchemist-Courier.csproj` to check compilation
 - Group commits logically by system (see branch history for examples)
 
 ## Session Workflow

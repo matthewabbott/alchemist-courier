@@ -1,0 +1,32 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alchemist-Courier", "Alchemist-Courier.csproj", "{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0960D5F3-7271-4075-B88F-5BB8E018349F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlchemistCourier.Core.Tests", "tests\AlchemistCourier.Core.Tests\AlchemistCourier.Core.Tests.csproj", "{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		ExportDebug|Any CPU = ExportDebug|Any CPU
+		ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{23A5DAC2-84B0-40C8-A39C-5BEDE05A289E}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{9E2637FB-DD9B-4FF5-9BEE-E9C5EE66B3EA} = {0960D5F3-7271-4075-B88F-5BB8E018349F}
+	EndGlobalSection
+EndGlobal
