@@ -1,0 +1,41 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+*.translation
+
+# Godot exported builds
+/build/
+/export/
+*.exe
+*.x86_64
+*.pck
+
+# Godot mono / C# (.NET)
+.mono/
+data_*/
+mono_crash.*.json
+*.sln
+*.csproj
+
+# .NET build artifacts
+bin/
+obj/
+
+# Claude Code
+.claude/settings.local.json
+.claude/plans/
+.claude/todos.json
+
+# OS
+Thumbs.db
+.DS_Store
+*.swp
+*~
+nul
+
+# IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
