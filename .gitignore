@@ -16,6 +16,8 @@ data_*/
 mono_crash.*.json
 *.sln
 *.csproj
+# Exception: test project .csproj files are manually maintained
+!tests/**/*.csproj
 
 # .NET build artifacts
 bin/

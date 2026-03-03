@@ -48,6 +48,8 @@ Implemented the foundational data model layer for the inventory tetris system. T
 | `81221c5` | Add reagent system: Rarity, ShapeUtil, ReagentDefinition, Reagent |
 | `eb4911b` | Add MetaGrid: master grid for bags and reagents |
 | `7c2bbc4` | Add minimal main scene and set as project entry point |
+| `4ce9ce0` | Add agent workflow docs, CLAUDE.md, and session worklog |
+| `9925837` | Add xUnit test project for Core with initial tests |
 
 ## Known Issues
 
@@ -55,12 +57,12 @@ Implemented the foundational data model layer for the inventory tetris system. T
 - Static factory methods on BagDefinition/ReagentDefinition create new instances per call — not cached.
 - `ShapeUtil.Rotate` creates intermediate arrays for multi-step rotations. Optimize if profiling shows it matters.
 - Code has not been compiled or tested yet — needs build verification and unit tests.
+- Test project depends on Godot-generated `.csproj` existing before `dotnet test` works.
 
 ## Next Steps
 
 - [ ] Verify build compiles (`dotnet build` after Godot generates .csproj)
-- [ ] Set up xUnit test project for `src/Core/`
-- [ ] Write unit tests for Vector2I, ShapeUtil, AspectSet, MetaGrid placement logic
+- [ ] Run and verify xUnit tests pass
 - [ ] Implement reaction rules and chemistry engine (`src/Core/Chemistry/`)
 - [ ] Wire up basic UI to visualize grid placement
 - [ ] Set up GdUnit4 for Godot integration testing (when UI exists)
