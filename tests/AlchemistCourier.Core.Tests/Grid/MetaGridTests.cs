@@ -147,7 +147,7 @@ public class MetaGridTests
         var bag = new Bag(BagDefinition.SmallPouch);
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
-        var reagent = new Reagent(ReagentDefinition.SingleCell());
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
         Assert.True(grid.PlaceReagent(reagent, new Vector2I(1, 1)));
         Assert.Single(grid.PlacedReagents);
         Assert.True(reagent.IsPlaced);
@@ -160,7 +160,7 @@ public class MetaGridTests
         var bag = new Bag(BagDefinition.SmallPouch);
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
-        var reagent = new Reagent(ReagentDefinition.SingleCell());
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
         // Position (5,5) is not in any bag
         Assert.False(grid.PlaceReagent(reagent, new Vector2I(5, 5)));
     }
@@ -172,8 +172,8 @@ public class MetaGridTests
         var bag = new Bag(BagDefinition.SmallPouch);
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
-        var r1 = new Reagent(ReagentDefinition.SingleCell());
-        var r2 = new Reagent(ReagentDefinition.SingleCell());
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
         Assert.True(grid.PlaceReagent(r1, new Vector2I(1, 1)));
         // Same cell, should fail
         Assert.False(grid.PlaceReagent(r2, new Vector2I(1, 1)));
@@ -186,7 +186,7 @@ public class MetaGridTests
         var bag = new Bag(BagDefinition.SmallPouch);
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
-        var reagent = new Reagent(ReagentDefinition.SingleCell());
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
         grid.PlaceReagent(reagent, new Vector2I(1, 1));
         Assert.True(grid.RemoveReagent(reagent));
 
@@ -203,7 +203,7 @@ public class MetaGridTests
         var bag = new Bag(BagDefinition.SmallPouch);
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
-        var reagent = new Reagent(ReagentDefinition.SingleCell());
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
         grid.PlaceReagent(reagent, new Vector2I(1, 1));
 
         var bags = grid.GetBagsForReagent(reagent);
@@ -222,7 +222,7 @@ public class MetaGridTests
 
         // A domino reagent placed at (2,0) would occupy (2,0) and (3,0)
         // (2,0) is in bag1, (3,0) is in bag2
-        var reagent = new Reagent(ReagentDefinition.Domino());
+        var reagent = new Reagent(ReagentDefinition.Domino);
         Assert.True(grid.PlaceReagent(reagent, new Vector2I(2, 0)));
 
         var bags = grid.GetBagsForReagent(reagent);

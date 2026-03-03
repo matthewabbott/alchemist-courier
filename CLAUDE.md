@@ -31,20 +31,29 @@ tests/        — xUnit test projects
 
 ## Build & Test
 ```bash
-# Bootstrap (generates .csproj/.sln if they don't exist):
-# Open project in Godot editor, OR:
-godot --headless --build-solutions --quit
+# Build main project (requires Alchemist-Courier.csproj to exist — see Bootstrap):
+dotnet build Alchemist-Courier.csproj
 
-# Build:
-dotnet build
-
-# Run Core unit tests:
+# Run Core unit tests (47 tests, ~36ms):
 dotnet test tests/AlchemistCourier.Core.Tests/
 ```
 
+### Bootstrap (first time / fresh clone only)
+The main `Alchemist-Courier.csproj` and `.sln` are gitignored (Godot generates them).
+If they don't exist, you need Godot to create them **once**:
+- Open the project in Godot editor and click Build, OR
+- `godot --headless --build-solutions --quit`
+
+After that, `dotnet build` and `dotnet test` work from CLI without Godot.
+
+### Godot .csproj note
+`Alchemist-Courier.csproj` has a `<Compile Remove="tests/**" />` to exclude test files.
+If Godot regenerates this file, you may need to re-add that exclusion and `<Nullable>enable</Nullable>`.
+
 ## Before Committing
+- Run `dotnet test tests/AlchemistCourier.Core.Tests/` — all tests must pass
 - Verify no Godot imports in `src/Core/` files
-- Run `dotnet build` to check compilation
+- Run `dotnet build Alchemist-Courier.csproj` to check compilation
 - Group commits logically by system (see branch history for examples)
 
 ## Session Workflow
