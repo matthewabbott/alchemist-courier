@@ -1,0 +1,58 @@
+using Godot;
+using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Reagents;
+
+namespace AlchemistCourier.Game.Inventory;
+
+public static class GridConstants
+{
+    public const int CellSize = 32;
+    public const int GridLineWidth = 1;
+    public const int BagBorderWidth = 2;
+
+    // Base colors
+    public static readonly Color EmptyCell = new(0.15f, 0.15f, 0.2f);
+    public static readonly Color BagCellEmpty = new(0.35f, 0.35f, 0.4f);
+    public static readonly Color BagBorderColor = new(0.6f, 0.6f, 0.65f);
+    public static readonly Color GridLineColor = new(0.25f, 0.25f, 0.3f);
+    public static readonly Color ValidPlacement = new(0.2f, 0.8f, 0.2f, 0.45f);
+    public static readonly Color InvalidPlacement = new(0.8f, 0.2f, 0.2f, 0.45f);
+
+    // Bag hue offsets — each placed bag gets a slightly different tint
+    private static readonly Color[] BagTints = new[]
+    {
+        new Color(0.38f, 0.36f, 0.42f), // slightly purple-gray
+        new Color(0.36f, 0.40f, 0.38f), // slightly green-gray
+        new Color(0.40f, 0.37f, 0.35f), // slightly warm gray
+        new Color(0.35f, 0.38f, 0.42f), // slightly blue-gray
+        new Color(0.40f, 0.35f, 0.40f), // slightly mauve
+    };
+
+    public static Color GetBagTint(int bagIndex)
+    {
+        return BagTints[bagIndex % BagTints.Length];
+    }
+
+    public static Color GetAspectColor(string aspectId) => aspectId switch
+    {
+        "hot"       => new Color(0.9f, 0.25f, 0.15f),
+        "cold"      => new Color(0.2f, 0.45f, 0.9f),
+        "volatile"  => new Color(0.95f, 0.6f, 0.15f),
+        "toxic"     => new Color(0.2f, 0.75f, 0.25f),
+        "fragile"   => new Color(0.7f, 0.7f, 0.9f),
+        "heavy"     => new Color(0.5f, 0.4f, 0.3f),
+        "sharp"     => new Color(0.8f, 0.8f, 0.8f),
+        "medicinal" => new Color(0.9f, 0.5f, 0.7f),
+        "stable"    => new Color(0.6f, 0.6f, 0.6f),
+        "catalytic" => new Color(0.9f, 0.85f, 0.2f),
+        _           => new Color(0.7f, 0.7f, 0.7f),
+    };
+
+    public static Color GetDominantColor(Reagent reagent, Core.Grid.Vector2I localPos)
+    {
+        var aspects = reagent.GetAspectsAtLocalPosition(localPos);
+        if (aspects.IsEmpty)
+            return new Color(0.6f, 0.55f, 0.5f); // neutral tan
+        return GetAspectColor(aspects.Aspects[0].Id);
+    }
+}
