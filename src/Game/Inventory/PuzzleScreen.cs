@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Grid;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Game.Inventory;
@@ -82,6 +83,7 @@ public partial class PuzzleScreen : Control
         var gridCenter = new CenterContainer();
         _gridView = new MetaGridView();
         _gridView.Initialize(_metaGrid);
+        _gridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
         gridCenter.AddChild(_gridView);
         hbox.AddChild(gridCenter);
 

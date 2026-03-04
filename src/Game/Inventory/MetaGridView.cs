@@ -3,10 +3,26 @@ using System.Linq;
 using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Bags;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Inventory;
+
+/// <summary>
+/// Classification of how safe a prospective placement is.
+/// </summary>
+public enum PlacementWarningLevel
+{
+    /// <summary>Placement is valid, no reactions triggered, reagent has no reactive aspects.</summary>
+    Safe,
+    /// <summary>Placement is valid, no reactions triggered, but reagent has reactive aspects.</summary>
+    Warning,
+    /// <summary>Placement is valid but would trigger negative reactions.</summary>
+    Danger,
+    /// <summary>Placement is invalid (out of bounds, occupied, no bag).</summary>
+    Invalid,
+}
 
 public partial class MetaGridView : Control
 {
@@ -23,6 +39,11 @@ public partial class MetaGridView : Control
 
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
+
+    // Chemistry warning state
+    private List<ReactionRule>? _reactionRules;
+    private HashSet<string>? _reactiveAspectIds;
+    private PlacementWarningLevel _currentWarningLevel;
 
     // Interaction state
     private Reagent? _selectedReagent;
@@ -49,6 +70,26 @@ public partial class MetaGridView : Control
         CreateCellNodes();
         CreateGridLines();
         RefreshDisplay();
+    }
+
+    public void SetReactionRules(List<ReactionRule> rules)
+    {
+        _reactionRules = rules;
+        _reactiveAspectIds = new HashSet<string>();
+        foreach (var rule in rules)
+            foreach (var id in rule.TriggerAspects)
+                _reactiveAspectIds.Add(id);
+    }
+
+    /// <summary>Current warning level of the ghost preview.</summary>
+    public PlacementWarningLevel CurrentWarningLevel => _currentWarningLevel;
+
+    /// <summary>Programmatically set hover position (for testing).</summary>
+    public void SetHoverPosition(CoreVec position)
+    {
+        _hoverGridPos = position;
+        _mouseInsideGrid = true;
+        UpdateGhostPreview();
     }
 
     private void CreateCellNodes()
@@ -332,11 +373,44 @@ public partial class MetaGridView : Control
     private void UpdateGhostPreview()
     {
         ClearGhost();
+        _currentWarningLevel = PlacementWarningLevel.Invalid;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
         var positions = _selectedReagent.GetMetaGridPositions(_hoverGridPos.Value);
         _isPlacementValid = _metaGrid.CanPlaceReagent(_selectedReagent, _hoverGridPos.Value);
-        var ghostColor = _isPlacementValid ? GridConstants.ValidPlacement : GridConstants.InvalidPlacement;
+
+        Color ghostColor;
+        if (!_isPlacementValid)
+        {
+            _currentWarningLevel = PlacementWarningLevel.Invalid;
+            ghostColor = GridConstants.InvalidPlacement;
+        }
+        else if (_reactionRules != null && _reactionRules.Count > 0)
+        {
+            var reactions = ChemistryEngine.EvaluateProspective(
+                _metaGrid, _selectedReagent, _hoverGridPos.Value, _reactionRules);
+
+            if (reactions.Count > 0)
+            {
+                _currentWarningLevel = PlacementWarningLevel.Danger;
+                ghostColor = GridConstants.InvalidPlacement;
+            }
+            else if (HasReactiveAspects(_selectedReagent))
+            {
+                _currentWarningLevel = PlacementWarningLevel.Warning;
+                ghostColor = GridConstants.WarningPlacement;
+            }
+            else
+            {
+                _currentWarningLevel = PlacementWarningLevel.Safe;
+                ghostColor = GridConstants.ValidPlacement;
+            }
+        }
+        else
+        {
+            _currentWarningLevel = PlacementWarningLevel.Safe;
+            ghostColor = GridConstants.ValidPlacement;
+        }
 
         foreach (var pos in positions)
         {
@@ -352,6 +426,22 @@ public partial class MetaGridView : Control
             AddChild(ghost);
             _ghostCells.Add(ghost);
         }
+    }
+
+    private bool HasReactiveAspects(Reagent reagent)
+    {
+        if (_reactiveAspectIds == null || _reactiveAspectIds.Count == 0) return false;
+
+        foreach (var localPos in reagent.GetLocalCellPositions())
+        {
+            var aspects = reagent.GetAspectsAtLocalPosition(localPos);
+            foreach (var aspect in aspects.Aspects)
+            {
+                if (_reactiveAspectIds.Contains(aspect.Id))
+                    return true;
+            }
+        }
+        return false;
     }
 
     private void ClearGhost()

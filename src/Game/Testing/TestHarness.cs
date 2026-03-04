@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using AlchemistCourier.Game.Inventory;
+using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Testing;
 
@@ -55,6 +56,7 @@ public partial class TestHarness : Control
         await Test_InvalidPlacement();
         await Test_PlacePoisonFang();
         await Test_RemoveReagent();
+        await Test_PlacementWarnings();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -146,6 +148,54 @@ public partial class TestHarness : Control
         EndTest("remove_reagent", pass);
     }
 
+    private async Task Test_PlacementWarnings()
+    {
+        BeginTest("placement_warnings");
+
+        // Clean up state from prior tests: remove all placed reagents
+        while (_puzzleScreen.Grid.PlacedReagents.Count > 0)
+        {
+            var r = _puzzleScreen.Grid.PlacedReagents[0];
+            var pos = r.PlacedPosition!.Value;
+            _puzzleScreen.RemoveReagentAt(pos.Col, pos.Row);
+        }
+
+        // Place Blast Jelly (volatile+hot, index 3) in the Satchel
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);
+        PrintState();
+
+        // DANGER: Select Fire Pebble (hot, index 0), hover adjacent to Blast Jelly
+        // Fire Pebble at (3,1) is adjacent to Blast Jelly cell at (4,1) — Hot near Volatile = Explosion
+        _puzzleScreen.SelectReagent(0);
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(3, 1));
+        await CaptureScreenshot("08_warning_danger.png");
+        var dangerLevel = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] warning_level={dangerLevel} (expected=Danger)");
+
+        // WARNING: Move Fire Pebble hover to (1,1) — far from Blast Jelly, no reactions,
+        // but Fire Pebble has "hot" aspect which participates in reaction rules
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(1, 1));
+        await CaptureScreenshot("09_warning_caution.png");
+        var warningLevel = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] warning_level={warningLevel} (expected=Warning)");
+
+        // SAFE: Select Inert Crystal (stable, index 4) — no reactive aspects
+        _puzzleScreen.CancelSelection();
+        _puzzleScreen.SelectReagent(4);
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(1, 1));
+        await CaptureScreenshot("10_warning_safe.png");
+        var safeLevel = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] warning_level={safeLevel} (expected=Safe)");
+
+        _puzzleScreen.CancelSelection();
+
+        bool pass = dangerLevel == PlacementWarningLevel.Danger
+                 && warningLevel == PlacementWarningLevel.Warning
+                 && safeLevel == PlacementWarningLevel.Safe;
+        EndTest("placement_warnings", pass, pass ? null
+            : $"danger={dangerLevel} warning={warningLevel} safe={safeLevel}");
+    }
+
     private async Task Test_RenderFinal()
     {
         BeginTest("render_final");
@@ -162,7 +212,7 @@ public partial class TestHarness : Control
         Log($"\n[TEST] {name}");
     }
 
-    private void EndTest(string name, bool pass)
+    private void EndTest(string name, bool pass, string? reason = null)
     {
         if (pass)
         {
@@ -172,7 +222,8 @@ public partial class TestHarness : Control
         else
         {
             _failed++;
-            Log($"[FAIL] {name}");
+            var msg = reason != null ? $"[FAIL] {name}: {reason}" : $"[FAIL] {name}";
+            Log(msg);
         }
     }
 

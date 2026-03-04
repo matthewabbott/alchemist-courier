@@ -16,6 +16,7 @@ public static class GridConstants
     public static readonly Color BagBorderColor = new(0.6f, 0.6f, 0.65f);
     public static readonly Color GridLineColor = new(0.25f, 0.25f, 0.3f);
     public static readonly Color ValidPlacement = new(0.2f, 0.8f, 0.2f, 0.45f);
+    public static readonly Color WarningPlacement = new(0.95f, 0.75f, 0.1f, 0.45f);
     public static readonly Color InvalidPlacement = new(0.8f, 0.2f, 0.2f, 0.45f);
 
     // Bag hue offsets — each placed bag gets a slightly different tint
