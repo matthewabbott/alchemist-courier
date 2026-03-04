@@ -119,7 +119,7 @@ public static class PuzzleSolver
                 var set = new AspectSet();
                 foreach (var id in cellAspects)
                 {
-                    set.Add(CreateAspect(id));
+                    set.Add(Aspect.FromId(id));
                 }
                 aspects.Add(set);
             }
@@ -130,14 +130,4 @@ public static class PuzzleSolver
         return reagents;
     }
 
-    private static Aspect CreateAspect(string id) => id switch
-    {
-        "hot" => Aspect.Hot(),
-        "cold" => Aspect.Cold(),
-        "volatile" => Aspect.Volatile(),
-        "fragile" => Aspect.Fragile(),
-        "toxic" => Aspect.Toxic(),
-        "sharp" => Aspect.Sharp(),
-        _ => new Aspect(id, id, SchoolType.Physical),
-    };
 }

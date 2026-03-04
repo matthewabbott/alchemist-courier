@@ -51,4 +51,23 @@ public class Aspect : IEquatable<Aspect>
     public static Aspect Medicinal(int magnitude = 1) => new("medicinal", "Medicinal", SchoolType.Physical, magnitude);
     public static Aspect Stable(int magnitude = 1) => new("stable", "Stable", SchoolType.Physical, magnitude);
     public static Aspect Catalytic(int magnitude = 1) => new("catalytic", "Catalytic", SchoolType.Physical, magnitude);
+
+    /// <summary>
+    /// Creates an Aspect from its string ID (e.g., "hot", "cold", "volatile").
+    /// Falls back to a generic Physical aspect for unknown IDs.
+    /// </summary>
+    public static Aspect FromId(string id) => id switch
+    {
+        "hot" => Hot(),
+        "cold" => Cold(),
+        "volatile" => Volatile(),
+        "fragile" => Fragile(),
+        "toxic" => Toxic(),
+        "sharp" => Sharp(),
+        "heavy" => Heavy(),
+        "medicinal" => Medicinal(),
+        "stable" => Stable(),
+        "catalytic" => Catalytic(),
+        _ => new Aspect(id, id, SchoolType.Physical),
+    };
 }

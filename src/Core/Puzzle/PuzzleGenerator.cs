@@ -270,7 +270,7 @@ public class PuzzleGenerator
                     if (rng.NextFloat() < 0.7f && chosenAspects.Count > 0)
                     {
                         var aspectId = chosenAspects[rng.Next(chosenAspects.Count)];
-                        var aspect = CreateAspect(aspectId);
+                        var aspect = Aspect.FromId(aspectId);
                         cellAspects.Add(new AspectSet(aspect));
                     }
                     else
@@ -292,17 +292,6 @@ public class PuzzleGenerator
         rng.Shuffle(available);
         return available.Take(Math.Min(count, available.Count)).ToList();
     }
-
-    private static Aspect CreateAspect(string id) => id switch
-    {
-        "hot" => Aspect.Hot(),
-        "cold" => Aspect.Cold(),
-        "volatile" => Aspect.Volatile(),
-        "fragile" => Aspect.Fragile(),
-        "toxic" => Aspect.Toxic(),
-        "sharp" => Aspect.Sharp(),
-        _ => new Aspect(id, id, SchoolType.Physical),
-    };
 
     private (MetaGrid? grid, List<Vector2I> positions) BuildMetaGridWithBags(
         SeededRandom rng, List<bool[,]> bagShapes)
