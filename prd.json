@@ -30,7 +30,7 @@
       "phase": "core-chemistry",
       "depends_on": ["1.2"],
       "verification": "dotnet test — rule database tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "1.4",
