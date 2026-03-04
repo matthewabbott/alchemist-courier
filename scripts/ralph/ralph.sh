@@ -167,9 +167,19 @@ while [ $ITER -lt $MAX_ITER ]; do
     else
         # Run Claude Code with the selected prompt, logging output
         echo "[RALPH] Starting Claude Code ($ROLE)..."
-        echo "[RALPH] Tail the log: tail -f $ITER_LOG"
         CLAUDE_EXIT=0
-        $WINPTY claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || CLAUDE_EXIT=$?
+        if [ -n "$WINPTY" ]; then
+            # winpty can't be piped through tee (strips the tty).
+            # Redirect to log file; user can tail -f from another terminal.
+            echo "[RALPH] Tail the log: tail -f \"$ITER_LOG\""
+            $WINPTY claude -p "$(cat "$PROMPT_FILE")" --output-format text >"$ITER_LOG" 2>&1 || CLAUDE_EXIT=$?
+            echo "[RALPH] ── Claude output (last 20 lines) ──"
+            tail -20 "$ITER_LOG"
+            echo "[RALPH] ── end ──"
+        else
+            echo "[RALPH] Tail the log: tail -f $ITER_LOG"
+            claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || CLAUDE_EXIT=$?
+        fi
 
         LOG_LINES=$(wc -l < "$ITER_LOG" 2>/dev/null | tr -d '[:space:]')
         echo "[RALPH] Log saved: $ITER_LOG ($LOG_LINES lines)"
