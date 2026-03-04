@@ -93,6 +93,27 @@
       "status": "done"
     },
     {
+      "id": "R-1",
+      "title": "Implement Stable aspect buffering mechanic",
+      "description": "The MVP spec lists Stable as a minimum aspect, but it's missing from PuzzleGenerator.MvpAspects and has no ChemistryEngine support. Three changes needed: (1) Add 'stable' to PuzzleGenerator.MvpAspects array. (2) Add threshold-raising logic to ChemistryEngine — when evaluating a reaction rule, check if any Stable cell is adjacent to the involved cells; if so, increase the effective threshold by the Stable magnitude. (3) Add unit tests: Stable adjacent to Hot+Volatile pair should suppress Explosion (threshold raised above 0), Stable not adjacent should not suppress, multiple Stable cells should stack. Without this, the core buffering mechanic is absent and puzzles lack strategic depth.",
+      "priority": 0,
+      "phase": "core-chemistry",
+      "depends_on": ["1.4"],
+      "verification": "dotnet test — Stable buffering tests pass, PuzzleGenerator can produce puzzles with Stable reagents",
+      "status": "pending"
+    },
+    {
+      "id": "R-2",
+      "title": "Extract shared CreateAspect to Aspect.FromId",
+      "description": "CreateAspect(string id) switch expression is duplicated in PuzzleGenerator.cs:296, PuzzleSolver.cs:133, and PuzzleGeneratorTests.cs:287. Extract to a public static Aspect.FromId(string id) method on the Aspect class (src/Core/Chemistry/Aspect.cs). Update all three call sites to use it. Add a unit test for Aspect.FromId covering known IDs and the fallback case.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet test — all 149 tests pass, no duplicate CreateAspect methods remain",
+      "status": "pending",
+      "source": "code-review-2026-03-03b"
+    },
+    {
       "id": "3.1",
       "title": "Add placement warnings to MetaGridView",
       "description": "Modify src/Game/Inventory/MetaGridView.cs ghost preview to use ChemistryEngine.EvaluateProspective. Currently ghost cells are a single color. Change to: green (safe — no reactions), yellow (warning — reaction exists but within threshold), red (danger — explosion, breakage, or exceeds threshold). Requires passing reaction rules to MetaGridView. Update ghost cell coloring in UpdateGhostPreview(). Add a test to TestHarness that places a reagent near a dangerous one and screenshots the warning colors.",
