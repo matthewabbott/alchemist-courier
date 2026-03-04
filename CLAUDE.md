@@ -21,6 +21,9 @@ resources/    — Godot .tres resource files
 docs/         — Design documentation
 docs/worklog/ — Session worklogs (see docs/agent-workflow.md)
 tests/        — xUnit test projects
+scripts/ralph/ — Ralph loop tooling (autonomous agent)
+prd.json       — MVP task list for Ralph loop
+progress.md    — Ralph loop learnings log
 ```
 
 ## Critical Conventions
@@ -91,6 +94,26 @@ Read tool on test_output/*.png files
 3. Run test harness scene → parse stdout → read screenshots
 4. If failures: fix code, rebuild, re-run harness
 5. Repeat until all tests pass
+
+## Ralph Loop (Autonomous Agent)
+
+For overnight autonomous development, a Ralph loop runs Claude Code repeatedly, one PRD task per iteration.
+
+```bash
+# Run the loop (from project root):
+./scripts/ralph/ralph.sh         # Default 20 iterations
+./scripts/ralph/ralph.sh 50      # 50 iterations max
+./scripts/ralph/ralph.sh 5 --dry # Dry run (preview only)
+```
+
+### Key files
+- `prd.json` — Prioritized task list. Agent picks next `"pending"` task with satisfied dependencies.
+- `scripts/ralph/PROMPT.md` — The prompt fed to Claude Code each iteration
+- `scripts/ralph/ralph.sh` — The bash loop script
+- `progress.md` — Append-only log of completed tasks and learnings
+
+### How it works
+Each iteration: read PRD → pick task → implement → `dotnet build` + `dotnet test` → commit → mark done → exit. Fresh context each iteration. Progress persists in git + `prd.json` + `progress.md`.
 
 ## Key Design Docs
 - `docs/architecture.md` — Data models, project structure, technical decisions
