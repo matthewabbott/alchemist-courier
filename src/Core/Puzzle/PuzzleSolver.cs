@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AlchemistCourier.Core.Bags;
@@ -95,12 +96,27 @@ public static class PuzzleSolver
         {
             var puzzleBag = state.Bags[i];
             var shape = puzzleBag.ToShapeMatrix();
-            var def = new BagDefinition($"bag_{i}", $"Bag {i}", shape);
+            var properties = ParseBagProperties(puzzleBag.Properties);
+            var def = new BagDefinition($"bag_{i}", $"Bag {i}", shape, properties);
             var bag = new Bag(def);
             grid.PlaceBag(bag, new Vector2I(puzzleBag.PositionCol, puzzleBag.PositionRow));
         }
 
         return grid;
+    }
+
+    /// <summary>
+    /// Parse bag property strings back to BagPropertyType enum values.
+    /// </summary>
+    private static List<BagPropertyType> ParseBagProperties(List<string> propertyStrings)
+    {
+        var properties = new List<BagPropertyType>();
+        foreach (var s in propertyStrings)
+        {
+            if (Enum.TryParse<BagPropertyType>(s, out var prop))
+                properties.Add(prop);
+        }
+        return properties;
     }
 
     /// <summary>

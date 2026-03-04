@@ -121,7 +121,7 @@
       "phase": "review-fix",
       "depends_on": ["1.4"],
       "verification": "dotnet test -- Null suppression tests pass, existing tests still pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R-4",
@@ -131,7 +131,7 @@
       "phase": "review-fix",
       "depends_on": ["2.3"],
       "verification": "dotnet test -- all tests pass, MvpAspects contains exactly { hot, cold, volatile, stable, heavy, toxic }",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R-5",
@@ -141,7 +141,7 @@
       "phase": "review-fix",
       "depends_on": ["R-1"],
       "verification": "dotnet test -- all existing Stable tests still pass, new boundary tests pass, consistent behavior across tiers",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "3.1",
@@ -191,7 +191,7 @@
       "phase": "bag-mechanics",
       "depends_on": ["2.3"],
       "verification": "dotnet test -- gravity bag placement tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "B.2",

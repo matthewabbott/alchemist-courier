@@ -253,7 +253,13 @@ public class PuzzleGeneratorTests
         foreach (var puzzleBag in puzzle.Bags)
         {
             var shape = puzzleBag.ToShapeMatrix();
-            var def = new BagDefinition("bag", "Bag", shape);
+            var properties = new List<BagPropertyType>();
+            foreach (var s in puzzleBag.Properties)
+            {
+                if (System.Enum.TryParse<BagPropertyType>(s, out var prop))
+                    properties.Add(prop);
+            }
+            var def = new BagDefinition("bag", "Bag", shape, properties);
             var bag = new Bag(def);
             grid.PlaceBag(bag, new Vector2I(puzzleBag.PositionCol, puzzleBag.PositionRow));
         }

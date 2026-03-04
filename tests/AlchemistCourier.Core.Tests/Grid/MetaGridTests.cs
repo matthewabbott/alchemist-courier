@@ -404,4 +404,163 @@ public class MetaGridTests
         Assert.Single(adjacent);
         Assert.Same(r2, adjacent[0]);
     }
+
+    // --- Gravity Bag Constraints ---
+
+    private static BagDefinition CreateGravityBagDef(int rows, int cols)
+    {
+        var shape = new bool[rows, cols];
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                shape[r, c] = true;
+        return new BagDefinition("gravity_bag", "Gravity Bag", shape,
+            new[] { BagPropertyType.Gravity });
+    }
+
+    [Fact]
+    public void Gravity_PlaceAtBottomRow_Succeeds()
+    {
+        // 3x3 Gravity bag at (0,0). Bottom row is row 2.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        // Place at (1, 2) — bottom row of the bag
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void Gravity_PlaceFloatingMidBag_Fails()
+    {
+        // 3x3 Gravity bag at (0,0). Place at row 0 (top) with nothing below.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        // Place at (1, 0) — top row, no support
+        Assert.False(grid.CanPlaceReagent(reagent, new Vector2I(1, 0)));
+    }
+
+    [Fact]
+    public void Gravity_PlaceStackedOnExistingReagent_Succeeds()
+    {
+        // 3x3 Gravity bag at (0,0).
+        // Place one reagent at bottom (1,2), then another at (1,1) above it.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(r1, new Vector2I(1, 2))); // bottom
+        Assert.True(grid.CanPlaceReagent(r2, new Vector2I(1, 1))); // supported by r1
+    }
+
+    [Fact]
+    public void Gravity_NormalBagAllowsFloating()
+    {
+        // Normal (non-gravity) bag should allow placement anywhere.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch); // no Gravity property
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        // Place at (1, 0) — top row, no support, but bag is not Gravity
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(1, 0)));
+    }
+
+    [Fact]
+    public void Gravity_MultiCellReagent_SelfSupport_Succeeds()
+    {
+        // Vertical domino in a 3x3 Gravity bag.
+        // Place at (1, 1): occupies (1,1) and (1,2).
+        // (1,2) is bottom row — supported.
+        // (1,1) has (1,2) part of the same reagent below — self-supported.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var vertDomino = new bool[,] { { true }, { true } }; // 2 rows, 1 col
+        var def = new ReagentDefinition("vdom", "Vertical Domino", vertDomino);
+        var reagent = new Reagent(def);
+        // Place at (1, 1): cells at (1,1) and (1,2)
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void Gravity_MultiCellReagent_PartiallyUnsupported_Fails()
+    {
+        // Horizontal domino in a 3x3 Gravity bag at row 0 (top).
+        // Occupies (0,0) and (1,0). Neither is at the bottom, neither has support.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.Domino); // horizontal: (0,0) and (1,0)
+        // Place at (0, 0) — top row, floating
+        Assert.False(grid.CanPlaceReagent(reagent, new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void Gravity_LShapedBag_BottomDetectionWorks()
+    {
+        // L-shaped gravity bag:
+        //   [true, false]
+        //   [true, false]
+        //   [true, true ]
+        // Bag placed at (0,0).
+        // Column 0 bottom is row 2. Column 1 bottom is row 2 (only cell).
+        // Place at (0,2) — bottom of column 0 — should succeed.
+        // Place at (0,0) — top of column 0, no support — should fail.
+        var lShape = new bool[,]
+        {
+            { true, false },
+            { true, false },
+            { true, true  },
+        };
+        var lDef = new BagDefinition("l_grav", "L-Gravity", lShape,
+            new[] { BagPropertyType.Gravity });
+
+        var grid = CreateGrid();
+        var bag = new Bag(lDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(r1, new Vector2I(0, 2))); // bottom of col 0
+
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.False(grid.CanPlaceReagent(r2, new Vector2I(0, 0))); // floating in col 0
+
+        // Place at (1,2) — this is the only cell in column 1, and it's at the bottom
+        var r3 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(r3, new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void Gravity_StackingChain_Succeeds()
+    {
+        // 4x1 Gravity bag (4 rows, 1 col). Place reagents bottom-up.
+        var shape = new bool[,] { { true }, { true }, { true }, { true } };
+        var gravDef = new BagDefinition("tall_grav", "Tall Gravity", shape,
+            new[] { BagPropertyType.Gravity });
+
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        var r3 = new Reagent(ReagentDefinition.SingleCell);
+
+        Assert.True(grid.PlaceReagent(r1, new Vector2I(0, 3))); // bottom
+        Assert.True(grid.PlaceReagent(r2, new Vector2I(0, 2))); // on r1
+        Assert.True(grid.PlaceReagent(r3, new Vector2I(0, 1))); // on r2
+
+        // But placing at (0,0) without r3 below it would fail — r3 is at (0,1),
+        // so (0,0) IS supported by r3.
+        var r4 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(r4, new Vector2I(0, 0))); // on r3
+    }
 }

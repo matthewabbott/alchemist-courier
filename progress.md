@@ -99,7 +99,32 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: 1579136
 - Notes: Created ObjectivePanel (VBoxContainer) with header label "OBJECTIVE:" and objective text driven by PuzzleType enum. Three texts: FitAllSafely ("Place all reagents without triggering reactions."), MaximizeValue ("Place the highest total value..."), MeetRequirement ("Meet the requirement..."). Wired into PuzzleScreen below the reagent tray in a right-column VBoxContainer layout. Defaults to FitAllSafely for the current DemoPuzzle. Added SetPuzzleType() for dynamic updates and public ObjectiveText accessor for testing. Integration test in TestHarness verifies default text matches FitAllSafely, verifies SetPuzzleType updates text correctly. Build succeeds, all 168 unit tests pass.
 
+## R-3 — Implement Null bag aspect suppression in ChemistryEngine
+- Date: 2026-03-04
+- Commit: 18b9332
+- Notes: Added per-cell aspect suppression for Null bags. Two new helpers in ChemistryEngine: IsAspectSuppressed(grid, pos) checks if a cell's bag has BagPropertyType.Null, and ReagentHasUnsuppressedAspect(grid, reagent, aspectId) checks only non-Null cells. Integrated into all three tiers: Adjacent (skip suppressed cells), SameBag (skip Null bags entirely, use suppression-aware checks for spanning reagents), WholeInventory (skip suppressed cells in cumulative sums). Also suppresses Stable buffering from Null bag cells. Leveraged existing MetaGrid.GetBagAtCell(). 8 new tests covering adjacent suppression, spanning reagent partial suppression, SameBag/WholeInventory suppression, Stable suppression, and mixed-bag cumulative skip. All 176 tests pass (168 existing + 8 new).
+
 ## 3.4 — Add confirm and reset buttons
 - Date: 2026-03-04
 - Commit: b769d84
 - Notes: Added Reset and Confirm buttons to PuzzleScreen in a centered HBoxContainer button bar between the status bar and status label. Reset removes all placed reagents, resets rotations, and clears selection. Confirm checks if all reagents are placed (placeholder — task 4.1 adds full chemistry evaluation). Added ConfirmResult enum (None/NotAllPlaced/Win) and LastConfirmResult property for programmatic inspection. ResetPuzzle() also clears LastConfirmResult back to None. Integration test in TestHarness covers: place 2 reagents → confirm early (NotAllPlaced) → reset (verify 0 placed, 6 unplaced, result None) → place all 6 → confirm (Win). Build succeeds, all 168 unit tests pass.
+
+## R-4 — Fix PuzzleGenerator.MvpAspects to match Simple complexity tier
+- Date: 2026-03-04
+- Commit: f159dd3
+- Notes: Replaced MvpAspects from { hot, cold, volatile, fragile, toxic, sharp, stable } to { hot, cold, volatile, stable, heavy, toxic }. Sharp and Fragile are Intermediate-tier aspects per docs/chemistry-system.md; Heavy is Simple-tier but was missing. No test changes needed — puzzle generation tests are seed-deterministic but don't assert specific aspect names, and the Breakage rule tests (Sharp+Fragile) test the ReactionRuleDatabase directly, not MvpAspects. All 176 tests pass.
+
+## R-5 — Normalize Stable buffering pattern across all ChemistryEngine tiers
+- Date: 2026-03-04
+- Commit: 3e35cf1
+- Notes: Replaced binary skip pattern (`stableBuffer > rule.Threshold`) in Adjacent and SameBag distinct-pair tiers with the additive `effectiveThreshold = rule.Threshold + stableBuffer` pattern already used by WholeInventory and SameBag same-aspect tiers. All three tiers now consistently compute effectiveThreshold before deciding whether to suppress. For pair rules (threshold=0), behavior is unchanged: any adjacent stable magnitude suppresses the pair reaction. Added 6 boundary tests: stableBuffer=0 no-effect for Adjacent and SameBag, stable suppresses SameBag neutralization, stable equal to cumulative count prevents poisoning, and exact magnitude boundary tests (5 Hot + Stable(1) at threshold=4 still fires at effectiveThreshold=5, but 4 Hot + Stable(1) is suppressed). All 182 tests pass (176 existing + 6 new).
+
+## Code Review — 2026-03-04 (b)
+- Reviewed commits: 18b9332..3e35cf1 (R-3, R-4, R-5)
+- Findings: 2 (P0: 0, P1: 1, P2: 0)
+- Fixed: 2, Tasks created: 0
+
+## B.1 — Implement Gravity bag type
+- Date: 2026-03-04
+- Commit: 9ee9109
+- Notes: Added gravity placement validation to MetaGrid.CanPlaceReagent() via IsGravityValid() helper. In Gravity bags, each reagent cell must be supported: either at the bag's bottom for its column (cell below is not in the same bag), or resting on an already-placed reagent, or self-supported by another cell of the same reagent. Uses lazy HashSet allocation for the self-support check. Updated PuzzleGenerator to assign Gravity property to ~30% of bags when AllowSpecialBags is true, via new AssignBagProperties() method. Bag properties now flow through the full pipeline: PuzzleGenerator → PuzzleBag.Properties (serialized as strings) → PuzzleSolver.ReconstructGrid (parsed back via Enum.TryParse). Also updated PuzzleGeneratorTests.ReconstructGrid helper to parse properties. 8 new tests covering: bottom row placement, floating rejection, stacked placement, normal bag allows floating, multi-cell self-support, partially unsupported multi-cell rejection, L-shaped bag gravity, and stacking chain. All 190 tests pass (182 existing + 8 new).

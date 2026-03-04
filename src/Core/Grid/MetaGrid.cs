@@ -210,6 +210,7 @@ public class MetaGrid
     /// <summary>
     /// Check if a reagent can be placed at the given position with its current rotation.
     /// All target cells must be in-bounds, in a bag, not occupied, and not damaged.
+    /// In Gravity bags, each cell must be supported from below.
     /// Spanning across multiple bags IS allowed.
     /// </summary>
     public bool CanPlaceReagent(Reagent reagent, Vector2I position)
@@ -224,7 +225,53 @@ public class MetaGrid
             if (!cell.IsAvailable)
                 return false; // Not in bag, occupied, or damaged
         }
-        return positions.Count > 0; // Shape must have at least one cell
+        if (positions.Count == 0)
+            return false;
+
+        // Check gravity constraints for cells in Gravity bags
+        if (!IsGravityValid(positions))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Check if all positions in Gravity bags are supported from below.
+    /// A cell is supported if: (a) it is at the bottom of the bag for its column, or
+    /// (b) another reagent cell exists at (col, row+1) — either already placed or part of
+    /// the positions being checked (self-support within a multi-cell reagent).
+    /// </summary>
+    private bool IsGravityValid(List<Vector2I> positions)
+    {
+        HashSet<Vector2I>? positionSet = null;
+
+        foreach (var pos in positions)
+        {
+            var bag = GetBagAtCell(pos);
+            if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
+                continue;
+
+            var below = new Vector2I(pos.Col, pos.Row + 1);
+
+            // If the cell below is not part of this bag, we're at the bottom — supported
+            var belowBag = GetBagAtCell(below);
+            if (belowBag != bag)
+                continue;
+
+            // The cell below is in the same bag — check for support
+            var belowCell = GetCell(below);
+            if (belowCell != null && belowCell.IsOccupied)
+                continue; // Supported by an already-placed reagent
+
+            // Check if another cell of the reagent being placed provides support
+            positionSet ??= new HashSet<Vector2I>(positions);
+            if (positionSet.Contains(below))
+                continue; // Self-supported by another cell of this reagent
+
+            return false; // Unsupported — floating in a Gravity bag
+        }
+
+        return true;
     }
 
     /// <summary>

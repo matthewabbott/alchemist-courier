@@ -85,6 +85,9 @@ public class PuzzleGenerator
         var bagShapes = GenerateBagShapes(rng, difficulty);
         int totalBagCells = bagShapes.Sum(b => CellCount(b));
 
+        // Step 1b: Assign special properties to bags
+        var bagProperties = AssignBagProperties(rng, difficulty, bagShapes);
+
         // Step 2: Determine how many reagent cells we need
         int targetReagentCells = (int)(totalBagCells / (1f + difficulty.SpareSpacePercent));
         targetReagentCells = Math.Max(targetReagentCells, difficulty.ReagentCount);
@@ -98,7 +101,7 @@ public class PuzzleGenerator
             return null;
 
         // Step 4: Build the meta-grid and place bags
-        var (grid, bagPositions) = BuildMetaGridWithBags(rng, bagShapes);
+        var (grid, bagPositions) = BuildMetaGridWithBags(rng, bagShapes, bagProperties);
         if (grid == null)
             return null;
 
@@ -131,10 +134,12 @@ public class PuzzleGenerator
         state.Bags = new List<PuzzleBag>();
         for (int i = 0; i < bagShapes.Count; i++)
         {
+            var propStrings = bagProperties[i].Select(p => p.ToString()).ToList();
             state.Bags.Add(PuzzleBag.FromMatrix(
                 bagShapes[i],
                 bagPositions[i].Col,
-                bagPositions[i].Row));
+                bagPositions[i].Row,
+                propStrings));
         }
 
         state.Reagents = new List<PuzzleReagent>();
@@ -294,7 +299,7 @@ public class PuzzleGenerator
     }
 
     private (MetaGrid? grid, List<Vector2I> positions) BuildMetaGridWithBags(
-        SeededRandom rng, List<bool[,]> bagShapes)
+        SeededRandom rng, List<bool[,]> bagShapes, List<List<BagPropertyType>> bagProperties)
     {
         // Calculate meta-grid size: sum of bag widths + padding
         int totalWidth = bagShapes.Sum(b => b.GetLength(1)) + MetaGridPadding * (bagShapes.Count + 1);
@@ -315,7 +320,7 @@ public class PuzzleGenerator
             int row = (maxHeight - bagRows) / 2;
             var pos = new Vector2I(currentCol, row);
 
-            var def = new BagDefinition($"bag_{i}", $"Bag {i}", shape);
+            var def = new BagDefinition($"bag_{i}", $"Bag {i}", shape, bagProperties[i]);
             var bag = new Bag(def);
             if (!grid.PlaceBag(bag, pos))
                 return (null, positions);
@@ -394,6 +399,26 @@ public class PuzzleGenerator
             }
         }
         return candidates;
+    }
+
+    private static List<List<BagPropertyType>> AssignBagProperties(
+        SeededRandom rng, DifficultyParams difficulty, List<bool[,]> bagShapes)
+    {
+        var result = new List<List<BagPropertyType>>();
+        for (int i = 0; i < bagShapes.Count; i++)
+        {
+            var props = new List<BagPropertyType>();
+            if (difficulty.AllowSpecialBags)
+            {
+                // ~30% chance each bag is a Gravity bag
+                if (rng.NextFloat() < 0.3f)
+                {
+                    props.Add(BagPropertyType.Gravity);
+                }
+            }
+            result.Add(props);
+        }
+        return result;
     }
 
     private static int CellCount(bool[,] shape)
