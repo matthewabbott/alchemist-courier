@@ -50,7 +50,7 @@
       "phase": "core-chemistry",
       "depends_on": ["1.4"],
       "verification": "dotnet test — prospective evaluation tests pass, grid unchanged after call",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "2.1",
