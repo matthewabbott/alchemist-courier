@@ -16,6 +16,12 @@ public partial class PuzzleScreen : Control
     private ReagentTray _reagentTray = null!;
     private Label _statusLabel = null!;
 
+    // --- Public state inspection ---
+    public MetaGrid Grid => _metaGrid;
+    public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
+    public Reagent? SelectedReagent => _selectedReagent;
+    public MetaGridView GridView => _gridView;
+
     public override void _Ready()
     {
         // Fill the viewport
@@ -149,6 +155,52 @@ public partial class PuzzleScreen : Control
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
+    }
+
+    // --- Programmatic control (for testing, tutorials, AI) ---
+
+    public void SelectReagent(int index)
+    {
+        OnReagentSelected(index);
+    }
+
+    public bool PlaceSelectedAt(int col, int row)
+    {
+        if (_selectedReagent == null) return false;
+        var pos = new Core.Grid.Vector2I(col, row);
+        if (!_metaGrid.CanPlaceReagent(_selectedReagent, pos)) return false;
+        _metaGrid.PlaceReagent(_selectedReagent, pos);
+        OnReagentPlaced();
+        return true;
+    }
+
+    public void RotateSelected()
+    {
+        if (_selectedReagent == null) return;
+        _selectedReagent.RotateClockwise();
+        _gridView.SetSelectedReagent(_selectedReagent);
+    }
+
+    public void CancelSelection()
+    {
+        _selectedReagent = null;
+        _selectedIndex = -1;
+        _gridView.SetSelectedReagent(null);
+        _reagentTray.ClearSelection();
+        UpdateStatus("Cancelled.");
+    }
+
+    public bool RemoveReagentAt(int col, int row)
+    {
+        var pos = new Core.Grid.Vector2I(col, row);
+        var reagent = _metaGrid.GetReagentAtCell(pos);
+        if (reagent == null) return false;
+        _metaGrid.RemoveReagent(reagent);
+        reagent.Rotation = 0;
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        UpdateStatus($"Removed {reagent.Definition.Name}.");
+        return true;
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)

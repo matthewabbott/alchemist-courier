@@ -24,6 +24,9 @@ obj/
 .claude/plans/
 .claude/todos.json
 
+# Test output (screenshots from integration test harness)
+test_output/
+
 # OS
 Thumbs.db
 .DS_Store
