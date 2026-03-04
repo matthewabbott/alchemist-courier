@@ -299,6 +299,34 @@ public class PuzzleGeneratorTests
         }
     }
 
+    // --- Heavy in Gravity Bags ---
+
+    [Fact]
+    public void Generate_HeavyReagentsPlacedValidlyInGravityBags()
+    {
+        // Medium and Hard have AllowSpecialBags=true, which can produce Gravity bags.
+        // The generator should place Heavy reagents before non-Heavy, so Heavy ends up
+        // at the bottom. Verify the solution is valid by reconstructing and re-placing.
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        for (int seed = 1; seed <= 30; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            var grid = ReconstructGrid(puzzle);
+            var reagents = ReconstructReagents(puzzle);
+
+            // Re-place reagents in solution order — should all succeed including Heavy constraint
+            foreach (var placement in puzzle.Solution)
+            {
+                var reagent = reagents[placement.ReagentIndex];
+                reagent.Rotation = placement.Rotation;
+                var pos = new Vector2I(placement.PositionCol, placement.PositionRow);
+                bool placed = grid.PlaceReagent(reagent, pos);
+                Assert.True(placed, $"Seed {seed}: failed to place reagent {placement.ReagentIndex} at ({pos.Col},{pos.Row})");
+            }
+        }
+    }
+
     // --- Helper methods ---
 
     private static MetaGrid ReconstructGrid(PuzzleState puzzle)

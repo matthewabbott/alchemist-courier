@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Xunit;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Bags;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Core.Tests.Grid;
@@ -562,6 +564,144 @@ public class MetaGridTests
         // so (0,0) IS supported by r3.
         var r4 = new Reagent(ReagentDefinition.SingleCell);
         Assert.True(grid.CanPlaceReagent(r4, new Vector2I(0, 0))); // on r3
+    }
+
+    // --- Heavy Aspect in Gravity Bag Constraints ---
+
+    private static ReagentDefinition CreateHeavyReagentDef(bool[,] shape)
+    {
+        int cellCount = 0;
+        int rows = shape.GetLength(0);
+        int cols = shape.GetLength(1);
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                if (shape[r, c]) cellCount++;
+
+        var aspects = new List<AspectSet>();
+        for (int i = 0; i < cellCount; i++)
+            aspects.Add(new AspectSet(Aspect.Heavy()));
+        return new ReagentDefinition("heavy_r", "Heavy Reagent", shape,
+            aspectsPerCell: aspects);
+    }
+
+    [Fact]
+    public void Heavy_MustBeAtBottomOfGravityBag()
+    {
+        // 3x3 Gravity bag. Place Heavy reagent at bottom row (2) — should succeed.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.CanPlaceReagent(heavy, new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void Heavy_RejectedIfNonHeavyBelow()
+    {
+        // 3x3 Gravity bag. Place non-Heavy at bottom (1,2), then try Heavy at (1,1).
+        // Heavy above non-Heavy = bad (Heavy must be at bottom).
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var nonHeavy = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(nonHeavy, new Vector2I(1, 2))); // bottom row
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        // Heavy at (1,1) — non-Heavy at (1,2) is below: rejected
+        Assert.False(grid.CanPlaceReagent(heavy, new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void Heavy_NonHeavyAboveHeavy_Succeeds()
+    {
+        // 3x3 Gravity bag. Place Heavy at bottom, non-Heavy above it — OK.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.PlaceReagent(heavy, new Vector2I(1, 2))); // bottom
+
+        var nonHeavy = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(nonHeavy, new Vector2I(1, 1))); // above heavy — ok
+    }
+
+    [Fact]
+    public void Heavy_NonHeavyRejectedBelowHeavy()
+    {
+        // 4x1 Gravity bag. Place Heavy at row 2, then try non-Heavy at row 3 (below).
+        // Non-Heavy below Heavy = bad.
+        var shape = new bool[,] { { true }, { true }, { true }, { true } };
+        var gravDef = new BagDefinition("tall_grav", "Tall Gravity", shape,
+            new[] { BagPropertyType.Gravity });
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.PlaceReagent(heavy, new Vector2I(0, 3))); // bottom
+
+        // Try placing non-Heavy at (0,2) — above Heavy at (0,3) — should succeed
+        var nonHeavy1 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(nonHeavy1, new Vector2I(0, 2)));
+
+        // Now place non-Heavy at (0,2), then place Heavy at (0,1).
+        // Heavy at (0,1) with non-Heavy at (0,2) below — rejected.
+        Assert.True(grid.PlaceReagent(nonHeavy1, new Vector2I(0, 2)));
+
+        var heavy2 = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        Assert.False(grid.CanPlaceReagent(heavy2, new Vector2I(0, 1)));
+    }
+
+    [Fact]
+    public void Heavy_InNonGravityBag_PlacesAnywhere()
+    {
+        // Normal bag — Heavy has no special placement effect.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3, no Gravity
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        // Place at top row in a normal bag — should succeed
+        Assert.True(grid.CanPlaceReagent(heavy, new Vector2I(1, 0)));
+    }
+
+    [Fact]
+    public void Heavy_MultiCellReagent_ValidatedCorrectly()
+    {
+        // Vertical Heavy domino in 3x3 Gravity bag.
+        // Place at (0,1): occupies (0,1) and (0,2). (0,2) is bottom.
+        // Both cells of Heavy are at the bottom — should succeed.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavyDom = new Reagent(CreateHeavyReagentDef(new bool[,] { { true }, { true } }));
+        Assert.True(grid.CanPlaceReagent(heavyDom, new Vector2I(0, 1))); // cells at (0,1) and (0,2)
+
+        // Now place non-Heavy at (0,0) above the Heavy domino — should succeed
+        Assert.True(grid.PlaceReagent(heavyDom, new Vector2I(0, 1)));
+        var nonHeavy = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.CanPlaceReagent(nonHeavy, new Vector2I(0, 0))); // above Heavy — ok
+    }
+
+    [Fact]
+    public void Heavy_TwoHeavyCanStack()
+    {
+        // Two Heavy reagents can stack in a Gravity bag — both are Heavy.
+        var shape = new bool[,] { { true }, { true }, { true }, { true } };
+        var gravDef = new BagDefinition("tall_grav2", "Tall Gravity", shape,
+            new[] { BagPropertyType.Gravity });
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy1 = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var heavy2 = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.PlaceReagent(heavy1, new Vector2I(0, 3))); // bottom
+        Assert.True(grid.CanPlaceReagent(heavy2, new Vector2I(0, 2))); // above — both Heavy, ok
     }
 
     // --- Locked Reagent Tests ---

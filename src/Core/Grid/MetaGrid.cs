@@ -211,6 +211,7 @@ public class MetaGrid
     /// Check if a reagent can be placed at the given position with its current rotation.
     /// All target cells must be in-bounds, in a bag, not occupied, and not damaged.
     /// In Gravity bags, each cell must be supported from below.
+    /// In Gravity bags, Heavy reagents must be at the bottom (no non-Heavy below).
     /// Spanning across multiple bags IS allowed.
     /// </summary>
     public bool CanPlaceReagent(Reagent reagent, Vector2I position)
@@ -230,6 +231,10 @@ public class MetaGrid
 
         // Check gravity constraints for cells in Gravity bags
         if (!IsGravityValid(positions))
+            return false;
+
+        // Check Heavy aspect constraint in Gravity bags
+        if (!IsHeavyConstraintValid(reagent, positions))
             return false;
 
         return true;
@@ -272,6 +277,71 @@ public class MetaGrid
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Check that Heavy reagents are at the bottom of Gravity bags.
+    /// In a Gravity bag column, Heavy reagent cells must be at or below all non-Heavy cells.
+    /// When placing a Heavy reagent: no non-Heavy reagent may be below any of its cells.
+    /// When placing a non-Heavy reagent: no Heavy reagent may be above any of its cells.
+    /// In non-Gravity bags, Heavy has no special placement effect.
+    /// </summary>
+    private bool IsHeavyConstraintValid(Reagent reagent, List<Vector2I> positions)
+    {
+        bool isHeavy = ReagentHasHeavyAspect(reagent);
+
+        foreach (var pos in positions)
+        {
+            var bag = GetBagAtCell(pos);
+            if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
+                continue;
+
+            if (isHeavy)
+            {
+                // Heavy reagent: no non-Heavy reagent may be below (higher row index)
+                for (int row = pos.Row + 1; row < Height; row++)
+                {
+                    var checkPos = new Vector2I(pos.Col, row);
+                    var checkBag = GetBagAtCell(checkPos);
+                    if (checkBag != bag)
+                        break; // Left the bag
+
+                    var occupant = GetReagentAtCell(checkPos);
+                    if (occupant != null && !ReagentHasHeavyAspect(occupant))
+                        return false; // Non-Heavy reagent below a Heavy one
+                }
+            }
+            else
+            {
+                // Non-Heavy reagent: no Heavy reagent may be above (lower row index)
+                for (int row = pos.Row - 1; row >= 0; row--)
+                {
+                    var checkPos = new Vector2I(pos.Col, row);
+                    var checkBag = GetBagAtCell(checkPos);
+                    if (checkBag != bag)
+                        break; // Left the bag
+
+                    var occupant = GetReagentAtCell(checkPos);
+                    if (occupant != null && ReagentHasHeavyAspect(occupant))
+                        return false; // Heavy reagent above a non-Heavy one
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Check if a reagent has the Heavy aspect on any of its cells.
+    /// </summary>
+    private static bool ReagentHasHeavyAspect(Reagent reagent)
+    {
+        foreach (var aspectSet in reagent.Definition.AspectsPerCell)
+        {
+            if (aspectSet.Has("heavy"))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>
