@@ -103,6 +103,7 @@ $Iter = 0
 $ImplCount = 0
 $LastCodeReview = 0
 $LastIntegrationTest = 0
+$ConsecutiveErrors = 0
 
 Write-Host "========================================"
 Write-Host " Ralph Loop -- Alchemist Courier"
@@ -214,14 +215,24 @@ while ($Iter -lt $MaxIter) {
 
         # Check log output
         $logLines = 0
+        $logContent = ""
         if (Test-Path $IterLog) {
-            $logLines = (Get-Content $IterLog | Measure-Object -Line).Lines
+            $logContent = Get-Content $IterLog -Raw -ErrorAction SilentlyContinue
+            $logLines = ($logContent -split "`n").Count
         }
         Write-Host "$R Log saved: $IterLog ($logLines lines)"
+
+        # -- Failure detection --
+        # Check for rate limiting (look for common rate-limit indicators)
+        $isRateLimited = $false
+        if ($logContent -match '(?i)(rate.?limit|too many requests|429|overloaded|capacity|throttl)') {
+            $isRateLimited = $true
+        }
 
         # Fail loudly if claude produced no output
         if ($logLines -le 1) {
             Write-Host "$R ERROR: Claude produced no output. Possible causes:" -ForegroundColor Red
+            Write-Host "$R   - Rate limited / API quota exceeded"
             Write-Host "$R   - Not authenticated (run 'claude' interactively first)"
             Write-Host "$R   - API key / billing issue"
             Write-Host "$R   - Git-bash not found (check CLAUDE_CODE_GIT_BASH_PATH)"
@@ -235,8 +246,36 @@ while ($Iter -lt $MaxIter) {
             exit 1
         }
 
+        # Abort on rate limiting -- don't keep hammering the API
+        if ($isRateLimited) {
+            Write-Host ""
+            Write-Host "$R !! RATE LIMITED !!" -ForegroundColor Red
+            Write-Host "$R Detected rate-limit signal in iteration $Iter output." -ForegroundColor Red
+            Write-Host "$R   Iteration: $Iter / $MaxIter"
+            Write-Host "$R   Role: $Role"
+            Write-Host "$R   Impl count so far: $ImplCount"
+            Write-Host "$R   Log: $IterLog"
+            Write-Host "$R   Git state:" -ForegroundColor Yellow
+            & git log --oneline -3 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+            & git status --short 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+            Write-Host "$R Terminating loop to avoid repeated failures." -ForegroundColor Red
+            Write-Host "$R Progress is safe: completed tasks are committed and marked 'done' in prd.json." -ForegroundColor Yellow
+            Write-Host "$R To resume: .\scripts\ralph\ralph.ps1" -ForegroundColor Yellow
+            exit 2
+        }
+
         if ($claudeExit -ne 0) {
-            Write-Host "$R Claude Code exited with error (code $claudeExit). Continuing..." -ForegroundColor Yellow
+            $ConsecutiveErrors++
+            Write-Host "$R Claude Code exited with error (code $claudeExit). Consecutive errors: $ConsecutiveErrors" -ForegroundColor Yellow
+            if ($ConsecutiveErrors -ge 3) {
+                Write-Host "$R 3 consecutive errors -- possible persistent issue. Aborting." -ForegroundColor Red
+                Write-Host "$R   Last role: $Role, iteration: $Iter"
+                Write-Host "$R   Log: $IterLog"
+                & git status --short 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+                exit 2
+            }
+        } else {
+            $ConsecutiveErrors = 0
         }
     }
 
