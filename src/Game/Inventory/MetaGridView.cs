@@ -235,6 +235,7 @@ public partial class MetaGridView : Control
     }
 
     public Reagent? SelectedReagent => _selectedReagent;
+    public MetaGrid Grid => _metaGrid;
 
     public override void _Input(InputEvent @event)
     {
