@@ -172,6 +172,56 @@ public class PuzzleSolverTests
         Assert.False(PuzzleSolver.ValidateSolution(puzzle));
     }
 
+    [Fact]
+    public void ValidateSolution_LockedReagentMoved_ReturnsFalse()
+    {
+        var puzzle = BuildLockedPuzzle();
+
+        // Move the locked reagent to a different position
+        puzzle.Placements = new List<Placement>
+        {
+            new Placement { ReagentIndex = 0, PositionCol = 3, PositionRow = 1, Rotation = 0 }, // Moved!
+            new Placement { ReagentIndex = 1, PositionCol = 3, PositionRow = 1, Rotation = 0 },
+        };
+
+        Assert.False(PuzzleSolver.ValidateSolution(puzzle));
+    }
+
+    [Fact]
+    public void ValidateSolution_LockedReagentUnmoved_ReturnsTrue()
+    {
+        var puzzle = BuildLockedPuzzle();
+
+        // Place all reagents at their solution positions
+        puzzle.Placements = new List<Placement>(puzzle.Solution);
+
+        Assert.True(PuzzleSolver.ValidateSolution(puzzle));
+    }
+
+    [Fact]
+    public void ValidateSolution_LockedReagentRotationChanged_ReturnsFalse()
+    {
+        var puzzle = BuildLockedPuzzle();
+
+        // Place locked reagent at correct position but wrong rotation
+        puzzle.Placements = new List<Placement>
+        {
+            new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 2 }, // Wrong rotation
+            new Placement { ReagentIndex = 1, PositionCol = 3, PositionRow = 1, Rotation = 0 },
+        };
+
+        Assert.False(PuzzleSolver.ValidateSolution(puzzle));
+    }
+
+    [Fact]
+    public void IsSolvable_PuzzleWithLockedReagents_ReturnsTrue()
+    {
+        // Verify that IsSolvable works correctly when reagents have IsLocked set
+        var puzzle = BuildLockedPuzzle();
+
+        Assert.True(PuzzleSolver.IsSolvable(puzzle));
+    }
+
     /// <summary>
     /// Builds a minimal puzzle with hot + volatile reagents in a single bag.
     /// Adjacent placement triggers an Explosion reaction.
@@ -202,6 +252,42 @@ public class PuzzleSolverTests
             },
             Placements = new List<Placement>(),
             Solution = new List<Placement>(),
+        };
+    }
+
+    /// <summary>
+    /// Builds a puzzle with one locked reagent and one unlocked reagent.
+    /// Reagent 0 is locked at (1,1), reagent 1 is free.
+    /// </summary>
+    private static PuzzleState BuildLockedPuzzle()
+    {
+        var bagShape = new bool[,] { { true, true, true, true, true } };
+
+        return new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(bagShape, 1, 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                // Locked reagent (1 cell, no aspects)
+                PuzzleReagent.FromMatrix(
+                    new bool[,] { { true } },
+                    isLocked: true),
+                // Free reagent (1 cell, no aspects)
+                PuzzleReagent.FromMatrix(
+                    new bool[,] { { true } }),
+            },
+            Placements = new List<Placement>(),
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 3, PositionRow = 1, Rotation = 0 },
+            },
         };
     }
 }

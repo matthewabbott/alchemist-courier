@@ -235,6 +235,70 @@ public class PuzzleGeneratorTests
         Assert.Equal(difficulty.BagCount, puzzle.Bags.Count);
     }
 
+    // --- Locked Reagent Tests ---
+
+    [Fact]
+    public void Generate_WithAllowSpecialBags_ProducesLockedReagents()
+    {
+        // Medium and Hard have AllowSpecialBags=true and enough reagents to lock
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Medium);
+
+        // Try multiple seeds to find one that produces locked reagents
+        bool foundLocked = false;
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            if (puzzle.Reagents.Any(r => r.IsLocked))
+            {
+                foundLocked = true;
+                break;
+            }
+        }
+
+        Assert.True(foundLocked, "Expected at least one seed to produce locked reagents with AllowSpecialBags=true");
+    }
+
+    [Fact]
+    public void Generate_WithoutAllowSpecialBags_NoLockedReagents()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy); // AllowSpecialBags=false
+
+        for (int seed = 1; seed <= 10; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            Assert.DoesNotContain(puzzle.Reagents, r => r.IsLocked);
+        }
+    }
+
+    [Fact]
+    public void Generate_LockedReagentsSolutionIsStillValid()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Medium);
+
+        for (int seed = 1; seed <= 10; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            Assert.True(PuzzleSolver.IsSolvable(puzzle),
+                $"Puzzle with seed={seed} should be solvable even with locked reagents");
+        }
+    }
+
+    [Fact]
+    public void Generate_LockedReagentCountNeverExceedsLimit()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            int lockedCount = puzzle.Reagents.Count(r => r.IsLocked);
+            // Should lock at most 2 and never lock all reagents
+            Assert.True(lockedCount <= 2, $"Seed {seed}: locked {lockedCount} reagents, expected <= 2");
+            Assert.True(lockedCount < puzzle.Reagents.Count,
+                $"Seed {seed}: all reagents locked, player has nothing to place");
+        }
+    }
+
     // --- Helper methods ---
 
     private static MetaGrid ReconstructGrid(PuzzleState puzzle)

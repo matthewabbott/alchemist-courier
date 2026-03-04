@@ -304,7 +304,7 @@ public class MetaGrid
     /// <returns>True if the reagent was placed and was removed.</returns>
     public bool RemoveReagent(Reagent reagent)
     {
-        if (!reagent.IsPlaced || !_placedReagents.Remove(reagent))
+        if (!reagent.IsPlaced || reagent.IsLocked || !_placedReagents.Remove(reagent))
             return false;
 
         var positions = reagent.GetCurrentMetaGridPositions();

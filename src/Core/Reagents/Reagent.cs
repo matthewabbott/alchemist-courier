@@ -32,6 +32,9 @@ public class Reagent
     /// <summary>Whether this reagent is currently placed on a grid.</summary>
     public bool IsPlaced => PlacedPosition.HasValue;
 
+    /// <summary>Whether this reagent is locked in place and cannot be removed by the player.</summary>
+    public bool IsLocked { get; set; }
+
     public Reagent(ReagentDefinition definition)
     {
         Definition = definition;

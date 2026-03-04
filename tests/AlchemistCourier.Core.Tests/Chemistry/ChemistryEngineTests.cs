@@ -1081,4 +1081,23 @@ public class ChemistryEngineTests
         // Only 3 Hot counted (h4 suppressed) — below threshold of 4
         Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
     }
+
+    // --- Locked Reagent Aspect Activity ---
+
+    [Fact]
+    public void Evaluate_LockedReagentAspectsAreActive()
+    {
+        // Locked reagents' aspects participate in reactions just like normal reagents
+        var hot = MakeSingleCellReagent("hot", Aspect.FromId("hot"));
+        hot.IsLocked = true;
+        var vol = MakeSingleCellReagent("vol", Aspect.FromId("volatile"));
+
+        var grid = SetupGrid(5, 1,
+            (hot, new Vector2I(0, 0)),
+            (vol, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
 }

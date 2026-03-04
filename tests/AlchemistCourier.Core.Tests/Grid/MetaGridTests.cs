@@ -563,4 +563,56 @@ public class MetaGridTests
         var r4 = new Reagent(ReagentDefinition.SingleCell);
         Assert.True(grid.CanPlaceReagent(r4, new Vector2I(0, 0))); // on r3
     }
+
+    // --- Locked Reagent Tests ---
+
+    [Fact]
+    public void RemoveReagent_LockedReagent_ReturnsFalse()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell) { IsLocked = true };
+        Assert.True(grid.PlaceReagent(reagent, new Vector2I(0, 0)));
+
+        // Cannot remove a locked reagent
+        Assert.False(grid.RemoveReagent(reagent));
+        Assert.True(reagent.IsPlaced);
+        Assert.Single(grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void RemoveReagent_UnlockedReagent_StillWorks()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell) { IsLocked = false };
+        Assert.True(grid.PlaceReagent(reagent, new Vector2I(0, 0)));
+
+        // Can remove an unlocked reagent
+        Assert.True(grid.RemoveReagent(reagent));
+        Assert.False(reagent.IsPlaced);
+        Assert.Empty(grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void RemoveReagent_LockedReagent_CellsStayOccupied()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell) { IsLocked = true };
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        grid.RemoveReagent(reagent); // Should fail
+
+        // Cell at (1,1) should still be occupied
+        var cell = grid.GetCell(new Vector2I(1, 1));
+        Assert.NotNull(cell);
+        Assert.Equal(reagent, cell!.OccupyingReagent);
+    }
 }

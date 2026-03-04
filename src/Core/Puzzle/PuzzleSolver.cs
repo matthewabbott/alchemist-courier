@@ -15,10 +15,14 @@ public static class PuzzleSolver
 {
     /// <summary>
     /// Validates the current player placements (PuzzleState.Placements).
-    /// Checks: all reagents placed, no overlaps, all within bag bounds, no negative reactions.
+    /// Checks: all reagents placed, locked reagents unmoved, no overlaps, all within bag bounds, no negative reactions.
     /// </summary>
     public static bool ValidateSolution(PuzzleState state)
     {
+        // Verify locked reagents are at their solution positions
+        if (!ValidateLockedPositions(state))
+            return false;
+
         return ValidatePlacements(state, state.Placements);
     }
 
@@ -120,6 +124,36 @@ public static class PuzzleSolver
     }
 
     /// <summary>
+    /// Verify that all locked reagents in Placements match their Solution positions exactly.
+    /// </summary>
+    private static bool ValidateLockedPositions(PuzzleState state)
+    {
+        // Build lookup: reagentIndex -> solution placement
+        var solutionByReagent = new Dictionary<int, Placement>();
+        foreach (var sp in state.Solution)
+            solutionByReagent[sp.ReagentIndex] = sp;
+
+        foreach (var placement in state.Placements)
+        {
+            if (placement.ReagentIndex < 0 || placement.ReagentIndex >= state.Reagents.Count)
+                continue; // Will be caught by ValidatePlacements
+
+            if (!state.Reagents[placement.ReagentIndex].IsLocked)
+                continue;
+
+            if (!solutionByReagent.TryGetValue(placement.ReagentIndex, out var solutionPlacement))
+                return false; // Locked reagent not in solution
+
+            if (placement.PositionCol != solutionPlacement.PositionCol ||
+                placement.PositionRow != solutionPlacement.PositionRow ||
+                placement.Rotation != solutionPlacement.Rotation)
+                return false; // Locked reagent was moved
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Reconstruct runtime Reagent objects from a PuzzleState's reagent definitions.
     /// </summary>
     internal static List<Reagent> ReconstructReagents(PuzzleState state)
@@ -141,7 +175,8 @@ public static class PuzzleSolver
             }
 
             var def = new ReagentDefinition($"reagent_{i}", $"Reagent {i}", shape, aspectsPerCell: aspects);
-            reagents.Add(new Reagent(def));
+            var reagent = new Reagent(def) { IsLocked = pr.IsLocked };
+            reagents.Add(reagent);
         }
         return reagents;
     }

@@ -157,8 +157,35 @@ public class PuzzleGenerator
         }
 
         state.Solution = placements;
+
+        // Step 9: Lock some reagents in place as pre-placed constraints
+        LockSolutionReagents(rng, difficulty, state);
+
         state.Placements = new List<Placement>();
         return state;
+    }
+
+    /// <summary>
+    /// When AllowSpecialBags is true, lock 1-2 solution reagents in place.
+    /// These become fixed constraints the player must work around.
+    /// Locked reagents are added to Placements so they start pre-placed.
+    /// </summary>
+    private static void LockSolutionReagents(SeededRandom rng, DifficultyParams difficulty, PuzzleState state)
+    {
+        if (!difficulty.AllowSpecialBags || state.Solution.Count < 3)
+            return;
+
+        int lockCount = rng.Next(1, Math.Min(3, state.Solution.Count - 1));
+
+        // Shuffle solution indices and pick the first lockCount
+        var indices = Enumerable.Range(0, state.Solution.Count).ToList();
+        rng.Shuffle(indices);
+
+        for (int i = 0; i < lockCount; i++)
+        {
+            int solutionIdx = indices[i];
+            state.Reagents[state.Solution[solutionIdx].ReagentIndex].IsLocked = true;
+        }
     }
 
     private List<bool[,]> GenerateBagShapes(SeededRandom rng, DifficultyParams difficulty)
