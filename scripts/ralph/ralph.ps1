@@ -194,10 +194,18 @@ while ($Iter -lt $MaxIter) {
         $promptContent = Get-Content $PromptFile -Raw
         $claudeExit = 0
 
+        # Create log file immediately so Get-Content -Wait works from the start
+        "# Ralph iteration $Iter - $Role - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath $IterLog
+        Write-Host "$R Claude is working (this can take several minutes with no output)..."
+
+        # Tool permissions: file tools are project-scoped by default.
+        # Bash is restricted to specific command patterns.
+        $toolsArg = 'Edit,Write,Read,Glob,Grep,WebSearch,WebFetch,"Bash(git *)","Bash(dotnet *)","Bash(python *)","Bash(mkdir *)","Bash(rm *)","Bash(cp *)","Bash(mv *)","Bash(ls *)","Bash(cat *)","Bash(head *)","Bash(tail *)",mcp__godot__*'
+
         try {
             # PowerShell provides a real console -- no winpty needed.
             # Pipe through Tee-Object to both display and log.
-            & claude -p $promptContent --output-format text 2>&1 | Tee-Object -FilePath $IterLog
+            & claude -p $promptContent --output-format text --allowedTools $toolsArg 2>&1 | Tee-Object -FilePath $IterLog
             $claudeExit = $LASTEXITCODE
         } catch {
             Write-Host "$R Claude Code threw an exception: $_" -ForegroundColor Red
