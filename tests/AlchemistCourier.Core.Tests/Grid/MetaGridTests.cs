@@ -942,4 +942,60 @@ public class MetaGridTests
         Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(2, 1))); // right
         Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(1, 2))); // bottom
     }
+
+    // --- Fragile Aspect: Blocked from Gravity Bags ---
+
+    private static ReagentDefinition CreateFragileReagentDef(bool[,] shape)
+    {
+        var cellPositions = new List<Vector2I>();
+        for (int r = 0; r < shape.GetLength(0); r++)
+            for (int c = 0; c < shape.GetLength(1); c++)
+                if (shape[r, c])
+                    cellPositions.Add(new Vector2I(c, r));
+
+        var aspects = new List<AspectSet>();
+        foreach (var _ in cellPositions)
+            aspects.Add(new AspectSet(Aspect.Fragile()));
+
+        return new ReagentDefinition("fragile", "Fragile Reagent", shape,
+            aspectsPerCell: aspects);
+    }
+
+    [Fact]
+    public void Fragile_BlockedFromGravityBag()
+    {
+        // Fragile reagent should be rejected from Gravity bags
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+        // Even at bottom row (valid gravity position), Fragile is blocked
+        Assert.False(grid.CanPlaceReagent(fragile, new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void Fragile_AllowedInNormalBag()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.CanPlaceReagent(fragile, new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void Fragile_NonFragileAllowedInGravityBag()
+    {
+        // Non-Fragile reagent is unaffected by the Fragile constraint
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var def = new ReagentDefinition("normal", "Normal", new bool[,] { { true } },
+            aspectsPerCell: new List<AspectSet> { new AspectSet(Aspect.Hot()) });
+        var reagent = new Reagent(def);
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(1, 2)));
+    }
 }

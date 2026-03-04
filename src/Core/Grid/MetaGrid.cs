@@ -242,6 +242,10 @@ public class MetaGrid
         if (!IsSharpConstraintValid(reagent, positions))
             return false;
 
+        // Check Fragile aspect constraint: Fragile reagents can't be placed in Gravity bags
+        if (!IsFragileConstraintValid(reagent, positions))
+            return false;
+
         return true;
     }
 
@@ -357,6 +361,25 @@ public class MetaGrid
                 continue;
 
             if (bag.IsEdgeCell(pos))
+                return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Check that Fragile reagents are not placed in Gravity bags.
+    /// Non-Fragile reagents are unaffected by this constraint.
+    /// </summary>
+    private bool IsFragileConstraintValid(Reagent reagent, List<Vector2I> positions)
+    {
+        if (!reagent.HasAspect(AspectIds.Fragile))
+            return true;
+
+        foreach (var pos in positions)
+        {
+            var bag = GetBagAtCell(pos);
+            if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
                 return false;
         }
 

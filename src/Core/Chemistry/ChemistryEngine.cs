@@ -58,6 +58,9 @@ public static class ChemistryEngine
             }
         }
 
+        // Second pass: Fragile reagents break from ANY adjacent reaction
+        EvaluateFragileVulnerability(grid, results);
+
         return results;
     }
 
@@ -434,5 +437,82 @@ public static class ChemistryEngine
     private static (Reagent, Reagent) OrderPair(Reagent a, Reagent b)
     {
         return a.GetHashCode() <= b.GetHashCode() ? (a, b) : (b, a);
+    }
+
+    /// <summary>
+    /// Second pass: for each reaction result, check if any Fragile reagent has cells
+    /// adjacent to the reaction's affected cells. If so, add a Breakage result.
+    /// Only considers reactions from the first pass (no cascading).
+    /// </summary>
+    private static void EvaluateFragileVulnerability(MetaGrid grid, List<ReactionResult> results)
+    {
+        if (results.Count == 0)
+            return;
+
+        // Collect all cells affected by any reaction
+        var reactionCells = new HashSet<Vector2I>();
+        foreach (var result in results)
+        {
+            foreach (var cell in result.AffectedCells)
+                reactionCells.Add(cell);
+        }
+
+        // Find Fragile reagents with cells adjacent to any reaction cell
+        var brokenReagents = new HashSet<Reagent>();
+        var newResults = new List<ReactionResult>();
+
+        foreach (var reagent in grid.PlacedReagents)
+        {
+            if (!reagent.HasAspect(AspectIds.Fragile))
+                continue;
+
+            // Check if any cell of this Fragile reagent is adjacent to a reaction cell
+            bool isAdjacent = false;
+            foreach (var pos in reagent.GetCurrentMetaGridPositions())
+            {
+                foreach (var adjCell in grid.GetAdjacentCells(pos))
+                {
+                    if (reactionCells.Contains(adjCell.Position))
+                    {
+                        isAdjacent = true;
+                        break;
+                    }
+                }
+                if (isAdjacent)
+                    break;
+            }
+
+            if (!isAdjacent)
+                continue;
+
+            // Skip if this reagent is already directly involved in a Breakage result
+            // (e.g., from Sharp+Fragile pair rule)
+            if (brokenReagents.Contains(reagent))
+                continue;
+
+            // Also skip if the reagent's cells are already in the reaction cells
+            // from a Breakage result (already broken by Sharp+Fragile)
+            var reagentPositions = reagent.GetCurrentMetaGridPositions();
+            bool alreadyBroken = results.Any(r =>
+                r.Type == ReactionResultType.Breakage &&
+                reagentPositions.Any(p => r.AffectedCells.Contains(p)));
+            if (alreadyBroken)
+                continue;
+
+            brokenReagents.Add(reagent);
+            newResults.Add(new ReactionResult(
+                ReactionResultType.Breakage,
+                1f,
+                reagentPositions,
+                new ReactionRule(
+                    name: "Fragile Vulnerability",
+                    triggerAspects: new List<string> { AspectIds.Fragile },
+                    sensitivity: SensitivityTier.Adjacent,
+                    granularity: Granularity.PerCell,
+                    threshold: 0,
+                    resultType: ReactionResultType.Breakage)));
+        }
+
+        results.AddRange(newResults);
     }
 }

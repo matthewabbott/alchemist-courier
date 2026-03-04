@@ -1259,4 +1259,173 @@ public class ChemistryEngineTests
 
         Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
     }
+
+    // --- Fragile Universal Vulnerability ---
+
+    [Fact]
+    public void Evaluate_FragileAdjacentToExplosion_BreaksFromExplosion()
+    {
+        // Hot(0,0) + Volatile(1,0) = Explosion. Fragile at (2,0) is adjacent to Volatile.
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var vol = MakeSingleCellReagent("vol", Aspect.Volatile());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 1,
+            (hot, new Vector2I(0, 0)),
+            (vol, new Vector2I(1, 0)),
+            (fragile, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+        Assert.Contains(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(2, 0)));
+    }
+
+    [Fact]
+    public void Evaluate_FragileAdjacentToNeutralization_Breaks()
+    {
+        // Hot(0,0) + Cold(1,0) same bag = Neutralization.
+        // Fragile at (0,1) is adjacent to Hot(0,0) — an affected cell.
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var cold = MakeSingleCellReagent("cold", Aspect.Cold());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(0, 0)),
+            (cold, new Vector2I(1, 0)),
+            (fragile, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Neutralization);
+        Assert.Contains(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(0, 1)));
+    }
+
+    [Fact]
+    public void Evaluate_FragileNotAdjacentToReaction_DoesNotBreak()
+    {
+        // Hot(0,0) + Volatile(1,0) = Explosion. Fragile at (4,4) is far away.
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var vol = MakeSingleCellReagent("vol", Aspect.Volatile());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(0, 0)),
+            (vol, new Vector2I(1, 0)),
+            (fragile, new Vector2I(4, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+        // Fragile should NOT break — it's far from the explosion
+        Assert.DoesNotContain(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(4, 4)));
+    }
+
+    [Fact]
+    public void Evaluate_FragileNoReactions_DoesNotBreak()
+    {
+        // Just a Fragile reagent next to a Hot reagent (no Volatile). No reactions trigger.
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(0, 0)),
+            (fragile, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Breakage);
+    }
+
+    [Fact]
+    public void Evaluate_FragileAlreadyBrokenBySharp_NoDuplicateBreakage()
+    {
+        // Sharp(0,0) + Fragile(1,0) = Breakage from pair rule.
+        // Also have Hot(2,0) + Volatile(3,0) = Explosion adjacent to Fragile.
+        // Fragile should only have one Breakage (from Sharp+Fragile pair),
+        // NOT a duplicate from the vulnerability second pass.
+        var sharp = MakeSingleCellReagent("sharp", Aspect.Sharp());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var vol = MakeSingleCellReagent("vol", Aspect.Volatile());
+
+        // Sharp(0,0), Fragile(1,0), Hot(2,0), Volatile(3,0)
+        // Sharp+Fragile adjacent = Breakage; Hot+Volatile adjacent via net-hot = Explosion
+        // Fragile is adjacent to both the Sharp+Fragile reaction cells AND the explosion cells
+        var grid = SetupGrid(5, 1,
+            (sharp, new Vector2I(0, 0)),
+            (fragile, new Vector2I(1, 0)),
+            (hot, new Vector2I(2, 0)),
+            (vol, new Vector2I(3, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+        // Should have exactly one Breakage involving the Fragile reagent
+        var breakages = results.Where(r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(1, 0))).ToList();
+        Assert.Single(breakages);
+    }
+
+    [Fact]
+    public void Evaluate_MultipleFragileAdjacentToSameReaction_AllBreak()
+    {
+        // Hot(1,1) + Volatile(2,1) = Explosion.
+        // Fragile1(0,1) adjacent to Hot. Fragile2(3,1) adjacent to Volatile.
+        // Both should break.
+        var hot = MakeSingleCellReagent("hot", Aspect.Hot());
+        var vol = MakeSingleCellReagent("vol", Aspect.Volatile());
+        var fragile1 = MakeSingleCellReagent("fragile1", Aspect.Fragile());
+        var fragile2 = MakeSingleCellReagent("fragile2", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(1, 1)),
+            (vol, new Vector2I(2, 1)),
+            (fragile1, new Vector2I(0, 1)),
+            (fragile2, new Vector2I(3, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+        Assert.Contains(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(0, 1)));
+        Assert.Contains(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(3, 1)));
+    }
+
+    [Fact]
+    public void Evaluate_FragileAdjacentToCumulativeOverheating_Breaks()
+    {
+        // 4 Hot cells trigger Overheating (threshold=4, PerCell).
+        // Fragile adjacent to one of the Hot reagents should break.
+        var hot1 = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("hot2", Aspect.Hot());
+        var hot3 = MakeSingleCellReagent("hot3", Aspect.Hot());
+        var hot4 = MakeSingleCellReagent("hot4", Aspect.Hot());
+        var fragile = MakeSingleCellReagent("fragile", Aspect.Fragile());
+
+        var grid = SetupGrid(5, 5,
+            (hot1, new Vector2I(0, 0)),
+            (hot2, new Vector2I(1, 0)),
+            (hot3, new Vector2I(2, 0)),
+            (hot4, new Vector2I(3, 0)),
+            (fragile, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+        // Fragile at (0,1) is adjacent to hot1 at (0,0) which is an affected cell
+        Assert.Contains(results, r =>
+            r.Type == ReactionResultType.Breakage &&
+            r.AffectedCells.Contains(new Vector2I(0, 1)));
+    }
 }
