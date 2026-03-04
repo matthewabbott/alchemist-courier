@@ -13,9 +13,36 @@ Simple, consistent rules combining to produce complex outcomes. The system shoul
 ### Procedural Chemistry (BotW-Inspired)
 Like Breath of the Wild's chemistry engine, the aspect system defines general behavioral rules. Fire aspects generate heat. Volatile aspects react to heat. These are properties of the aspects themselves, not specific item-to-item interactions. A new reagent with fire and volatile aspects will behave predictably without needing new code.
 
+## Complexity Levels
+
+Not all puzzles use every mechanic. Complexity levels define which aspects, interactions, and bag types are available at each tier. The guiding principle: **complexity should come from puzzle size and spatial pressure, not from piling on more mechanics.** A "simple, large" puzzle should be hard because of tight space and many reagents -- not because players must memorize a dozen interaction rules.
+
+The daily puzzle game uses mostly Simple complexity. The roguelite/sequential mode gradually builds from Simple to Advanced as the player progresses.
+
+### Simple (Tutorial, Daily Easy/Medium -- MVP Target)
+
+- **Aspects (6)**: Hot, Cold, Volatile, Stable, Heavy, Toxic
+- **Interactions**: Cumulative thresholds (Hot/Cold/Toxic), Hot+Cold neutralization, Volatile net-hot explosion, Stable buffering, Heavy falling
+- **Bag types**: Normal, Null, Gravity, Locked
+- **Philosophy**: Few mechanics, complexity from puzzle size. A player who understands 6 aspects and 4 bag types can face endlessly varied spatial challenges.
+
+### Intermediate (Daily Hard, Roguelite Mid-Game)
+
+- **Adds aspects (4)**: Sharp, Fragile, Catalytic, Medicinal
+- **Adds bag types**: Insulated, Reinforced, Fragile
+- **Adds interactions**: Sharp edge constraint, Sharp+Fragile breakage, Catalytic threshold lowering, Fragile universal vulnerability, Medicinal threshold relief
+- **Philosophy**: Meaningful new constraints that interact with existing mechanics. Each new aspect has a primary mechanic that matters on its own (not just in combination with one specific partner).
+
+### Advanced (Roguelite Late-Game, Special Events)
+
+- **Adds aspects (2+)**: Magnetic, Absorbent (and potentially Corrosive, Luminous)
+- **Adds bag types**: Body (with protrusion)
+- **Adds interactions**: Volatile chain reactions, Sharp piercing Null suppression, Magnetic forced clustering, Absorbent selective neutralization
+- **Philosophy**: Full mechanical depth. Sequential modes build to this gradually over many puzzles. Players should feel like they've earned these interactions through mastery of simpler levels.
+
 ## Schools of Alchemy
 
-Aspects are organized into **schools** — thematic categories drawn from different alchemical and mystical traditions. Each school is a self-contained set of aspects with its own internal logic. Aspects from different schools can interact cross-school.
+Aspects are organized into **schools** -- thematic categories drawn from different alchemical and mystical traditions. Each school is a self-contained set of aspects with its own internal logic. Aspects from different schools can interact cross-school.
 
 A reagent can have aspects from one or more schools. Simpler reagents tend to have aspects from only one school; complex/rare reagents may draw from multiple schools.
 
@@ -25,38 +52,81 @@ A reagent can have aspects from one or more schools. Simpler reagents tend to ha
 - **Rare reagents**: 3-4 aspects, potentially from multiple schools
 - **Unique/Quest reagents**: 4+ aspects, multiple schools, complex interactions
 
-### School 1: Physical / Chemistry (MVP — Implement First)
+### School 1: Physical / Chemistry (MVP -- Implement First)
 
 The most intuitive school. These are properties that players can understand without any alchemical knowledge. This school should be fully implemented before any others.
 
-| Aspect | Description | Intuitive Behavior |
-|--------|-------------|-------------------|
-| **Hot** | Generates heat | Heats up the player and nearby reagents. Cumulative heat causes overheating. |
-| **Cold** | Generates cold | Cools the player and nearby reagents. Cumulative cold causes hypothermia / stamina lock. |
-| **Volatile** | Prone to explosive reaction | Reacts violently to heat, impact, or other volatile substances. Can cause explosions. |
-| **Fragile** | Easily broken | Destroyed by explosions, impacts, or rough handling. May shatter if adjacent to volatile reactions. |
-| **Toxic** | Produces harmful fumes | Poisons the player over time. Toxicity accumulates. Fumes spread within a bag. |
-| **Heavy** | Unusually dense | Contributes extra weight. May crush fragile items below it (in gravity bags). |
-| **Sharp** | Has cutting edges | Can damage adjacent fragile reagents or bag cells. May puncture bags. |
-| **Medicinal** | Has healing properties | Can be consumed to heal injuries, reduce toxicity, or restore locked stamina. |
-| **Stable** | Inert and non-reactive | Reduces the sensitivity of adjacent reagents. Acts as a buffer between reactive substances. |
-| **Catalytic** | Accelerates reactions | Lowers the threshold for nearby reactions to trigger. Makes even mild interactions dangerous. |
+Every aspect has a **primary mechanic** that makes it relevant on its own (non-parasitic), plus **secondary interactions** that create depth when combined with other aspects.
+
+| Aspect | Complexity | Primary Mechanic (always relevant) | Secondary Interactions |
+|--------|-----------|-----------------------------------|----------------------|
+| **Hot** | Simple | Cumulative overheating threshold (whole inventory) | +Cold = neutralization; contributes to net-hot near Volatile |
+| **Cold** | Simple | Cumulative hypothermia threshold (whole inventory) | +Hot = neutralization; reduces net-hot near Volatile (strategic tool) |
+| **Volatile** | Simple | Explodes when adjacent net-hot > 0 (sum adjacent hot - cold) | Volatile+Volatile adjacent amplifies (Intermediate) |
+| **Toxic** | Simple | Cumulative poisoning threshold; Toxic+Toxic same-bag = cloud | Toxic spread within bag (Intermediate) |
+| **Heavy** | Simple | Falls to bottom of bag; always falls TRUE down regardless of bag orientation | Crushes Fragile below (Intermediate); can't protrude (Advanced) |
+| **Stable** | Simple | Raises thresholds of adjacent reactions (universal buffer) | Cancels Catalytic (Advanced) |
+| **Sharp** | Intermediate | Can't place on edge cells of non-reinforced bags | +Fragile adjacent = breakage; pierces Null suppression (Advanced) |
+| **Fragile** | Intermediate | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; higher value to compensate vulnerability |
+| **Catalytic** | Intermediate | Lowers thresholds of adjacent reactions (inverse of Stable) | Universal amplifier -- makes mild interactions dangerous |
+| **Medicinal** | Intermediate | Passively reduces cumulative thresholds when carried | Consume to clear status effects (roguelite) |
+| **Magnetic** | Advanced | Must be placed adjacent to another Magnetic item (forced clustering) | Creates adjacency pressure with everything near the cluster |
+| **Absorbent** | Advanced | Neutralizes one adjacent aspect per cell (player chooses) | Strategic tool: sacrifice space to protect neighbors |
+
+#### De-Parasitization Notes
+
+A "parasitic" mechanic (in the Magic: The Gathering sense) only interacts with one specific other mechanic. Parasitism makes puzzles feel scripted rather than emergent. Each aspect above is designed to have standalone relevance:
+
+- **Sharp** is NOT just "breaks Fragile." Its primary mechanic (edge placement restriction) matters even without Fragile in the puzzle. Every non-reinforced bag creates spatial constraints for Sharp reagents.
+- **Fragile** is NOT just "broken by Sharp." Its primary mechanic (breaks from any adjacent reaction) makes it universally vulnerable. Hot+Volatile explosion nearby? Fragile breaks. It also can't go in gravity bags, adding a placement constraint.
+- **Heavy** is NOT just "contributes weight." It actively affects placement by falling, which interacts with gravity bags and spatial planning.
+- **Catalytic** and **Stable** are mirrors of each other, and both interact with ALL reaction thresholds, not specific aspects.
+
+#### Volatile: Net-Hot Specification
+
+Volatile uses a **net-hot** calculation rather than simple Hot adjacency. This makes Cold strategically useful as a heat shield, not just a cumulative threshold liability.
+
+```
+For each Volatile cell:
+  net_hot = sum(magnitude of Hot cells in cardinal neighbors)
+          - sum(magnitude of Cold cells in cardinal neighbors)
+  if net_hot > effective_threshold:
+    trigger Explosion
+  where effective_threshold = base (0) + stable_buffer - catalytic_reduction
+```
+
+Cold cells adjacent to Volatile cells reduce the effective heat, potentially preventing explosions. This creates a meaningful spatial interplay: players can deliberately place Cold reagents as buffers between Hot and Volatile, giving Cold a dual role (cumulative liability + local tactical tool).
 
 #### Example Physical/Chemistry Interactions
 
 | Trigger | Result | Sensitivity |
 |---------|--------|-------------|
-| Hot + Volatile (adjacent cells) | **Explosion**: Destroys both reagents, damages adjacent bag cells, may injure player | Adjacent cells, per-cell |
+| Volatile cell with net-hot > 0 | **Explosion**: Destroys reagents, damages adjacent bag cells, may injure player | Adjacent cells, per-cell |
 | Hot + Cold (same bag) | **Neutralization**: Both aspects are weakened or cancelled | Same bag, per-item |
-| Toxic + Toxic (same bag) | **Toxic cloud**: Toxicity intensifies, may spread to adjacent bags | Same bag, cumulative |
+| Toxic + Toxic (same bag, 2+ items) | **Toxic cloud**: Toxicity intensifies, may spread to adjacent bags | Same bag, cumulative |
 | Sharp + Fragile (adjacent cells) | **Breakage**: Fragile reagent cracks or shatters | Adjacent cells, per-cell |
-| Heavy + Fragile (gravity bag, above) | **Crushing**: Heavy item falls onto fragile item in gravity bag | Same bag (gravity-specific) |
-| Catalytic + any reactive pair | **Lowered threshold**: The reaction's threshold is reduced, making it easier to trigger | Adjacent cells, per-cell |
-| Stable + any reactive pair | **Raised threshold**: The reaction's threshold is increased, making it harder to trigger | Adjacent cells, per-cell |
-| Medicinal (consumed) | **Healing**: Restores locked stamina, reduces toxicity, mends injuries | N/A (consumption) |
-| Hot cumulative > threshold | **Overheating**: Player overheats, stamina locked (shown as cross-hatched bar with flame icon) | Whole inventory, cumulative |
-| Cold cumulative > threshold | **Hypothermia**: Player slows, stamina locked | Whole inventory, cumulative |
-| Toxic cumulative > threshold | **Poisoned**: Player takes ongoing stamina damage | Whole inventory, cumulative |
+| Any reaction adjacent to Fragile | **Breakage**: Fragile reagent breaks from nearby reaction | Adjacent cells, per-cell |
+| Heavy + Fragile (gravity bag, below) | **Crushing**: Heavy item falls onto fragile item in gravity bag | Same bag (gravity-specific) |
+| Sharp on edge of non-reinforced bag | **Placement blocked**: Sharp reagents can't be on bag edge cells | Placement constraint |
+| Catalytic + any reactive pair | **Lowered threshold**: The reaction's threshold is reduced | Adjacent cells, per-cell |
+| Stable + any reactive pair | **Raised threshold**: The reaction's threshold is increased | Adjacent cells, per-cell |
+| Medicinal (passive) | **Threshold relief**: Reduces cumulative thresholds while carried | Whole inventory, passive |
+| Medicinal (consumed) | **Healing**: Clears status effects (roguelite only) | N/A (consumption) |
+| Magnetic (placement) | **Must cluster**: Must be adjacent to another Magnetic item | Placement constraint |
+| Absorbent (passive) | **Neutralizes**: Absorbs one adjacent aspect per cell | Adjacent cells, per-cell |
+| Hot cumulative > threshold | **Overheating**: Stamina locked | Whole inventory, cumulative |
+| Cold cumulative > threshold | **Hypothermia**: Stamina locked | Whole inventory, cumulative |
+| Toxic cumulative > threshold | **Poisoned**: Ongoing stamina damage | Whole inventory, cumulative |
+
+### Aspirational Aspects (Flavor-First Archive)
+
+These aspects have strong alchemical flavor but need further mechanical definition. They may belong in the Physical school or in future schools. Archived here for future consideration.
+
+- **Luminous**: Glowing reagents that illuminate or amplify adjacent properties. Potentially better suited for roguelite (reveal hidden aspects on adjacent reagents) than pure puzzle mode. Fits the "mystical reagent" fantasy.
+- **Corrosive**: Acid that eats through containers. Adjacent bag cells become unusable? Eats through Null suppression? Strong flavor but needs careful balancing to avoid being frustrating.
+- **Resonant**: Amplifies the magnitude of same-aspect neighbors. Interesting multiplicative mechanic but may be too niche to justify a dedicated aspect.
+- **Adhesive**: Once placed adjacent to another reagent, the pair can't be separated (must be moved together). A constraint mechanic that creates commitment in placement order.
+- **Ethereal**: Non-physical, passes through other reagents. Doesn't interact with Physical school at all. May belong in a Spirit school or serve as a "wildcard" that ignores spatial rules.
 
 ### School 2: Wuxing / Five Elements (Post-MVP)
 

@@ -18,8 +18,8 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [x] Reagents with shapes (1-4 cells, a range of shapes)
 - [x] Reagent placement: pick up, rotate (90-degree increments), place in bag cells
 - [x] Cell-contact adjacency detection
-- [x] Physical/Chemistry school aspects: Hot, Cold, Volatile, Fragile, Toxic, Stable (minimum set)
-- [x] Basic interaction rules: at least Hot+Volatile=Explosion, Hot+Cold=Neutralization, cumulative heat/cold thresholds
+- [x] Physical/Chemistry school aspects at **Simple** complexity: Hot, Cold, Volatile, Stable, Heavy, Toxic (see `docs/chemistry-system.md` Complexity Levels)
+- [x] Basic interaction rules: Volatile net-hot explosion, Hot+Cold neutralization, cumulative heat/cold/toxicity thresholds, Stable buffering, Heavy falling
 - [x] Placement validation with warnings (codex-lite: show aspect icons, warn before dangerous placements)
 - [x] Puzzle win/loss conditions
 - [x] Procedural puzzle generation with deterministic seeding
@@ -29,13 +29,14 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [x] Basic save system (at minimum, track tutorial progress and daily puzzle completion)
 
 ### Nice to Have for MVP
-- [ ] 1-2 bag special properties (Null bag is highest priority)
+- [ ] Simple complexity bag types: Null (implemented), Gravity, Locked
 - [ ] Weight system (simple numeric cap)
 - [ ] Score/value system for reagents (enables "maximize value" puzzles)
 - [ ] Reagent consuming (right-click to consume for effect)
 - [ ] Multiple save slots
 - [ ] Share result (Wordle-style grid of emojis showing your solution)
 - [ ] Aspect interaction primer / rules reference accessible from puzzle screen
+- [ ] Non-rectangular bag shapes (L-shapes, irregular)
 
 ### Explicitly NOT in MVP
 - Venture/encounter map
@@ -74,11 +75,13 @@ The MVP includes three puzzle types, used across the tutorial and daily challeng
 
 ### Puzzle Difficulty Scaling
 
+The MVP targets **Simple** complexity (see `docs/chemistry-system.md`): 6 aspects (Hot, Cold, Volatile, Stable, Heavy, Toxic) and up to 4 bag types (Normal, Null, Gravity, Locked). Complexity should come from puzzle size and spatial pressure, not from adding more mechanics.
+
 Difficulty is controlled by tuning these parameters:
 - Number and size of bags
 - Number and complexity of reagents
-- Number and severity of aspects
-- Whether bags have special properties
+- Number and severity of aspects (within Simple complexity)
+- Whether bags have special properties (Gravity, Locked, Null)
 - Tightness of fit (how much spare space exists)
 - Whether the requirement forces dangerous combinations
 

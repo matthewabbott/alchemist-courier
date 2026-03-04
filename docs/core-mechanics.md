@@ -31,18 +31,72 @@ Bags are the fundamental inventory containers. **There is no "base" inventory** 
 | **Size** | Number of cells the bag provides for reagent storage. A 3x3 bag has 9 cells. |
 | **Special Properties** | Optional modifiers that affect reagents stored in the bag (see below). |
 
-### Bag Special Properties (Examples)
+### Bag Special Properties
 
-| Property | Effect |
-|----------|--------|
-| **Null** | Nullifies/suppresses aspects of reagents stored in this bag's cells. A volatile reagent in a null bag won't react. |
-| **Locked** | Once a reagent is placed in this bag, it cannot be moved or discarded. Placement is permanent (for the venture). |
-| **Gravity** | Reagents "fall" to the bottom of this bag rather than being freely placeable. Top cells must be supported. |
-| **Reinforced** | Cells in this bag cannot be damaged by explosions or other destructive effects. |
-| **Fragile** | This bag can be damaged more easily. Explosions may destroy cells. |
-| **Insulated** | Reduces the sensitivity of adjacency reactions for reagents in this bag (e.g., adjacent reactions might require 2+ cells of contact instead of 1). |
-| **Expanding** (rare) | Can be "stitched" or expanded during special events, gaining additional cells. |
-| **Levitating** (special) | Doesn't need to be adjacent to the character on the meta-grid — it "floats" and can be placed anywhere. |
+Bag types are introduced at different complexity levels (see `docs/chemistry-system.md` for the complexity level definitions). Each bag type is designed to create spatial constraints that interact with the aspect system.
+
+#### Simple Complexity (MVP)
+
+**Normal** (default):
+- No special properties
+- Aspects function normally, no placement restrictions beyond spatial fit
+
+**Null**:
+- Suppresses ALL aspects of reagents stored in this bag's cells
+- A volatile reagent in a Null bag won't react to adjacent heat
+- Spanning: only the cells physically inside the Null bag are suppressed (per-cell resolution)
+- Sharp pierces Null suppression at Advanced complexity
+- Selective null (suppress only specific aspects) is aspirational
+
+**Gravity**:
+- Reagents "fall" to the bottom of the bag based on bag orientation
+- Placement constraint: items must be supported (resting on the bottom row or on top of existing items)
+- Heavy items always fall TRUE down (world gravity), ignoring bag orientation
+- Puzzle effect: limits where items can go, bottom fills first, creates stacking challenges
+- Fragile items can't be placed in Gravity bags (Intermediate -- they'd break from falling)
+
+**Locked**:
+- In puzzle mode: bag contains pre-placed reagents that can't be moved or removed
+- Creates fixed constraints the player must work around
+- Implementation: `isLocked: true` flag on placements
+- The locked reagents' aspects are active and participate in reactions -- they're constraints, not inert decorations
+
+#### Intermediate Complexity
+
+**Reinforced**:
+- Sharp items CAN be placed on edge cells (overrides Sharp's edge restriction)
+- +1 to all reaction thresholds for reactions involving reagents within this bag
+- Immune to explosion damage (roguelite: bag cells can't be destroyed)
+- Flavor: a sturdy, padded container for dangerous materials
+
+**Insulated**:
+- +1 or +2 to all reaction thresholds for reactions involving reagents within this bag
+- Functions like a localized Stable effect for the whole bag
+- Stacks with Stable aspect (Stable reagent in Insulated bag = very high effective threshold)
+- Does NOT suppress aspects (unlike Null) -- reactions can still happen, just harder to trigger
+
+**Fragile (bag)**:
+- Can't hold Sharp items (placement blocked)
+- Any explosion in or adjacent to the bag destroys the entire bag and all contents
+- Forces careful aspect management -- high risk, potentially high reward (could be larger or have bonus properties)
+- Flavor: a delicate glass container
+
+#### Advanced Complexity (Aspirational)
+
+**Body**:
+- Represents the character's body (e.g., "hands" as a 1x1 bag, "back" as a 2x3)
+- Allows unlimited protrusion (see Protrusion System below)
+- Brief description only -- full spec deferred to post-MVP
+
+#### Aspirational (Not Yet Tiered)
+
+**Expanding** (rare):
+- Can be "stitched" or expanded during special events, gaining additional cells
+- Roguelite progression mechanic
+
+**Levitating** (special):
+- Doesn't need to be adjacent to the character on the meta-grid -- it "floats" and can be placed anywhere
+- Removes the meta-grid adjacency constraint for this one bag
 
 ### Bag Placement Rules
 - Bags are placed on the meta-grid and must fit within its bounds
@@ -222,6 +276,22 @@ All controls are fully customizable.
 4. Adjacency is always cell-contact, cardinal-direction based.
 5. Bag effects always resolve per-cell for spanning reagents.
 6. Consuming a reagent always removes it from the bag.
+
+## Protrusion System (Aspirational)
+
+Some bags have a "top" or "opening" that allows items to stick out beyond the bag's cell boundaries. This is a post-MVP mechanic noted here for future reference.
+
+### Basic Rules
+- Cells of a reagent that extend outside the bag don't count for aspect purposes (treated as if Null-suppressed)
+- Items must be at least 50% inside the bag (more cells inside than outside)
+- Body bags: unlimited protrusion (hands can hold items that stick out in any direction)
+- Sealed/closed bags: no protrusion allowed
+- Heavy items can't protrude (too dense to balance)
+
+### Design Intent
+Protrusion adds a spatial trick: you can fit a large reagent into a small bag by letting it stick out, but the protruding cells lose their aspects. This creates trade-offs between space efficiency and aspect utilization.
+
+Full specification deferred to post-MVP implementation.
 
 ## Related Documents
 
