@@ -51,7 +51,12 @@ fi
 echo "[RALPH] CLAUDE_CODE_GIT_BASH_PATH=$CLAUDE_CODE_GIT_BASH_PATH"
 
 # 3. Verify claude can actually start (quick smoke test)
-CLAUDE_SMOKE=$(claude --version 2>&1) || true
+# Use winpty on Git Bash/mintty (needed for proper I/O on Windows)
+WINPTY=""
+if command -v winpty >/dev/null 2>&1; then
+    WINPTY="winpty"
+fi
+CLAUDE_SMOKE=$($WINPTY claude --version 2>&1) || true
 if ! echo "$CLAUDE_SMOKE" | grep -q "Claude Code"; then
     echo "[RALPH] FATAL: 'claude --version' failed. Output:"
     echo "$CLAUDE_SMOKE"
@@ -163,7 +168,7 @@ while [ $ITER -lt $MAX_ITER ]; do
         echo "[RALPH] Starting Claude Code ($ROLE)..."
         echo "[RALPH] Tail the log: tail -f $ITER_LOG"
         CLAUDE_EXIT=0
-        claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || CLAUDE_EXIT=$?
+        $WINPTY claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || CLAUDE_EXIT=$?
 
         LOG_LINES=$(wc -l < "$ITER_LOG" 2>/dev/null | tr -d '[:space:]')
         echo "[RALPH] Log saved: $ITER_LOG ($LOG_LINES lines)"
