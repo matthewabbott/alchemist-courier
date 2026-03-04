@@ -70,7 +70,7 @@
       "phase": "puzzle-infrastructure",
       "depends_on": [],
       "verification": "dotnet test — serialization round-trip test passes",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "2.3",
