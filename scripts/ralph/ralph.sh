@@ -15,6 +15,10 @@
 
 set -e
 
+# Prevent "nested session" error if launched from a terminal that inherited
+# Claude Desktop's environment variables
+unset CLAUDECODE 2>/dev/null || true
+
 # Claude Code on Windows needs to know where git-bash lives
 if [ -z "$CLAUDE_CODE_GIT_BASH_PATH" ]; then
     for candidate in \
