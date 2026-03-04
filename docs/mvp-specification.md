@@ -75,12 +75,14 @@ The MVP includes three puzzle types, used across the tutorial and daily challeng
 
 ### Puzzle Difficulty Scaling
 
-The MVP targets **Simple** complexity (see `docs/chemistry-system.md`): 6 aspects (Hot, Cold, Volatile, Stable, Heavy, Toxic) and up to 4 bag types (Normal, Null, Gravity, Locked). Complexity should come from puzzle size and spatial pressure, not from adding more mechanics.
+Puzzle complexity has two dimensions: **scale** (how many bags/reagents to juggle) and **mechanical depth** (how many unique aspect behaviors and bag types are active). See `docs/chemistry-system.md` for full details.
 
-Difficulty is controlled by tuning these parameters:
+All daily/standalone puzzles use **Simple** mechanical depth: 6 aspects (Hot, Cold, Volatile, Stable, Heavy, Toxic) and up to 4 bag types (Normal, Null, Gravity, Locked). Difficulty scaling is purely through **scale** -- more bags, more reagents, tighter fit. Even a "Hard" daily puzzle uses Simple mechanics, because the player needs to grok it from a cold start.
+
+Difficulty is controlled by tuning these scale parameters:
 - Number and size of bags
 - Number and complexity of reagents
-- Number and severity of aspects (within Simple complexity)
+- Number and severity of aspects (within Simple mechanics)
 - Whether bags have special properties (Gravity, Locked, Null)
 - Tightness of fit (how much spare space exists)
 - Whether the requirement forces dangerous combinations

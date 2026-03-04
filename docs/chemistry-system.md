@@ -13,32 +13,48 @@ Simple, consistent rules combining to produce complex outcomes. The system shoul
 ### Procedural Chemistry (BotW-Inspired)
 Like Breath of the Wild's chemistry engine, the aspect system defines general behavioral rules. Fire aspects generate heat. Volatile aspects react to heat. These are properties of the aspects themselves, not specific item-to-item interactions. A new reagent with fire and volatile aspects will behave predictably without needing new code.
 
-## Complexity Levels
+## Complexity Model
 
-Not all puzzles use every mechanic. Complexity levels define which aspects, interactions, and bag types are available at each tier. The guiding principle: **complexity should come from puzzle size and spatial pressure, not from piling on more mechanics.** A "simple, large" puzzle should be hard because of tight space and many reagents -- not because players must memorize a dozen interaction rules.
+Puzzle complexity has **two independent dimensions**:
 
-The daily puzzle game uses mostly Simple complexity. The roguelite/sequential mode gradually builds from Simple to Advanced as the player progresses.
+### Dimension 1: Scale (size of the puzzle)
 
-### Simple (Tutorial, Daily Easy/Medium -- MVP Target)
+How many things the player must juggle spatially -- bags, reagents, cells. A large puzzle with only 6 aspects and 4 bag types can be extremely hard purely through spatial pressure (tight fit, many reagents, awkward shapes). Scale is controlled by DifficultyParams: bag count, bag sizes, reagent count, spare space percentage.
+
+### Dimension 2: Mechanical Depth (number of unique interactions)
+
+How many distinct aspect behaviors and bag types are active. More mechanics means more rules to internalize. Mechanical depth is controlled by the **complexity tier** (Simple, Intermediate, Advanced).
+
+### How the Dimensions Interact
+
+**One-off / standalone puzzles** (daily game, individual challenges) should trend toward **Simple mechanical depth at any scale**. A daily Hard puzzle is hard because it has 12 reagents in tight bags, not because it introduces Sharp+Fragile+Catalytic. The player needs to grok the puzzle from a cold start, so fewer mechanics means faster comprehension and more spatial focus.
+
+**Sequential puzzle modes** (roguelite, tutorial, curated campaigns) can ramp up **mechanical depth gradually**. The player starts with 2 aspects and 1 bag type, and new mechanics are introduced one at a time over many puzzles. By puzzle 30, the player has internalized Intermediate mechanics through practice, so adding Catalytic feels natural rather than overwhelming.
+
+This means the complexity tier isn't just about difficulty -- it's about **context**. A "Hard" daily puzzle and a "Hard" roguelite puzzle may have similar scale, but the daily uses Simple mechanics while the roguelite uses Intermediate or Advanced.
+
+### Complexity Tiers
+
+#### Simple (Tutorial, Daily Easy/Medium/Hard -- MVP Target)
 
 - **Aspects (6)**: Hot, Cold, Volatile, Stable, Heavy, Toxic
 - **Interactions**: Cumulative thresholds (Hot/Cold/Toxic), Hot+Cold neutralization, Volatile net-hot explosion, Stable buffering, Heavy falling
 - **Bag types**: Normal, Null, Gravity, Locked
-- **Philosophy**: Few mechanics, complexity from puzzle size. A player who understands 6 aspects and 4 bag types can face endlessly varied spatial challenges.
+- **Philosophy**: Few mechanics, complexity from puzzle size. A player who understands 6 aspects and 4 bag types can face endlessly varied spatial challenges. All standalone/one-off puzzles should use this tier.
 
-### Intermediate (Daily Hard, Roguelite Mid-Game)
+#### Intermediate (Roguelite Mid-Game, Curated Campaigns)
 
 - **Adds aspects (4)**: Sharp, Fragile, Catalytic, Medicinal
 - **Adds bag types**: Insulated, Reinforced, Fragile
 - **Adds interactions**: Sharp edge constraint, Sharp+Fragile breakage, Catalytic threshold lowering, Fragile universal vulnerability, Medicinal threshold relief
-- **Philosophy**: Meaningful new constraints that interact with existing mechanics. Each new aspect has a primary mechanic that matters on its own (not just in combination with one specific partner).
+- **Philosophy**: Meaningful new constraints that interact with existing mechanics. Each new aspect has a primary mechanic that matters on its own (not just in combination with one specific partner). Only used in modes that build up to it sequentially.
 
-### Advanced (Roguelite Late-Game, Special Events)
+#### Advanced (Roguelite Late-Game, Special Events)
 
 - **Adds aspects (2+)**: Magnetic, Absorbent (and potentially Corrosive, Luminous)
 - **Adds bag types**: Body (with protrusion)
 - **Adds interactions**: Volatile chain reactions, Sharp piercing Null suppression, Magnetic forced clustering, Absorbent selective neutralization
-- **Philosophy**: Full mechanical depth. Sequential modes build to this gradually over many puzzles. Players should feel like they've earned these interactions through mastery of simpler levels.
+- **Philosophy**: Full mechanical depth. Sequential modes build to this gradually over many puzzles. Players should feel like they've earned these interactions through mastery of simpler tiers.
 
 ## Schools of Alchemy
 

@@ -84,8 +84,9 @@ Bag types are introduced at different complexity levels (see `docs/chemistry-sys
 #### Advanced Complexity (Aspirational)
 
 **Body**:
-- Represents the character's body (e.g., "hands" as a 1x1 bag, "back" as a 2x3)
+- Represents the character literally holding or wearing the item (e.g., "hands" as a 1x1, "back" as a 2x3)
 - Allows unlimited protrusion (see Protrusion System below)
+- **Safety constraint**: any cell touching the character (i.e., inside the Body bag) must be safe for a human to touch. A torch's flame cells (Hot, Volatile) can't go in the hand, but its wooden handle (no dangerous aspects) can. This makes per-cell aspect design matter -- a reagent's orientation determines whether it's holdable.
 - Brief description only -- full spec deferred to post-MVP
 
 #### Aspirational (Not Yet Tiered)
