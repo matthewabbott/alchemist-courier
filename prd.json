@@ -354,6 +354,28 @@
       "status": "pending"
     },
     {
+      "id": "R-6",
+      "title": "Extract aspect ID string literals to AspectIds constants class",
+      "description": "Aspect IDs ('hot', 'cold', 'volatile', etc.) are hardcoded as string literals in ChemistryEngine.cs ('stable'), PuzzleGenerator.cs (MvpAspects array, 'heavy'), MetaGrid.cs ('heavy'), ReactionRuleDatabase.cs (all rules), and GridConstants.cs (color mapping). Create src/Core/Chemistry/AspectIds.cs with public static class AspectIds containing const string Hot = 'hot', Cold = 'cold', Volatile = 'volatile', Stable = 'stable', Heavy = 'heavy', Toxic = 'toxic', Sharp = 'sharp', Fragile = 'fragile', Catalytic = 'catalytic', Medicinal = 'medicinal'. Replace all string literal usages across Core/ and Game/ files with the constants. Do NOT change any logic or behavior -- pure rename refactor.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet test -- all tests pass, grep for quoted aspect IDs in src/ shows only AspectIds.cs and test files",
+      "status": "done",
+      "source": "architecture-review-2026-03-04b"
+    },
+    {
+      "id": "R-7",
+      "title": "Deduplicate ReagentHasHeavyAspect into Reagent.HasAspect",
+      "description": "MetaGrid.cs and PuzzleGenerator.cs both contain identical private static ReagentHasHeavyAspect methods. Add a public bool HasAspect(string aspectId) method to Reagent that checks if any cell's AspectSet contains the given aspect. Replace both private copies with calls to reagent.HasAspect('heavy') (or AspectIds.Heavy after R-6). This generalizes beyond Heavy -- any aspect can be queried.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet test -- all tests pass, no duplicate ReagentHasHeavyAspect methods in codebase",
+      "status": "pending",
+      "source": "architecture-review-2026-03-04b"
+    },
+    {
       "id": "5.1",
       "title": "UI layout polish to match MVP mockup",
       "description": "Reorganize PuzzleScreen layout to match the MVP mockup in docs/mvp-specification.md: header bar (title, day count, streak), meta-grid centered left, reagent tray right, objective below tray, status bar at bottom, confirm/reset/primer buttons in bottom bar. Requires all UI panels to exist: status bar (3.2), objective (3.3), confirm/reset buttons (3.4), and primer overlay (3.5). Adjust sizing and spacing to create a cohesive layout.",

@@ -89,3 +89,11 @@ validation, because it already operates on per-cell bag ownership rather than bo
 Non-rectangular bags create more interesting packing puzzles and interact naturally with Gravity
 constraints from B.1 — an L-shaped Gravity bag forces very specific stacking patterns.
 Commit: 7487949
+
+## R-6: Extract aspect ID string literals to AspectIds constants class
+Addressed architecture review finding M4: aspect IDs like "hot", "cold", "volatile" were scattered
+as magic strings across 7 source files. Created a single AspectIds constants class with 10 const
+fields, then mechanically replaced every occurrence. A small change with outsized discoverability
+benefit — any future aspect ID rename is now a single-point change, and typos are caught at compile
+time instead of silently mismatching at runtime.
+Commit: de4a45b

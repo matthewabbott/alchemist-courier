@@ -156,3 +156,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 7487949
 - Notes: Added 8 non-rectangular bag shape templates (L, T, hourglass, S-step, plus, U, notched rectangle, chunky L) covering cell counts 6-12. New PickBagShape method gives ~40% chance of non-rectangular selection when AllowSpecialBags is true (Medium/Hard). Lower difficulties remain rectangular-only. The existing per-cell bag ownership in MetaGrid meant no changes were needed to the placement algorithm — CanPlaceReagent already checks actual cell occupancy rather than bounding box. 6 new tests across 30 seeds verify non-rect bags appear, Easy stays rectangular, solutions are valid (no reactions, in-bounds, no overlaps), and PuzzleSolver validates. All 216 tests pass (210 existing + 6 new).
+
+## R-6 — Extract aspect ID string literals to AspectIds constants class
+- Date: 2026-03-04
+- Commit: de4a45b
+- Notes: Created src/Core/Chemistry/AspectIds.cs with 10 const string fields (Hot, Cold, Volatile, Stable, Heavy, Toxic, Sharp, Fragile, Catalytic, Medicinal). Replaced all hardcoded aspect ID string literals across 7 files: Aspect.cs (factory methods + FromId switch), ReactionRuleDatabase.cs (all 7 rule definitions), ChemistryEngine.cs (Stable magnitude lookup), PuzzleGenerator.cs (MvpAspects array + Heavy check), MetaGrid.cs (Heavy check), GridConstants.cs (color mapping switch), StatusBarPanel.cs (label formatting switch). Pure rename refactor — no logic changes. All 216 tests pass.
