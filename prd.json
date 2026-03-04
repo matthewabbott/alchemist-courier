@@ -372,7 +372,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet test -- all tests pass, no duplicate ReagentHasHeavyAspect methods in codebase",
-      "status": "pending",
+      "status": "done",
       "source": "architecture-review-2026-03-04b"
     },
     {

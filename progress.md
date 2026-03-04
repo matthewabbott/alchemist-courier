@@ -161,3 +161,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: de4a45b
 - Notes: Created src/Core/Chemistry/AspectIds.cs with 10 const string fields (Hot, Cold, Volatile, Stable, Heavy, Toxic, Sharp, Fragile, Catalytic, Medicinal). Replaced all hardcoded aspect ID string literals across 7 files: Aspect.cs (factory methods + FromId switch), ReactionRuleDatabase.cs (all 7 rule definitions), ChemistryEngine.cs (Stable magnitude lookup), PuzzleGenerator.cs (MvpAspects array + Heavy check), MetaGrid.cs (Heavy check), GridConstants.cs (color mapping switch), StatusBarPanel.cs (label formatting switch). Pure rename refactor — no logic changes. All 216 tests pass.
+
+## R-7 — Deduplicate ReagentHasHeavyAspect into Reagent.HasAspect
+- Date: 2026-03-04
+- Commit: 8e82a2e
+- Notes: Added public `HasAspect(string aspectId)` method to Reagent that checks if any cell's AspectSet contains the given aspect. Replaced identical private static `ReagentHasHeavyAspect` in MetaGrid.cs and `HasHeavyAspect` in PuzzleGenerator.cs with calls to the new instance method. Generalizes beyond Heavy — any aspect can be queried. 5 new tests in ReagentTests.cs. All 221 tests pass (216 existing + 5 new).

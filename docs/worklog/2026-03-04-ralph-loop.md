@@ -97,3 +97,11 @@ fields, then mechanically replaced every occurrence. A small change with outsize
 benefit — any future aspect ID rename is now a single-point change, and typos are caught at compile
 time instead of silently mismatching at runtime.
 Commit: de4a45b
+
+## R-7: Deduplicate ReagentHasHeavyAspect into Reagent.HasAspect
+MetaGrid and PuzzleGenerator both had identical private static methods checking if a reagent has
+the Heavy aspect. Extracted a generalized `HasAspect(string aspectId)` instance method on Reagent
+itself — any aspect can now be queried without knowing the internal AspectsPerCell structure. This
+also sets up cleanly for future aspect-based queries (e.g., A.2 Sharp edge constraints will need
+`reagent.HasAspect(AspectIds.Sharp)`).
+Commit: 8e82a2e
