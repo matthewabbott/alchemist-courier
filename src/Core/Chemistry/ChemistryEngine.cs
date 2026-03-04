@@ -118,10 +118,9 @@ public static class ChemistryEngine
                         {
                             var affectedCells = new List<Vector2I> { pos, adjCell.Position };
 
-                            // Stable buffering: adjacent Stable cells raise the effective threshold
+                            // Stable buffering: adjacent Stable cells can suppress pair reactions
                             int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                            int effectiveThreshold = rule.Threshold + stableBuffer;
-                            if (effectiveThreshold > rule.Threshold)
+                            if (stableBuffer > rule.Threshold)
                                 continue;
 
                             results.Add(new ReactionResult(
@@ -203,10 +202,9 @@ public static class ChemistryEngine
                             {
                                 var affectedCells = GetAllCellsForReagents(new List<Reagent> { a, b });
 
-                                // Stable buffering: adjacent Stable cells raise the effective threshold
+                                // Stable buffering: adjacent Stable cells can suppress pair reactions
                                 int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                                int effectiveThreshold = rule.Threshold + stableBuffer;
-                                if (effectiveThreshold > rule.Threshold)
+                                if (stableBuffer > rule.Threshold)
                                     continue;
 
                                 results.Add(new ReactionResult(
@@ -338,19 +336,6 @@ public static class ChemistryEngine
         {
             if (IsAspectSuppressed(grid, pos))
                 continue;
-            if (reagent.GetAspectsAtMetaGridPosition(pos).Has(aspectId))
-                return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Check if a reagent has a specific aspect on any of its cells.
-    /// </summary>
-    private static bool ReagentHasAspect(Reagent reagent, string aspectId)
-    {
-        foreach (var pos in reagent.GetCurrentMetaGridPositions())
-        {
             if (reagent.GetAspectsAtMetaGridPosition(pos).Has(aspectId))
                 return true;
         }
