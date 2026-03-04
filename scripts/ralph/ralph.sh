@@ -15,6 +15,21 @@
 
 set -e
 
+# Claude Code on Windows needs to know where git-bash lives
+if [ -z "$CLAUDE_CODE_GIT_BASH_PATH" ]; then
+    for candidate in \
+        "/c/Program Files/Git/bin/bash.exe" \
+        "/d/Program Files/Git/bin/bash.exe" \
+        "$(cygpath -u "$(cygpath -w /usr/bin/bash | sed 's|/usr/bin/bash.exe|/bin/bash.exe|')" 2>/dev/null)"
+    do
+        if [ -f "$candidate" ]; then
+            export CLAUDE_CODE_GIT_BASH_PATH="$(cygpath -w "$candidate")"
+            echo "[RALPH] Set CLAUDE_CODE_GIT_BASH_PATH=$CLAUDE_CODE_GIT_BASH_PATH"
+            break
+        fi
+    done
+fi
+
 MAX_ITER=${1:-20}
 DRY_RUN=${2:-""}
 ITER=0
