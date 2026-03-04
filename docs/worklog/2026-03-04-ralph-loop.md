@@ -49,3 +49,15 @@ through the full serialization pipeline (PuzzleGenerator → PuzzleBag.Propertie
 so Gravity constraints are enforced consistently during generation and validation. The generator
 assigns ~30% of bags as Gravity when AllowSpecialBags is true.
 Commit: 9ee9109
+
+## B.2: Implement locked reagent placements
+Locked reagents are pre-placed constraints the player must work around — the first mechanic
+that makes puzzles feel hand-crafted even though they're generated. Key design decision: locked
+is a per-reagent flag, not a bag property, since any bag can contain locked reagents. The
+implementation touches four layers: Reagent (IsLocked property), MetaGrid (removal prevention),
+PuzzleGenerator (randomly locks 1-2 solution reagents when AllowSpecialBags=true), and PuzzleSolver
+(validates locked positions match the solution exactly). The generator deliberately never locks all
+reagents and requires at least 3 reagents before locking any, ensuring the player always has
+meaningful choices. PuzzleReagent.IsLocked was already in PuzzleState.cs from task 2.2 — nice
+foresight that made serialization zero-effort.
+Commit: a0039c7

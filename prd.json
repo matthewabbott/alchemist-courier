@@ -201,7 +201,7 @@
       "phase": "bag-mechanics",
       "depends_on": ["2.3"],
       "verification": "dotnet test -- locked bag tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "B.3",
