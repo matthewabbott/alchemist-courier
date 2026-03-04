@@ -90,7 +90,7 @@
       "phase": "puzzle-infrastructure",
       "depends_on": ["1.4", "2.2"],
       "verification": "dotnet test — solver validation tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "3.1",
