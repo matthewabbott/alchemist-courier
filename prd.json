@@ -80,7 +80,7 @@
       "phase": "puzzle-infrastructure",
       "depends_on": ["1.4", "2.1", "2.2"],
       "verification": "dotnet test — puzzle generation tests pass, solution validates",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "2.4",
