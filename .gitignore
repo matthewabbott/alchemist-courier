@@ -29,6 +29,7 @@ test_output/
 
 # Ralph loop state
 .ralph-phase-marker
+scripts/ralph/logs/
 
 # OS
 Thumbs.db

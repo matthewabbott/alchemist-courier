@@ -40,6 +40,10 @@ PROJECT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 PROMPTS_DIR="$PROJECT_DIR/scripts/ralph/prompts"
 PRD_FILE="$PROJECT_DIR/prd.json"
 PHASE_SCRIPT="$PROJECT_DIR/scripts/ralph/check-phase.py"
+LOG_DIR="$PROJECT_DIR/scripts/ralph/logs"
+
+# Ensure log directory exists
+mkdir -p "$LOG_DIR"
 
 cd "$PROJECT_DIR"
 
@@ -56,6 +60,7 @@ echo "========================================"
 echo " Ralph Loop — Alchemist Courier"
 echo " Max iterations: $MAX_ITER"
 echo " Project: $PROJECT_DIR"
+echo " Logs: $LOG_DIR"
 echo " Roles: implement, review-code, review-integration, review-architecture"
 echo "========================================"
 
@@ -103,8 +108,10 @@ while [ $ITER -lt $MAX_ITER ]; do
     fi
 
     PROMPT_FILE="$PROMPTS_DIR/$ROLE.md"
+    ITER_LOG="$LOG_DIR/iter-$(printf '%03d' $ITER)-$ROLE-$(date '+%Y%m%d-%H%M%S').log"
     echo "[RALPH] Role: $ROLE"
     echo "[RALPH] Prompt: $PROMPT_FILE"
+    echo "[RALPH] Log: $ITER_LOG"
 
     if [ ! -f "$PROMPT_FILE" ]; then
         echo "[RALPH] ERROR: Prompt file not found: $PROMPT_FILE"
@@ -117,11 +124,13 @@ while [ $ITER -lt $MAX_ITER ]; do
         head -5 "$PROMPT_FILE"
         echo "[RALPH] ...skipping execution."
     else
-        # Run Claude Code with the selected prompt
+        # Run Claude Code with the selected prompt, logging output
         echo "[RALPH] Starting Claude Code ($ROLE)..."
-        claude -p "$(cat "$PROMPT_FILE")" --output-format text || {
+        echo "[RALPH] Tail the log: tail -f $ITER_LOG"
+        claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || {
             echo "[RALPH] Claude Code exited with error (code $?). Continuing..."
         }
+        echo "[RALPH] Log saved: $ITER_LOG ($(wc -l < "$ITER_LOG") lines)"
     fi
 
     # Increment impl counter for implementation runs (including dry run, for accurate simulation)
@@ -146,4 +155,5 @@ PENDING=$(grep -c '"pending"' "$PRD_FILE" 2>/dev/null | tr -d '[:space:]')
 BLOCKED=$(grep -c '"blocked"' "$PRD_FILE" 2>/dev/null | tr -d '[:space:]')
 : "${DONE:=0}" "${PENDING:=0}" "${BLOCKED:=0}"
 echo " Final: done=$DONE, pending=$PENDING, blocked=$BLOCKED"
+echo " Logs: $LOG_DIR"
 echo "========================================"
