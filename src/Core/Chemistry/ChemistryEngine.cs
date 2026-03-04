@@ -111,6 +111,12 @@ public static class ChemistryEngine
                         if (reportedPairs.Add(pair))
                         {
                             var affectedCells = new List<Vector2I> { pos, adjCell.Position };
+
+                            // Stable buffering: adjacent Stable cells raise the effective threshold
+                            int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
+                            if (stableBuffer > rule.Threshold)
+                                continue;
+
                             results.Add(new ReactionResult(
                                 rule.ResultType,
                                 1f,
@@ -152,9 +158,11 @@ public static class ChemistryEngine
             {
                 // Count reagents that have this aspect (for threshold check)
                 var withAspect = reagentList.Where(r => ReagentHasAspect(r, aspect1)).ToList();
-                if (withAspect.Count >= rule.Threshold && withAspect.Count >= 2)
+                var affectedCells = GetAllCellsForReagents(withAspect);
+                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
+                int effectiveThreshold = rule.Threshold + stableBuffer;
+                if (withAspect.Count >= effectiveThreshold && withAspect.Count >= 2)
                 {
-                    var affectedCells = GetAllCellsForReagents(withAspect);
                     results.Add(new ReactionResult(
                         rule.ResultType,
                         withAspect.Count,
@@ -183,6 +191,12 @@ public static class ChemistryEngine
                             if (reportedPairs.Add(pair))
                             {
                                 var affectedCells = GetAllCellsForReagents(new List<Reagent> { a, b });
+
+                                // Stable buffering
+                                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
+                                if (stableBuffer > rule.Threshold)
+                                    continue;
+
                                 results.Add(new ReactionResult(
                                     rule.ResultType,
                                     1f,
@@ -237,7 +251,11 @@ public static class ChemistryEngine
             }
         }
 
-        if (totalMagnitude >= rule.Threshold)
+        // Stable buffering: adjacent Stable cells raise the effective threshold
+        int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
+        int effectiveThreshold = rule.Threshold + stableBuffer;
+
+        if (totalMagnitude >= effectiveThreshold)
         {
             results.Add(new ReactionResult(
                 rule.ResultType,
@@ -245,6 +263,42 @@ public static class ChemistryEngine
                 affectedCells,
                 rule));
         }
+    }
+
+    /// <summary>
+    /// Compute the total Stable aspect magnitude on cells adjacent to the given set of cells.
+    /// Each unique Stable cell is counted only once (by position).
+    /// </summary>
+    private static int GetAdjacentStableMagnitude(MetaGrid grid, List<Vector2I> involvedCells)
+    {
+        var countedPositions = new HashSet<Vector2I>();
+        int totalStable = 0;
+
+        foreach (var cell in involvedCells)
+        {
+            foreach (var adjCell in grid.GetAdjacentCells(cell))
+            {
+                if (countedPositions.Contains(adjCell.Position))
+                    continue;
+
+                // Skip cells that are part of the involved set
+                if (involvedCells.Contains(adjCell.Position))
+                    continue;
+
+                var reagent = grid.GetReagentAtCell(adjCell.Position);
+                if (reagent == null)
+                    continue;
+
+                int mag = reagent.GetAspectsAtMetaGridPosition(adjCell.Position).GetMagnitude("stable");
+                if (mag > 0)
+                {
+                    totalStable += mag;
+                    countedPositions.Add(adjCell.Position);
+                }
+            }
+        }
+
+        return totalStable;
     }
 
     /// <summary>

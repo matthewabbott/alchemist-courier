@@ -591,4 +591,145 @@ public class ChemistryEngineTests
 
         Assert.Empty(results);
     }
+
+    // =====================================================
+    // Stable buffering tests
+    // =====================================================
+
+    [Fact]
+    public void Evaluate_StableAdjacentToHotVolatilePair_SuppressesExplosion()
+    {
+        // Layout: [Hot] [Volatile] [Stable]  — Stable is adjacent to Volatile
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (volatileReagent, new Vector2I(1, 0)),
+            (stableReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_StableNotAdjacentToReactingPair_DoesNotSuppress()
+    {
+        // Layout: [Hot] [Volatile]  ...  [Stable] — Stable is far away
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (volatileReagent, new Vector2I(1, 0)),
+            (stableReagent, new Vector2I(4, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_MultipleStableCellsStack()
+    {
+        // Two Stable reagents adjacent to Sharp+Fragile pair — magnitudes stack
+        var sharpReagent = MakeSingleCellReagent("sharp1", Aspect.Sharp());
+        var fragileReagent = MakeSingleCellReagent("frag1", Aspect.Fragile());
+        var stable1 = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var stable2 = MakeSingleCellReagent("stb2", Aspect.Stable());
+
+        // Layout (row 0): [Stable1] [Sharp] [Fragile] [Stable2]
+        var grid = SetupGrid(5, 5,
+            (stable1, new Vector2I(0, 0)),
+            (sharpReagent, new Vector2I(1, 0)),
+            (fragileReagent, new Vector2I(2, 0)),
+            (stable2, new Vector2I(3, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Both Stable cells contribute — stableBuffer=2 > threshold=0
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Breakage);
+    }
+
+    [Fact]
+    public void Evaluate_StableAdjacentToOneSideOfPair_SuppressesExplosion()
+    {
+        // Stable is adjacent only to the Hot cell, not the Volatile cell
+        // Layout (col): [Stable] at (0,1), [Hot] at (1,1), [Volatile] at (2,1)
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var grid = SetupGrid(5, 5,
+            (stableReagent, new Vector2I(0, 1)),
+            (hotReagent, new Vector2I(1, 1)),
+            (volatileReagent, new Vector2I(2, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_StableWithHigherMagnitude_StillSuppresses()
+    {
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        // Stable with magnitude 3
+        var def = new ReagentDefinition("stb1", "stb1", new bool[,] { { true } },
+            aspectsPerCell: new List<AspectSet> { new AspectSet(Aspect.Stable(3)) });
+        var stableReagent = new Reagent(def);
+
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(1, 1)),
+            (volatileReagent, new Vector2I(2, 1)),
+            (stableReagent, new Vector2I(3, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_StableBuffersCumulativeOverheating()
+    {
+        // 4 Hot cells meet overheating threshold (4), but Stable adjacent raises threshold to 5
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        // Stable adjacent to one of the hot cells
+        var grid = SetupGrid(5, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (stable, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_StableDoesNotAffectOwnReaction()
+    {
+        // Stable + Medicinal adjacent should still produce no reaction
+        // (they don't have reaction rules, so this verifies stable doesn't break anything)
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var medicinal = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var grid = SetupGrid(5, 5,
+            (stable, new Vector2I(0, 0)),
+            (medicinal, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Empty(results);
+    }
 }

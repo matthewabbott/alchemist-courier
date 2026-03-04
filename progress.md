@@ -60,3 +60,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: baf76cd..ef7d606 (tasks 2.2, 2.3, 2.4)
 - Findings: 5 (P0: 0, P1: 0, P2: 1, P3: 3, P4: 1)
 - Fixed: 0, Tasks created: 1 (R-2: extract CreateAspect duplication)
+
+## R-2 — Extract shared CreateAspect to Aspect.FromId
+- Date: 2026-03-04
+- Commit: 36b1865
+- Notes: Extracted identical CreateAspect switch expressions from PuzzleGenerator.cs, PuzzleSolver.cs, and PuzzleGeneratorTests.cs into Aspect.FromId(string id) on the Aspect class. New method covers all 10 known aspect IDs (hot, cold, volatile, fragile, toxic, sharp, heavy, medicinal, stable, catalytic) plus a fallback for unknown IDs. Added 12 new unit tests (Theory + Fact) in AspectTests.cs. All 161 tests pass (149 existing + 12 new).
+
+## R-1 — Implement Stable aspect buffering mechanic
+- Date: 2026-03-04
+- Commit: 6bdba35
+- Notes: Three changes: (1) Added "stable" to PuzzleGenerator.MvpAspects so generated puzzles can include Stable reagents. (2) Added GetAdjacentStableMagnitude helper to ChemistryEngine that finds Stable cells adjacent to involved reaction cells and sums their magnitudes. Applied buffering to all three sensitivity tiers: Adjacent (stable buffer > threshold suppresses pair), SameBag (both same-aspect and distinct-aspect pair variants), WholeInventory (raises effective threshold). (3) Added 7 new tests: stable adjacent suppresses explosion, stable not adjacent doesn't suppress, multiple stable cells stack, stable adjacent to one side of pair still suppresses, high-magnitude stable suppresses, stable buffers cumulative overheating, stable doesn't break non-reactive pairs. All 168 tests pass (161 existing + 7 new).

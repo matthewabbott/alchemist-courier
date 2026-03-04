@@ -100,7 +100,7 @@
       "phase": "core-chemistry",
       "depends_on": ["1.4"],
       "verification": "dotnet test — Stable buffering tests pass, PuzzleGenerator can produce puzzles with Stable reagents",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R-2",
@@ -110,7 +110,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet test — all 149 tests pass, no duplicate CreateAspect methods remain",
-      "status": "pending",
+      "status": "done",
       "source": "code-review-2026-03-03b"
     },
     {
