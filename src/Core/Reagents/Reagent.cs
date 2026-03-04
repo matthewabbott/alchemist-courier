@@ -41,6 +41,19 @@ public class Reagent
         _rotation = 0;
     }
 
+    /// <summary>
+    /// Check if this reagent has the given aspect on any of its cells.
+    /// </summary>
+    public bool HasAspect(string aspectId)
+    {
+        foreach (var aspectSet in Definition.AspectsPerCell)
+        {
+            if (aspectSet.Has(aspectId))
+                return true;
+        }
+        return false;
+    }
+
     /// <summary>Get the shape after applying the current rotation.</summary>
     public bool[,] GetRotatedShape() => ShapeUtil.Rotate(Definition.Shape, _rotation);
 

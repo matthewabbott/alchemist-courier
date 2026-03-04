@@ -440,7 +440,7 @@ public class PuzzleGenerator
         // then largest-first for better packing
         var indexed = reagents
             .Select((r, i) => (reagent: r, index: i))
-            .OrderByDescending(x => HasHeavyAspect(x.reagent) ? 1 : 0)
+            .OrderByDescending(x => x.reagent.HasAspect(AspectIds.Heavy) ? 1 : 0)
             .ThenByDescending(x => x.reagent.Definition.CellCount)
             .ToList();
 
@@ -531,16 +531,6 @@ public class PuzzleGenerator
             for (int c = 0; c < cols; c++)
                 if (shape[r, c]) count++;
         return count;
-    }
-
-    private static bool HasHeavyAspect(Reagent reagent)
-    {
-        foreach (var aspectSet in reagent.Definition.AspectsPerCell)
-        {
-            if (aspectSet.Has(AspectIds.Heavy))
-                return true;
-        }
-        return false;
     }
 
     private static DifficultyLevel InferDifficulty(DifficultyParams p) => p.BagCount switch

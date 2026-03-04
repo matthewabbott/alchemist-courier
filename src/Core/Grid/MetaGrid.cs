@@ -289,7 +289,7 @@ public class MetaGrid
     /// </summary>
     private bool IsHeavyConstraintValid(Reagent reagent, List<Vector2I> positions)
     {
-        bool isHeavy = ReagentHasHeavyAspect(reagent);
+        bool isHeavy = reagent.HasAspect(AspectIds.Heavy);
 
         foreach (var pos in positions)
         {
@@ -308,7 +308,7 @@ public class MetaGrid
                         break; // Left the bag
 
                     var occupant = GetReagentAtCell(checkPos);
-                    if (occupant != null && !ReagentHasHeavyAspect(occupant))
+                    if (occupant != null && !occupant.HasAspect(AspectIds.Heavy))
                         return false; // Non-Heavy reagent below a Heavy one
                 }
             }
@@ -323,26 +323,13 @@ public class MetaGrid
                         break; // Left the bag
 
                     var occupant = GetReagentAtCell(checkPos);
-                    if (occupant != null && ReagentHasHeavyAspect(occupant))
+                    if (occupant != null && occupant.HasAspect(AspectIds.Heavy))
                         return false; // Heavy reagent above a non-Heavy one
                 }
             }
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Check if a reagent has the Heavy aspect on any of its cells.
-    /// </summary>
-    private static bool ReagentHasHeavyAspect(Reagent reagent)
-    {
-        foreach (var aspectSet in reagent.Definition.AspectsPerCell)
-        {
-            if (aspectSet.Has(AspectIds.Heavy))
-                return true;
-        }
-        return false;
     }
 
     /// <summary>
