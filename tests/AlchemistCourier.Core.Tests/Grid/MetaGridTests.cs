@@ -228,4 +228,180 @@ public class MetaGridTests
         var bags = grid.GetBagsForReagent(reagent);
         Assert.Equal(2, bags.Count);
     }
+
+    // --- GetAdjacentCells(Vector2I) overload ---
+
+    [Fact]
+    public void GetAdjacentCells_ByPosition_ReturnsSameAsGridCell()
+    {
+        var grid = CreateGrid(5, 5);
+        var pos = new Vector2I(2, 2);
+        var byCell = grid.GetAdjacentCells(grid.GetCell(pos)!);
+        var byPos = grid.GetAdjacentCells(pos);
+        Assert.Equal(byCell.Count, byPos.Count);
+    }
+
+    [Fact]
+    public void GetAdjacentCells_OutOfBoundsPosition_ReturnsEmpty()
+    {
+        var grid = CreateGrid(5, 5);
+        var neighbors = grid.GetAdjacentCells(new Vector2I(10, 10));
+        Assert.Empty(neighbors);
+    }
+
+    [Fact]
+    public void GetAdjacentCells_EdgeCell_ReturnsThreeNeighbors()
+    {
+        var grid = CreateGrid(5, 5);
+        // (2, 0) is on the top edge — neighbors are left, right, below (no above)
+        var neighbors = grid.GetAdjacentCells(new Vector2I(2, 0));
+        Assert.Equal(3, neighbors.Count);
+    }
+
+    // --- GetAdjacentReagents ---
+
+    [Fact]
+    public void GetAdjacentReagents_EmptyGrid_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        // Only one reagent on the grid — no neighbors
+        var adjacent = grid.GetAdjacentReagents(reagent);
+        Assert.Empty(adjacent);
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_TwoAdjacentReagents_ReturnsBoth()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place r1 at (0,0), r2 at (1,0) — cardinally adjacent
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(1, 0));
+
+        var adjFromR1 = grid.GetAdjacentReagents(r1);
+        Assert.Single(adjFromR1);
+        Assert.Same(r2, adjFromR1[0]);
+
+        var adjFromR2 = grid.GetAdjacentReagents(r2);
+        Assert.Single(adjFromR2);
+        Assert.Same(r1, adjFromR2[0]);
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_DiagonalOnly_NotAdjacent()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // r1 at (0,0), r2 at (1,1) — diagonal only, not cardinal
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(1, 1));
+
+        Assert.Empty(grid.GetAdjacentReagents(r1));
+        Assert.Empty(grid.GetAdjacentReagents(r2));
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_SelfExcluded()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Domino at (0,0) occupies (0,0) and (1,0)
+        // Its own cells are adjacent to each other but should not appear in results
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(0, 0));
+
+        Assert.Empty(grid.GetAdjacentReagents(reagent));
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_MultipleNeighbors_ReturnsAll()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.Satchel); // 4x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Layout:
+        //   [r1][ ][ ][ ]
+        //   [center][ ][ ][ ]
+        //   [ ][r3][ ][ ]
+        //
+        // r1 at (0,0), center at (0,1), r3 at (1,2)
+        // center is adjacent to r1 (above) and r3 (diagonal? no...)
+        //
+        // Better layout — center at (1,1), neighbors at (0,1), (2,1), (1,0)
+        //   [ ][rTop][ ][ ]
+        //   [rLeft][center][rRight][ ]
+        //   [ ][ ][ ][ ]
+        var center = new Reagent(ReagentDefinition.SingleCell);
+        var rTop = new Reagent(ReagentDefinition.SingleCell);
+        var rLeft = new Reagent(ReagentDefinition.SingleCell);
+        var rRight = new Reagent(ReagentDefinition.SingleCell);
+
+        grid.PlaceReagent(center, new Vector2I(1, 1));
+        grid.PlaceReagent(rTop, new Vector2I(1, 0));
+        grid.PlaceReagent(rLeft, new Vector2I(0, 1));
+        grid.PlaceReagent(rRight, new Vector2I(2, 1));
+
+        var adjacent = grid.GetAdjacentReagents(center);
+        Assert.Equal(3, adjacent.Count);
+        Assert.Contains(rTop, adjacent);
+        Assert.Contains(rLeft, adjacent);
+        Assert.Contains(rRight, adjacent);
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_MultiCellReagent_FindsNeighborOnAnySide()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.Satchel); // 4x3 at (0,0)
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Domino at (0,0) occupies (0,0) and (1,0)
+        // Neighbor at (2,0) — adjacent to domino's right cell
+        var domino = new Reagent(ReagentDefinition.Domino);
+        var neighbor = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(domino, new Vector2I(0, 0));
+        grid.PlaceReagent(neighbor, new Vector2I(2, 0));
+
+        var adjacent = grid.GetAdjacentReagents(domino);
+        Assert.Single(adjacent);
+        Assert.Same(neighbor, adjacent[0]);
+    }
+
+    [Fact]
+    public void GetAdjacentReagents_NeighborAppearsOnce_EvenIfMultipleTouchingCells()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.Satchel); // 4x3 at (0,0)
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Domino at (0,0) occupies (0,0) and (1,0)
+        // Another domino at (0,1) occupies (0,1) and (1,1)
+        // Both cells of the second domino are adjacent to both cells of the first
+        var r1 = new Reagent(ReagentDefinition.Domino);
+        var r2 = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(0, 1));
+
+        // r2 should appear exactly once, even though multiple cells touch
+        var adjacent = grid.GetAdjacentReagents(r1);
+        Assert.Single(adjacent);
+        Assert.Same(r2, adjacent[0]);
+    }
 }

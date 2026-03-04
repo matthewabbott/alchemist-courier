@@ -282,6 +282,27 @@ public class MetaGrid
     }
 
     /// <summary>
+    /// Get all distinct reagents that are cardinally adjacent to any cell of the given reagent.
+    /// A reagent is adjacent if any of its cells shares a cardinal edge with any cell of the target reagent.
+    /// The given reagent itself is excluded from results.
+    /// </summary>
+    public List<Reagent> GetAdjacentReagents(Reagent reagent)
+    {
+        var neighbors = new HashSet<Reagent>();
+        foreach (var pos in reagent.GetCurrentMetaGridPositions())
+        {
+            foreach (var adjCell in GetAdjacentCells(pos))
+            {
+                if (adjCell.OccupyingReagent is Reagent neighbor && neighbor != reagent)
+                {
+                    neighbors.Add(neighbor);
+                }
+            }
+        }
+        return neighbors.ToList();
+    }
+
+    /// <summary>
     /// Get all distinct bags that a placed reagent spans across.
     /// A reagent can span multiple bags if it occupies cells owned by different bags.
     /// </summary>
