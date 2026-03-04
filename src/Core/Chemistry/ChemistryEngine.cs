@@ -120,7 +120,8 @@ public static class ChemistryEngine
 
                             // Stable buffering: adjacent Stable cells raise the effective threshold
                             int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                            if (stableBuffer > rule.Threshold)
+                            int effectiveThreshold = rule.Threshold + stableBuffer;
+                            if (effectiveThreshold > rule.Threshold)
                                 continue;
 
                             results.Add(new ReactionResult(
@@ -202,9 +203,10 @@ public static class ChemistryEngine
                             {
                                 var affectedCells = GetAllCellsForReagents(new List<Reagent> { a, b });
 
-                                // Stable buffering
+                                // Stable buffering: adjacent Stable cells raise the effective threshold
                                 int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                                if (stableBuffer > rule.Threshold)
+                                int effectiveThreshold = rule.Threshold + stableBuffer;
+                                if (effectiveThreshold > rule.Threshold)
                                     continue;
 
                                 results.Add(new ReactionResult(

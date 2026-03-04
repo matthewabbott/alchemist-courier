@@ -734,6 +734,137 @@ public class ChemistryEngineTests
     }
 
     // =====================================================
+    // Stable buffering boundary tests
+    // =====================================================
+
+    [Fact]
+    public void Evaluate_StableBuffer0_AdjacentExplosionStillFires()
+    {
+        // No stable present — stableBuffer=0 has no effect
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(1, 1)),
+            (volatileReagent, new Vector2I(2, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_StableBuffer0_SameBagNeutralizationStillFires()
+    {
+        // No stable present — SameBag distinct-pair fires normally
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (coldReagent, new Vector2I(2, 2)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Neutralization);
+    }
+
+    [Fact]
+    public void Evaluate_StableBufferSuppressesSameBagNeutralization()
+    {
+        // Stable adjacent to Hot+Cold pair in same bag should suppress neutralization
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        // Layout: [Hot] [Stable] [Cold] — Stable adjacent to both
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (stableReagent, new Vector2I(1, 0)),
+            (coldReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Neutralization);
+    }
+
+    [Fact]
+    public void Evaluate_StableBufferEqualToCount_PreventsCumulativeReaction()
+    {
+        // 3 Toxic reagents (threshold=3) + Stable(3) adjacent → effectiveThreshold=6 → no poisoning
+        var t1 = MakeSingleCellReagent("t1", Aspect.Toxic());
+        var t2 = MakeSingleCellReagent("t2", Aspect.Toxic());
+        var t3 = MakeSingleCellReagent("t3", Aspect.Toxic());
+        var def = new ReagentDefinition("stb1", "stb1", new bool[,] { { true } },
+            aspectsPerCell: new List<AspectSet> { new AspectSet(Aspect.Stable(3)) });
+        var stableReagent = new Reagent(def);
+
+        // Stable adjacent to t1
+        var grid = SetupGrid(5, 5,
+            (t1, new Vector2I(0, 0)),
+            (t2, new Vector2I(1, 0)),
+            (t3, new Vector2I(2, 0)),
+            (stableReagent, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = 3 + 3 = 6, totalMagnitude = 3, 3 < 6 → no poisoning
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Poisoning);
+    }
+
+    [Fact]
+    public void Evaluate_StableRaisesThresholdByExactMagnitude_CumulativeBoundary()
+    {
+        // 5 Hot reagents (magnitude=5) + Stable(1) adjacent → effectiveThreshold=4+1=5
+        // 5 >= 5 → still fires (stable only raised threshold by 1, not enough)
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var h5 = MakeSingleCellReagent("h5", Aspect.Hot());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        // Stable adjacent to h1
+        var grid = SetupGrid(6, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (h5, new Vector2I(4, 0)),
+            (stable, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = 4 + 1 = 5, totalMagnitude = 5, 5 >= 5 → fires
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_StableRaisesThresholdByExactMagnitude_CumulativeJustSuppressed()
+    {
+        // 4 Hot reagents (magnitude=4) + Stable(1) adjacent → effectiveThreshold=4+1=5
+        // 4 < 5 → suppressed (stable raised threshold just above the count)
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        // Stable adjacent to h1
+        var grid = SetupGrid(5, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (stable, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = 4 + 1 = 5, totalMagnitude = 4, 4 < 5 → no overheating
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    // =====================================================
     // Null bag aspect suppression tests
     // =====================================================
 
