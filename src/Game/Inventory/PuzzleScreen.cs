@@ -7,6 +7,13 @@ using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Game.Inventory;
 
+public enum ConfirmResult
+{
+    None,
+    NotAllPlaced,
+    Win,
+}
+
 public partial class PuzzleScreen : Control
 {
     private MetaGrid _metaGrid = null!;
@@ -19,7 +26,10 @@ public partial class PuzzleScreen : Control
     private StatusBarPanel _statusBar = null!;
     private ObjectivePanel _objectivePanel = null!;
     private Label _statusLabel = null!;
+    private Button _confirmButton = null!;
+    private Button _resetButton = null!;
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
+    private ConfirmResult _lastConfirmResult = ConfirmResult.None;
 
     // --- Public state inspection ---
     public MetaGrid Grid => _metaGrid;
@@ -28,6 +38,7 @@ public partial class PuzzleScreen : Control
     public MetaGridView GridView => _gridView;
     public StatusBarPanel StatusBar => _statusBar;
     public ObjectivePanel Objective => _objectivePanel;
+    public ConfirmResult LastConfirmResult => _lastConfirmResult;
 
     public override void _Ready()
     {
@@ -124,6 +135,22 @@ public partial class PuzzleScreen : Control
         _statusBar = new StatusBarPanel();
         _statusBar.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
         vbox.AddChild(_statusBar);
+
+        // Button bar
+        var buttonBar = new HBoxContainer();
+        buttonBar.Alignment = BoxContainer.AlignmentMode.Center;
+        buttonBar.AddThemeConstantOverride("separation", 16);
+        vbox.AddChild(buttonBar);
+
+        _resetButton = new Button { Text = "Reset" };
+        _resetButton.CustomMinimumSize = new Vector2(100, 32);
+        _resetButton.Pressed += OnResetPressed;
+        buttonBar.AddChild(_resetButton);
+
+        _confirmButton = new Button { Text = "Confirm" };
+        _confirmButton.CustomMinimumSize = new Vector2(100, 32);
+        _confirmButton.Pressed += OnConfirmPressed;
+        buttonBar.AddChild(_confirmButton);
 
         // Status label
         _statusLabel = new Label
@@ -228,6 +255,65 @@ public partial class PuzzleScreen : Control
         _statusBar.Refresh();
         UpdateStatus($"Removed {reagent.Definition.Name}.");
         return true;
+    }
+
+    public void ResetPuzzle()
+    {
+        // Cancel any active selection
+        if (_selectedReagent != null)
+        {
+            _selectedReagent = null;
+            _selectedIndex = -1;
+            _gridView.SetSelectedReagent(null);
+            _reagentTray.ClearSelection();
+        }
+
+        // Remove all placed reagents
+        while (_metaGrid.PlacedReagents.Count > 0)
+        {
+            var reagent = _metaGrid.PlacedReagents[0];
+            _metaGrid.RemoveReagent(reagent);
+            reagent.Rotation = 0;
+        }
+
+        _lastConfirmResult = ConfirmResult.None;
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatus("Puzzle reset. Select a reagent from the tray to begin.");
+    }
+
+    public ConfirmResult ConfirmPuzzle()
+    {
+        // Cancel any active selection
+        if (_selectedReagent != null)
+        {
+            _selectedReagent = null;
+            _selectedIndex = -1;
+            _gridView.SetSelectedReagent(null);
+            _reagentTray.ClearSelection();
+        }
+
+        if (CountUnplaced() > 0)
+        {
+            _lastConfirmResult = ConfirmResult.NotAllPlaced;
+            UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
+            return _lastConfirmResult;
+        }
+
+        _lastConfirmResult = ConfirmResult.Win;
+        UpdateStatus("All reagents placed! Puzzle complete!");
+        return _lastConfirmResult;
+    }
+
+    private void OnResetPressed()
+    {
+        ResetPuzzle();
+    }
+
+    private void OnConfirmPressed()
+    {
+        ConfirmPuzzle();
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)

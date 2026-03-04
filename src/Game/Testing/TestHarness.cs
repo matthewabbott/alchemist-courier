@@ -59,6 +59,7 @@ public partial class TestHarness : Control
         await Test_RemoveReagent();
         await Test_PlacementWarnings();
         await Test_StatusBar();
+        await Test_ConfirmAndReset();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -278,6 +279,99 @@ public partial class TestHarness : Control
                  && hotAfterRemove == 1;
         EndTest("status_bar", pass, pass ? null
             : $"hotBefore={hotBefore} hotAfterPebble={hotAfterPebble} hotAfterJelly={hotAfterJelly} toxicAfter={toxicAfter} hotAfterRemove={hotAfterRemove}");
+    }
+
+    private async Task Test_ConfirmAndReset()
+    {
+        BeginTest("confirm_and_reset");
+
+        // Clean up: remove all placed reagents
+        while (_puzzleScreen.Grid.PlacedReagents.Count > 0)
+        {
+            var r = _puzzleScreen.Grid.PlacedReagents[0];
+            var pos = r.PlacedPosition!.Value;
+            _puzzleScreen.RemoveReagentAt(pos.Col, pos.Row);
+        }
+
+        // Place a couple of reagents
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 2, 2); // Fire Pebble in SmallPouch
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 5, 1); // Ice Shard in Satchel
+        int placedBefore = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_before_reset={placedBefore} (expected=2)");
+
+        // Confirm with reagents not all placed — should get NotAllPlaced
+        var earlyResult = _puzzleScreen.ConfirmPuzzle();
+        Log($"[STATE] confirm_early={earlyResult} (expected=NotAllPlaced)");
+
+        // Reset — should remove all placed reagents
+        _puzzleScreen.ResetPuzzle();
+        int placedAfterReset = _puzzleScreen.Grid.PlacedReagents.Count;
+        int unplacedAfterReset = 0;
+        foreach (var r in _puzzleScreen.TrayReagents)
+        {
+            if (!r.IsPlaced) unplacedAfterReset++;
+        }
+        Log($"[STATE] placed_after_reset={placedAfterReset} unplaced_after_reset={unplacedAfterReset} (expected=0,6)");
+        var resetResult = _puzzleScreen.LastConfirmResult;
+        Log($"[STATE] confirm_result_after_reset={resetResult} (expected=None)");
+
+        await CaptureScreenshot("12_after_reset.png");
+
+        // Place all 6 reagents in safe positions
+        // SmallPouch is 3x3 at (1,1), Satchel is 4x3 at (4,1)
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 2, 2);    // Fire Pebble (1x1) at (2,2)
+        TestActions.SelectAndPlace(_puzzleScreen, 4, 1, 1);    // Inert Crystal (1x2) at (1,1) — stable, buffers
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 3);    // Ice Shard (1x2) at (1,3)
+        TestActions.SelectRotateAndPlace(_puzzleScreen, 3, 1, 4, 1); // Blast Jelly rotated at (4,1)
+        TestActions.SelectAndPlace(_puzzleScreen, 5, 6, 1);    // Cinnabar Block (2x2) at (6,1)
+        TestActions.SelectAndPlace(_puzzleScreen, 2, 4, 3);    // Poison Fang at (4,3) — try
+
+        int placedAll = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_all={placedAll} total_reagents={_puzzleScreen.TrayReagents.Count}");
+
+        // If we couldn't place all 6, try alternate positions
+        if (placedAll < _puzzleScreen.TrayReagents.Count)
+        {
+            // Reset and try a simpler arrangement
+            _puzzleScreen.ResetPuzzle();
+            TestActions.SelectAndPlace(_puzzleScreen, 0, 3, 3);    // Fire Pebble (1x1)
+            TestActions.SelectAndPlace(_puzzleScreen, 4, 1, 1);    // Inert Crystal (1x2) horiz
+            TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 2);    // Ice Shard (1x2) horiz
+            TestActions.SelectRotateAndPlace(_puzzleScreen, 3, 1, 4, 1); // Blast Jelly rotated
+            TestActions.SelectAndPlace(_puzzleScreen, 5, 6, 1);    // Cinnabar Block (2x2)
+            TestActions.SelectAndPlace(_puzzleScreen, 2, 1, 3);    // Poison Fang L-shape
+
+            placedAll = _puzzleScreen.Grid.PlacedReagents.Count;
+            Log($"[STATE] placed_all_retry={placedAll}");
+        }
+
+        await CaptureScreenshot("13_all_placed.png");
+
+        // Confirm — should succeed if all placed
+        ConfirmResult confirmResult;
+        if (placedAll == _puzzleScreen.TrayReagents.Count)
+        {
+            confirmResult = _puzzleScreen.ConfirmPuzzle();
+            Log($"[STATE] confirm_result={confirmResult} (expected=Win)");
+        }
+        else
+        {
+            confirmResult = _puzzleScreen.ConfirmPuzzle();
+            Log($"[STATE] confirm_result={confirmResult} (expected=NotAllPlaced, could not place all)");
+        }
+
+        await CaptureScreenshot("14_after_confirm.png");
+
+        bool pass = placedBefore == 2
+                 && earlyResult == ConfirmResult.NotAllPlaced
+                 && placedAfterReset == 0
+                 && unplacedAfterReset == 6
+                 && resetResult == ConfirmResult.None
+                 && (placedAll == _puzzleScreen.TrayReagents.Count
+                     ? confirmResult == ConfirmResult.Win
+                     : confirmResult == ConfirmResult.NotAllPlaced);
+        EndTest("confirm_and_reset", pass, pass ? null
+            : $"placedBefore={placedBefore} earlyResult={earlyResult} placedAfterReset={placedAfterReset} unplaced={unplacedAfterReset} resetResult={resetResult} placedAll={placedAll} confirmResult={confirmResult}");
     }
 
     private async Task Test_RenderFinal()
