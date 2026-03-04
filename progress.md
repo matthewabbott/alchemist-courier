@@ -184,3 +184,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Visual: All 15 screenshots verified, no regressions
 - Issues: 1 (P0: 1 — fixed)
 - Fixed: A.1 Volatile net-hot self-reaction bug — EvaluateVolatileNetHotRule omitted same-reagent exclusion, causing multi-aspect reagents (Hot+Volatile) to self-explode. Added `neighbor == reagent` check + regression test. Commits: 8c44c4a, 61bbbaa.
+
+## A.2 — Implement Sharp edge placement constraint
+- Date: 2026-03-04
+- Commit: c00e323
+- Notes: Added Sharp's primary non-parasitic mechanic: Sharp reagents can't be placed on edge cells of non-Reinforced bags. An edge cell has at least one cardinal neighbor outside the bag shape. Three changes: (1) Added Bag.IsEdgeCell(Vector2I) that converts meta-grid position to local coordinates and checks all 4 cardinal neighbors against the bag shape. (2) Added IsSharpConstraintValid() to MetaGrid.CanPlaceReagent() — skips non-Sharp reagents, allows Sharp on Reinforced bags, blocks Sharp on edge cells otherwise. (3) Updated PuzzleGenerator.PlaceReagentsValidly to prioritize Sharp reagents after Heavy (before size sort) since they need scarce interior cells. 8 new tests: edge blocked, interior allowed, Reinforced exemption, multi-cell with one edge cell blocked, non-Sharp unaffected, larger bag interior, L-shaped bag (all edges), plus-shaped bag (center is interior). All 237 tests pass (229 existing + 8 new).

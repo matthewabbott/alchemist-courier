@@ -241,7 +241,7 @@
       "phase": "aspect-rework",
       "depends_on": ["1.4"],
       "verification": "dotnet test -- Sharp edge constraint tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.3",

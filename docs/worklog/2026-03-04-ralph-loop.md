@@ -124,3 +124,14 @@ EvaluateVolatileNetHotRule method dispatched when an Adjacent rule has a single 
 All 21 existing explosion-related tests pass unchanged because the basic behavior (Hot next to
 Volatile = explosion) is preserved — the new dimension is that Cold can now prevent it.
 Commit: ebe0fe1
+
+## A.2: Sharp edge placement constraint
+Added Sharp's primary non-parasitic mechanic — Sharp reagents can't sit on edge cells of
+non-Reinforced bags. An "edge cell" is any bag cell with a cardinal neighbor outside the bag
+shape. This makes Sharp interesting on its own: in a 3x3 bag only the center cell is interior,
+meaning Sharp reagents need large bags or special shapes to have placement options. Reinforced
+bags waive this constraint, creating a natural synergy. The PuzzleGenerator now prioritizes
+Sharp reagents in placement order (after Heavy, before size-sorting) since interior cells are
+scarce. Non-rectangular bag shapes interact nicely — an L-shaped bag has zero interior cells,
+while a plus-shaped bag has exactly one.
+Commit: c00e323
