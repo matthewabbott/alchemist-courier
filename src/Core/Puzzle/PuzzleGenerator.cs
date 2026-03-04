@@ -18,7 +18,7 @@ public class PuzzleGenerator
     private const int MetaGridPadding = 2;
 
     /// <summary>Available aspect IDs for the MVP Physical/Chemistry school.</summary>
-    private static readonly string[] MvpAspects = { "hot", "cold", "volatile", "fragile", "toxic", "sharp", "stable" };
+    private static readonly string[] MvpAspects = { "hot", "cold", "volatile", "stable", "heavy", "toxic" };
 
     /// <summary>
     /// Predefined reagent shapes: each is a bool[rows, cols] matrix.
