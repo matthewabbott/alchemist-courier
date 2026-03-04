@@ -176,3 +176,11 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: ebe0fe1
 - Notes: Replaced the simple Hot+Volatile pair-trigger explosion with a per-Volatile-cell net-hot calculation. For each Volatile cell, sums adjacent Hot magnitudes minus adjacent Cold magnitudes; if net_hot > effective_threshold (base + stable buffer), explosion triggers. Changed Explosion rule from 2-trigger [Hot, Volatile] to single-trigger [Volatile]. Added EvaluateVolatileNetHotRule method dispatched from EvaluateAdjacentRule when TriggerAspects.Count == 1. Cold now serves dual purpose: cumulative liability + local heat shield near Volatile. Null suppression and Stable buffering integrate naturally. 7 new tests: balanced Hot+Cold (no explosion), more Hot than Cold (explosion), Cold-as-shield, Volatile alone (safe), Stable raises threshold, Null-suppressed Hot doesn't contribute, high-magnitude Hot overcomes Cold. All 228 tests pass (221 existing + 7 new).
+
+## Integration Review — 2026-03-04 (c)
+- Reviewed commits: ebe0fe1..61bbbaa (A.1, B.3, B.4, R-6, R-7)
+- Build: PASS (229/229 unit tests)
+- Harness: 11/11 tests pass, 0 failures (after fix)
+- Visual: All 15 screenshots verified, no regressions
+- Issues: 1 (P0: 1 — fixed)
+- Fixed: A.1 Volatile net-hot self-reaction bug — EvaluateVolatileNetHotRule omitted same-reagent exclusion, causing multi-aspect reagents (Hot+Volatile) to self-explode. Added `neighbor == reagent` check + regression test. Commits: 8c44c4a, 61bbbaa.
