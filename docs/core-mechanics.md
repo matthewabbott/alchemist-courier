@@ -33,7 +33,7 @@ Bags are the fundamental inventory containers. **There is no "base" inventory** 
 
 ### Bag Special Properties
 
-Bag types are introduced at different complexity levels (see `docs/chemistry-system.md` for the complexity level definitions). Each bag type is designed to create spatial constraints that interact with the aspect system.
+Bag types are introduced at different complexity tiers (see `docs/chemistry-system.md` for the complexity tier definitions). Each bag type is designed to create spatial constraints that interact with the aspect system.
 
 #### Simple Complexity (MVP)
 
@@ -49,9 +49,9 @@ Bag types are introduced at different complexity levels (see `docs/chemistry-sys
 - Selective null (suppress only specific aspects) is aspirational
 
 **Gravity**:
-- Reagents "fall" to the bottom of the bag based on bag orientation
+- Reagents "fall" to the bottom of the bag (highest row index in the shape matrix — row 0 is top, max row is bottom)
 - Placement constraint: items must be supported (resting on the bottom row or on top of existing items)
-- Heavy items always fall TRUE down (world gravity), ignoring bag orientation
+- Heavy items must always be placed at the bottom of the bag
 - Puzzle effect: limits where items can go, bottom fills first, creates stacking challenges
 - Fragile items can't be placed in Gravity bags (Intermediate -- they'd break from falling)
 

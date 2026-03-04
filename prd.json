@@ -114,6 +114,36 @@
       "source": "code-review-2026-03-03b"
     },
     {
+      "id": "R-3",
+      "title": "Implement Null bag aspect suppression in ChemistryEngine",
+      "description": "ChemistryEngine never checks BagPropertyType.Null -- aspects of reagents in Null bags are counted fully, making the Null mechanic completely broken. Fix: In EvaluateAdjacentRule, EvaluateSameBagRule, and EvaluateWholeInventoryRule, before reading a cell's aspect magnitudes, check which bag the cell belongs to (via MetaGrid.GetBagAt or similar). If the bag has BagPropertyType.Null, treat that cell's aspect magnitudes as 0 (suppressed). For spanning reagents, only cells physically inside the Null bag are suppressed -- other cells of the same reagent in non-Null bags retain their aspects. Implementation: (1) Add MetaGrid.GetBagForCell(Vector2I) or similar lookup if not present. (2) Add a helper IsAspectSuppressed(MetaGrid, Vector2I) that checks bag property. (3) Integrate into all three evaluation tiers. Add unit tests: reagent in Null bag has aspects suppressed (no explosion), same reagent spanning Null+Normal bag has partial suppression, reagent in Normal bag is unaffected, cumulative thresholds skip Null-suppressed cells.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": ["1.4"],
+      "verification": "dotnet test -- Null suppression tests pass, existing tests still pass",
+      "status": "pending"
+    },
+    {
+      "id": "R-4",
+      "title": "Fix PuzzleGenerator.MvpAspects to match Simple complexity tier",
+      "description": "PuzzleGenerator.MvpAspects (line 21) currently contains { hot, cold, volatile, fragile, toxic, sharp, stable } -- this includes Sharp and Fragile (Intermediate tier) but is missing Heavy (Simple tier). Fix: Replace MvpAspects with the 6 Simple-tier aspects: { hot, cold, volatile, stable, heavy, toxic }. Sharp and Fragile should only be included when a future ComplexityLevel filter is Intermediate+. Also verify that Aspect.FromId('heavy') works correctly (it should -- heavy is already registered). Update any tests that depend on the old MvpAspects array contents.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": ["2.3"],
+      "verification": "dotnet test -- all tests pass, MvpAspects contains exactly { hot, cold, volatile, stable, heavy, toxic }",
+      "status": "pending"
+    },
+    {
+      "id": "R-5",
+      "title": "Normalize Stable buffering pattern across all ChemistryEngine tiers",
+      "description": "ChemistryEngine has inconsistent Stable buffering: Adjacent and SameBag tiers use a skip pattern (if stableBuffer > rule.Threshold, continue -- skips the entire reaction check, doesn't raise the threshold), while WholeInventory uses the correct additive pattern (effectiveThreshold = rule.Threshold + stableBuffer). The skip pattern is wrong: Stable should raise the effective threshold, not act as a binary skip. Example: if threshold=2, stableBuffer=1, count=3, the skip pattern would NOT skip (1 < 2) and reaction fires at count=3 vs threshold=2. The additive pattern correctly makes effectiveThreshold=3, so count=3 would NOT fire. Fix: Normalize all three tiers to use effectiveThreshold = rule.Threshold + stableBuffer, then compare the computed count/magnitude against effectiveThreshold. Update unit tests to verify boundary behavior: stableBuffer raises threshold by exact magnitude, stableBuffer=0 has no effect, stableBuffer equal to count prevents reaction.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": ["R-1"],
+      "verification": "dotnet test -- all existing Stable tests still pass, new boundary tests pass, consistent behavior across tiers",
+      "status": "pending"
+    },
+    {
       "id": "3.1",
       "title": "Add placement warnings to MetaGridView",
       "description": "Modify src/Game/Inventory/MetaGridView.cs ghost preview to use ChemistryEngine.EvaluateProspective. Currently ghost cells are a single color. Change to: green (safe -- no reactions), yellow (warning -- reaction exists but within threshold), red (danger -- explosion, breakage, or exceeds threshold). Requires passing reaction rules to MetaGridView. Update ghost cell coloring in UpdateGhostPreview(). Add a test to TestHarness that places a reagent near a dangerous one and screenshots the warning colors.",
@@ -156,7 +186,7 @@
     {
       "id": "B.1",
       "title": "Implement Gravity bag type",
-      "description": "Add Gravity bag support to the Core layer. In a Gravity bag, reagents must be 'supported' -- placed on the bottom row of the bag or on top of existing reagents (no floating). Implementation: (1) Add BagType enum or property to Bag (Normal, Null, Gravity, Locked, etc.) if not present. (2) Add placement validation: when placing a reagent in a Gravity bag, check that every cell of the reagent is either on the bottom row or has another reagent cell directly below it. (3) Add to MetaGrid.CanPlaceReagent() or as a separate GravityValidator. (4) Update PuzzleGenerator to support Gravity bags when AllowSpecialBags is true. Add unit tests: valid placement at bottom, valid stacked placement, rejected floating placement, non-gravity bag allows floating, multi-cell reagent in gravity bag.",
+      "description": "Add Gravity bag placement constraint to the Core layer. In a Gravity bag (BagPropertyType.Gravity -- already exists in the enum), reagents must be 'supported' -- no floating in mid-air. 'Bottom' means the highest row index in the bag's shape matrix (row 0 is top, max row is bottom). A reagent cell at position (col, row) is supported if: (a) row is the maximum occupied row in the bag's shape for that column, OR (b) another reagent cell exists at (col, row+1) in the same bag. Implementation: (1) BagPropertyType.Gravity already exists. Bag stores its property via BagDefinition. (2) Add placement validation: when placing a reagent in a Gravity bag, check that every cell of the reagent is supported per the rule above. (3) Integrate into MetaGrid.CanPlaceReagent() or create a separate GravityValidator that MetaGrid calls. (4) Update PuzzleGenerator.BuildMetaGridWithBags (line ~318) to sometimes create Gravity bags when AllowSpecialBags is true -- use the seeded RNG to decide. (5) Heavy aspect interaction (must be at absolute bottom) is deferred to task B.3 -- this task only validates general support constraint. Add unit tests: valid placement at bottom row, valid stacked placement, rejected floating placement mid-bag, non-gravity bag allows floating, multi-cell reagent partially unsupported is rejected, L-shaped bag gravity works correctly.",
       "priority": 14,
       "phase": "bag-mechanics",
       "depends_on": ["2.3"],
@@ -165,8 +195,8 @@
     },
     {
       "id": "B.2",
-      "title": "Implement Locked bag type",
-      "description": "Add Locked bag support. A Locked bag has pre-placed reagents that can't be moved or removed by the player. Implementation: (1) Add IsLocked flag to placement data. (2) Modify PuzzleScreen/MetaGridView to prevent picking up locked reagents. (3) Update PuzzleGenerator: when generating a puzzle with locked bags, keep 1-2 reagents in their solution positions and mark them locked. (4) Update PuzzleSolver to account for locked placements. Add unit tests: locked reagent can't be removed, locked reagent aspects are active, solver handles locked placements, generator produces valid locked puzzles.",
+      "title": "Implement locked reagent placements",
+      "description": "Add locked placement support. 'Locked' is NOT a bag type -- it's a per-placement flag. Any bag can contain locked reagents (pre-placed reagents that can't be moved or removed by the player). PuzzleReagent.IsLocked already exists in PuzzleState.cs (line ~115) for serialization, but the runtime Reagent class has no IsLocked property and nothing enforces it. Implementation: (1) Add IsLocked bool property to src/Core/Reagents/Reagent.cs. (2) In MetaGrid or the UI layer, prevent removal of reagents where IsLocked is true. (3) Update PuzzleGenerator: add a parameter or difficulty-driven chance to lock 1-2 solution reagents in place (keep them placed, mark IsLocked=true on the Reagent). These become fixed constraints the player must work around. (4) Locked reagents' aspects are fully active and participate in all reactions -- they're constraints, not inert. (5) Update PuzzleSolver.ValidateSolution to ensure locked reagents haven't been moved from their original positions. Note: BagPropertyType.Locked in the enum is a misnomer -- consider renaming it or deprecating it in favor of the per-reagent flag, but that's optional cleanup. Add unit tests: locked reagent blocks removal, locked reagent aspects are active in ChemistryEngine, solver validates locked positions, generator produces puzzles with locked reagents that are still solvable.",
       "priority": 15,
       "phase": "bag-mechanics",
       "depends_on": ["2.3"],
@@ -175,11 +205,11 @@
     },
     {
       "id": "B.3",
-      "title": "Implement Heavy aspect falling mechanic",
-      "description": "Add Heavy aspect behavior: in Gravity bags, Heavy reagents always fall to TRUE down (world gravity) regardless of bag orientation. Implementation: (1) Add 'heavy' to the Simple complexity aspect set. (2) In Gravity bag placement validation, Heavy reagents must be on the absolute bottom. (3) When placing a Heavy reagent, it 'falls' past non-Heavy reagents. (4) Heavy+Fragile crushing: if a Heavy reagent is directly above a Fragile reagent in a Gravity bag, trigger Crushing reaction. Add Crushing to ReactionResultType. Add unit tests: Heavy falls to bottom, Heavy above Fragile triggers crushing, Heavy in non-gravity bag behaves normally, Heavy placement validation.",
+      "title": "Implement Heavy aspect placement constraint in Gravity bags",
+      "description": "Add Heavy aspect's Simple-tier mechanic: in Gravity bags, Heavy reagents must be placed at the bottom (highest row indices). 'Heavy' is already registered in Aspect.FromId and should be in MvpAspects after R-4 is done. Implementation: (1) In Gravity bag placement validation (from B.1), add an extra check: if the reagent has any Heavy-aspected cells, ALL of its cells must be on the bottom-most available rows (no non-Heavy reagent below it). (2) A Heavy reagent can have non-Heavy reagents stacked ON TOP of it, but not below. (3) In PuzzleGenerator, when placing reagents in Gravity bags, place Heavy reagents first (they must go to the bottom). (4) In non-Gravity bags, Heavy has no special placement effect -- it's just a normal aspect. (5) Heavy+Fragile crushing (Intermediate tier interaction) is NOT part of this task -- defer to future Intermediate-tier work. Add unit tests: Heavy must be at bottom of Gravity bag, Heavy rejected if non-Heavy reagent is below, Heavy in non-Gravity bag places anywhere, multi-cell Heavy reagent validated correctly, PuzzleGenerator places Heavy reagents first in Gravity bags.",
       "priority": 16,
       "phase": "bag-mechanics",
-      "depends_on": ["B.1"],
+      "depends_on": ["B.1", "R-4"],
       "verification": "dotnet test -- Heavy falling and crushing tests pass",
       "status": "pending"
     },
@@ -196,10 +226,10 @@
     {
       "id": "A.1",
       "title": "Implement Volatile net-hot calculation",
-      "description": "Replace the current simple Hot+Volatile adjacency explosion with the net-hot system from docs/chemistry-system.md. For each Volatile cell, calculate: net_hot = sum(adjacent Hot magnitudes) - sum(adjacent Cold magnitudes). If net_hot > effective_threshold, trigger Explosion. This makes Cold strategically useful as a heat shield near Volatile. Implementation: (1) Modify ChemistryEngine's Adjacent tier evaluation for the Explosion rule. (2) Instead of checking for Hot+Volatile pairs, iterate Volatile cells and compute net-hot from cardinal neighbors. (3) Cold adjacent to Volatile reduces net-hot. (4) Update ReactionRuleDatabase to reflect new Volatile rule definition. (5) Update existing tests and add new ones: Volatile with only Hot adjacent (explodes), Volatile with Hot and Cold balanced (safe), Volatile with more Hot than Cold (explodes), Cold as heat shield test.",
+      "description": "Replace the current simple Hot+Volatile pair-trigger explosion with the net-hot system from docs/chemistry-system.md. The current Explosion rule in ReactionRuleDatabase treats it as a two-aspect pair (triggerAspects: [hot, volatile], Adjacent). The new system works differently: iterate each Volatile cell, compute net_hot = sum(Hot magnitudes of cardinal neighbors) - sum(Cold magnitudes of cardinal neighbors). If net_hot > effective_threshold (base 0 + stable_buffer), trigger Explosion. This makes Cold a strategic heat shield near Volatile. Implementation: (1) Change the Explosion rule to be a single-trigger rule (triggerAspects: [volatile] only). You may need to add a new RuleEvaluationType or special-case Volatile evaluation in EvaluateAdjacentRule. (2) For each placed reagent's Volatile cells, get cardinal neighbor cells, sum Hot magnitudes, subtract Cold magnitudes to get net_hot. (3) If net_hot > 0 + stableBuffer, trigger Explosion with affected cells being the Volatile cell and contributing Hot cells. (4) Null-suppressed cells (from R-3) should contribute 0 magnitude. (5) Update or replace existing Explosion tests. Add new tests: Volatile with Hot neighbor (explodes), Volatile with Hot+Cold balanced (net_hot=0, safe), Volatile with more Hot than Cold (explodes), Cold as heat shield (1 Hot + 1 Cold adjacent = safe), Volatile with no Hot neighbors (safe), Stable buffer raises effective threshold.",
       "priority": 18,
       "phase": "aspect-rework",
-      "depends_on": ["1.4"],
+      "depends_on": ["1.4", "R-3"],
       "verification": "dotnet test -- net-hot explosion tests pass, cold-as-shield test passes",
       "status": "pending"
     },
@@ -226,10 +256,10 @@
     {
       "id": "A.4",
       "title": "Add Catalytic aspect to ChemistryEngine",
-      "description": "Add Catalytic as the inverse of Stable: it lowers thresholds of adjacent reactions. Implementation: (1) Add 'catalytic' to Aspect.FromId and the Intermediate aspect set. (2) In ChemistryEngine, mirror the Stable buffering logic: when evaluating a reaction, check for adjacent Catalytic cells and reduce the effective threshold by their magnitude. (3) Catalytic and Stable adjacent to each other should cancel out (net zero modifier). (4) Update ReactionRuleDatabase if needed. Add unit tests: Catalytic lowers threshold causing reaction, Catalytic+Stable cancel out, multiple Catalytic cells stack, Catalytic alone does nothing (no reaction to amplify).",
+      "description": "Add Catalytic as the inverse of Stable: it lowers thresholds of adjacent reactions. Implementation: (1) Add 'catalytic' to Aspect.FromId (already registered) and define it as an Intermediate-tier aspect. (2) In ChemistryEngine, mirror the Stable buffering logic (which should be normalized to effectiveThreshold pattern after R-5): when evaluating a reaction, check for adjacent Catalytic cells and REDUCE the effective threshold by their magnitude. Formula: effectiveThreshold = rule.Threshold + stableBuffer - catalyticReduction (minimum 0). (3) Catalytic and Stable adjacent to each other cancel out (net modifier approaches zero). (4) Update ReactionRuleDatabase if needed. Add unit tests: Catalytic lowers threshold causing reaction that wouldn't otherwise trigger, Catalytic+Stable cancel out, multiple Catalytic cells stack, Catalytic alone near non-threshold reaction does nothing, Catalytic can't reduce threshold below 0.",
       "priority": 21,
       "phase": "aspect-rework",
-      "depends_on": ["R-1"],
+      "depends_on": ["R-1", "R-5"],
       "verification": "dotnet test -- Catalytic threshold lowering tests pass",
       "status": "pending"
     },
@@ -246,10 +276,10 @@
     {
       "id": "A.6",
       "title": "Add ComplexityLevel enum and wire to PuzzleGenerator",
-      "description": "Add ComplexityLevel enum (Simple, Intermediate, Advanced) per docs/chemistry-system.md. Wire to DifficultyParams and PuzzleGenerator. Implementation: (1) Create src/Core/Puzzle/ComplexityLevel.cs enum. (2) Add ComplexityLevel field to DifficultyParams. (3) Update DifficultyParams.ForLevel() to set ComplexityLevel based on DifficultyLevel (Tutorial/Easy/Medium = Simple, Hard = Intermediate). (4) Update PuzzleGenerator to filter available aspects and bag types based on ComplexityLevel. Simple: Hot, Cold, Volatile, Stable, Heavy, Toxic + Normal, Null, Gravity, Locked bags. Intermediate adds Sharp, Fragile, Catalytic, Medicinal + Reinforced, Insulated, Fragile bags. (5) Update ReactionRuleDatabase.GetRulesForComplexity(ComplexityLevel) to return only relevant rules. Add unit tests: Simple puzzle has only Simple aspects, Intermediate puzzle can include Sharp, complexity filtering is correct.",
+      "description": "Add ComplexityLevel enum (Simple, Intermediate, Advanced) per docs/chemistry-system.md complexity tiers. This is a filtering/configuration enum -- it controls which aspects and bag types are available, not the implementation of those aspects. Implementation: (1) Create src/Core/Puzzle/ComplexityLevel.cs enum with Simple, Intermediate, Advanced values. (2) Add ComplexityLevel field to DifficultyParams. (3) CRITICAL: DifficultyParams.ForLevel() must set ComplexityLevel = Simple for ALL DifficultyLevels (Tutorial1 through Hard). Per the two-dimensional complexity model, all standalone puzzles use Simple mechanical depth regardless of scale/difficulty. Intermediate and Advanced are only used when explicitly set (future roguelite mode). (4) Add aspect filtering: Simple = { hot, cold, volatile, stable, heavy, toxic }. Intermediate adds { sharp, fragile, catalytic, medicinal }. Advanced adds { magnetic, absorbent }. (5) Add bag type filtering: Simple = { Normal, Null, Gravity, Locked }. Intermediate adds { Reinforced, Insulated, Fragile }. Advanced adds { Body/Levitating }. (6) Update PuzzleGenerator to use ComplexityLevel for filtering instead of the hardcoded MvpAspects array. (7) Add ReactionRuleDatabase.GetRulesForComplexity(ComplexityLevel) that returns only rules involving aspects available at that tier. Add unit tests: ForLevel(Hard) returns Simple complexity, Simple filtering excludes Sharp/Fragile, Intermediate includes them, filtering is correct for bag types.",
       "priority": 23,
       "phase": "aspect-rework",
-      "depends_on": ["2.2", "A.1", "A.2", "A.3", "A.4", "A.5", "B.1", "B.2", "B.3"],
+      "depends_on": ["2.2"],
       "verification": "dotnet test -- complexity level filtering tests pass",
       "status": "pending"
     },
@@ -276,10 +306,10 @@
     {
       "id": "4.2",
       "title": "Replace DemoPuzzle with PuzzleGenerator",
-      "description": "Modify PuzzleScreen to accept a PuzzleState instead of using hard-coded DemoPuzzle. Add a factory method or constructor parameter. PuzzleScreen._Ready() creates grid, bags, and reagents from PuzzleState. Keep DemoPuzzle as a fallback (if no PuzzleState provided, use demo). Update test harness to test both: demo puzzle and a generated puzzle from seed.",
+      "description": "Modify PuzzleScreen to accept a PuzzleState instead of using hard-coded DemoPuzzle. PuzzleGenerator already works and produces valid puzzles -- this task wires it into the UI. Implementation: (1) Add a factory method or constructor parameter to PuzzleScreen that accepts PuzzleState. (2) PuzzleScreen._Ready() creates grid, bags, and reagents from PuzzleState data. (3) Keep DemoPuzzle as a fallback (if no PuzzleState provided, use demo for development). (4) Update test harness to test both: demo puzzle and a generated puzzle from a fixed seed. ComplexityLevel filtering (A.6) is NOT required -- the generator works with its current aspect set.",
       "priority": 26,
       "phase": "game-flow",
-      "depends_on": ["2.3", "A.6"],
+      "depends_on": ["2.3"],
       "verification": "dotnet build + test harness runs with both demo and generated puzzles",
       "status": "pending"
     },
@@ -306,7 +336,7 @@
     {
       "id": "4.5",
       "title": "Add daily puzzle mode",
-      "description": "Create src/Game/DailyPuzzleManager.cs: generates today's puzzle using date seed (YYYYMMDD as int). Difficulty rotates on 3-day cycle (Easy/Medium/Hard). PuzzleType also varies by seed. Wire into a 'Play Daily' entry point. Add test: same date always produces same puzzle, different dates produce different puzzles.",
+      "description": "Create src/Game/DailyPuzzleManager.cs: generates today's puzzle using date seed (YYYYMMDD as int). Difficulty rotates on 3-day cycle (Easy/Medium/Hard) based on seed. PuzzleType also varies by seed. IMPORTANT: All daily puzzles use Simple mechanical depth regardless of difficulty -- difficulty scaling is purely through scale (more bags, more reagents, tighter fit), per the two-dimensional complexity model in docs/chemistry-system.md. Wire into a 'Play Daily' entry point. Add test: same date always produces same puzzle, different dates produce different puzzles, all daily puzzles use Simple complexity.",
       "priority": 29,
       "phase": "game-flow",
       "depends_on": ["4.2"],
@@ -326,10 +356,10 @@
     {
       "id": "5.1",
       "title": "UI layout polish to match MVP mockup",
-      "description": "Reorganize PuzzleScreen layout to match the MVP mockup in docs/mvp-specification.md: header bar (title, day count, streak), meta-grid centered left, reagent tray right, objective below tray, status bar at bottom, confirm/reset/primer buttons in bottom bar. Adjust sizing and spacing.",
+      "description": "Reorganize PuzzleScreen layout to match the MVP mockup in docs/mvp-specification.md: header bar (title, day count, streak), meta-grid centered left, reagent tray right, objective below tray, status bar at bottom, confirm/reset/primer buttons in bottom bar. Requires all UI panels to exist: status bar (3.2), objective (3.3), confirm/reset buttons (3.4), and primer overlay (3.5). Adjust sizing and spacing to create a cohesive layout.",
       "priority": 31,
       "phase": "polish",
-      "depends_on": ["3.2", "3.3"],
+      "depends_on": ["3.2", "3.3", "3.4", "3.5"],
       "verification": "Test harness screenshot matches MVP mockup layout",
       "status": "pending"
     }

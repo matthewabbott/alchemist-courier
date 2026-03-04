@@ -42,7 +42,7 @@ Failure is not punishing in a "you're bad" way — it's more like "oops, that wa
 
 | Component | Choice | Notes |
 |-----------|--------|-------|
-| **Engine** | Godot 4.3 | Open source, good 2D support, HTML5 export |
+| **Engine** | Godot 4.6 | Open source, good 2D support, HTML5 export |
 | **Language** | C# (.NET) | Strong typing suits complex game systems (chemistry engine, inventory logic) |
 | **Art** | RetroDiffusion | AI pixel art generation. Placeholder-first workflow: colored rectangles initially, replaced iteratively |
 | **Programming** | Claude Code | AI-assisted development |

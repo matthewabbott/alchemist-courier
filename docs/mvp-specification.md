@@ -1,6 +1,6 @@
 # MVP Specification — Daily Web Puzzle
 
-The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puzzle game** — a Wordle-like daily challenge where every player gets the same procedurally generated inventory puzzle, seeded from the current date.
+The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puzzle game** built in Godot 4.6 with C# — a Wordle-like daily challenge where every player gets the same procedurally generated inventory puzzle, seeded from the current date.
 
 ## MVP Goals
 
@@ -8,7 +8,7 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 2. **Public-facing product**: Hostable on itch.io or personal website, shareable
 3. **Teach the rules**: Tutorial progression introduces mechanics incrementally
 4. **Architectural foundation**: The systems built for MVP (grid, chemistry, procedural generation) are reused in the full game
-5. **Prove the tech**: Godot 4.3 + C# + HTML5 export works reliably
+5. **Prove the tech**: Godot 4.6 + C# + HTML5 export works reliably
 
 ## What the MVP Includes
 
@@ -176,7 +176,7 @@ The tutorial is a sequence of puzzles that introduce one concept at a time:
 | 8 | **Multiple bags** | Two bags on the meta-grid. Teaches bag arrangement and cross-bag adjacency. |
 | 9 | **Spanning bags** | A reagent that must span two bags to fit. Teaches spanning mechanics. |
 | 10 | **Null bag** | Introduces the Null bag property. "Aspects are suppressed in this bag." |
-| 11+ | **Increasing complexity** | Layer additional aspects (Cold, Toxic, Fragile, Sharp) one at a time. |
+| 11+ | **Increasing complexity** | Layer additional Simple-tier aspects (Cold, Toxic, Heavy, Stable) one at a time. |
 
 ### Aspect Interaction Primer
 
