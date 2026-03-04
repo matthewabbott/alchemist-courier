@@ -98,3 +98,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 1579136
 - Notes: Created ObjectivePanel (VBoxContainer) with header label "OBJECTIVE:" and objective text driven by PuzzleType enum. Three texts: FitAllSafely ("Place all reagents without triggering reactions."), MaximizeValue ("Place the highest total value..."), MeetRequirement ("Meet the requirement..."). Wired into PuzzleScreen below the reagent tray in a right-column VBoxContainer layout. Defaults to FitAllSafely for the current DemoPuzzle. Added SetPuzzleType() for dynamic updates and public ObjectiveText accessor for testing. Integration test in TestHarness verifies default text matches FitAllSafely, verifies SetPuzzleType updates text correctly. Build succeeds, all 168 unit tests pass.
+
+## 3.4 — Add confirm and reset buttons
+- Date: 2026-03-04
+- Commit: b769d84
+- Notes: Added Reset and Confirm buttons to PuzzleScreen in a centered HBoxContainer button bar between the status bar and status label. Reset removes all placed reagents, resets rotations, and clears selection. Confirm checks if all reagents are placed (placeholder — task 4.1 adds full chemistry evaluation). Added ConfirmResult enum (None/NotAllPlaced/Win) and LastConfirmResult property for programmatic inspection. ResetPuzzle() also clears LastConfirmResult back to None. Integration test in TestHarness covers: place 2 reagents → confirm early (NotAllPlaced) → reset (verify 0 placed, 6 unplaced, result None) → place all 6 → confirm (Win). Build succeeds, all 168 unit tests pass.

@@ -151,7 +151,7 @@
       "phase": "ui-chemistry",
       "depends_on": ["1.4"],
       "verification": "dotnet build + test harness verifies reset and confirm behavior",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "3.5",
