@@ -131,7 +131,7 @@
       "phase": "ui-chemistry",
       "depends_on": ["1.4"],
       "verification": "dotnet build + test harness screenshot shows status bars",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "3.3",

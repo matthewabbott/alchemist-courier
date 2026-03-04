@@ -75,3 +75,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 20b4e6c
 - Notes: Modified MetaGridView ghost preview to use ChemistryEngine.EvaluateProspective for three-color warning system. Green = safe (no reactive aspects on reagent), Yellow = warning (reagent has aspects that participate in reaction rules but no reactions triggered at this position), Red = danger (placement would trigger reactions) or invalid. Added PlacementWarningLevel enum, SetReactionRules() to accept reaction rules from PuzzleScreen, SetHoverPosition() for programmatic testing, HasReactiveAspects() helper that checks reagent aspects against a cached set of all trigger aspect IDs. Added WarningPlacement color (amber/yellow) to GridConstants. PuzzleScreen now passes ReactionRuleDatabase.GetMvpRules() to the grid view. Added integration test in TestHarness verifying all three states: Danger (Fire Pebble hover adjacent to Blast Jelly = explosion), Warning (Fire Pebble hover far from danger but has "hot" reactive aspect), Safe (Inert Crystal with only "stable" non-reactive aspect). Build succeeds, all 168 unit tests pass.
+
+## Code Review — 2026-03-04
+- Reviewed commits: 36b1865..d8711bb (R-2, R-1, 3.1)
+- Findings: 3 (P0: 0, P1: 0, P2: 0, P3: 2, P4: 1)
+- Fixed: 0, Tasks created: 0
+
+## 3.2 — Add status bar panel
+- Date: 2026-03-04
+- Commit: e610037
+- Notes: Created StatusBarPanel (HBoxContainer) with AspectBar sub-components for each WholeInventory cumulative rule (Heat/4, Cold/4, Toxicity/3). Each bar shows a colored fill proportional to current/threshold with color shifting: aspect color → yellow (threshold-1) → red (at/above threshold). Panel auto-refreshes on placement/removal via Refresh() calls in PuzzleScreen's OnReagentPlaced, OnReagentRemoved, and RemoveReagentAt. Integration test in TestHarness verifies values across placement sequence: Fire Pebble (hot=2), +Blast Jelly (hot=3), +Poison Fang (toxic=3), then removal (hot=1). Build succeeds, all 168 unit tests pass.
