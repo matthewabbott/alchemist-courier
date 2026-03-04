@@ -133,3 +133,16 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: a0039c7
 - Notes: Locked placement is a per-reagent flag (not a bag type). Added IsLocked bool to Reagent.cs. MetaGrid.RemoveReagent() now rejects locked reagents. PuzzleGenerator.LockSolutionReagents() locks 1-2 random solution reagents when AllowSpecialBags=true and there are 3+ reagents (never locks all). PuzzleSolver.ValidateSolution() checks locked reagents haven't moved from their solution positions (position + rotation). ReconstructReagents now sets IsLocked from PuzzleReagent.IsLocked. PuzzleReagent.IsLocked was already in PuzzleState.cs (serialization ready). 12 new tests: 3 MetaGrid (locked blocks removal, unlocked still works, cells stay occupied), 1 ChemistryEngine (locked reagent aspects active), 4 PuzzleSolver (moved=fail, unmoved=pass, rotation changed=fail, IsSolvable with locked), 4 PuzzleGenerator (AllowSpecialBags produces locked, without doesn't, solution still valid, count never exceeds limit). All 202 tests pass (190 existing + 12 new).
+
+## Integration Review — 2026-03-04 (b)
+- Reviewed commits: e610037..8bcf6ce (3.3, 3.4, R-3, R-4, R-5, B.1, B.2)
+- Build: PASS (202/202 unit tests)
+- Harness: 11/11 tests pass, 0 failures
+- Visual: All 14 screenshots verified, no regressions
+- Issues: 0
+- Notes: Objective panel, confirm/reset, placement warnings, status bar all working correctly. Gravity bags (B.1), locked reagents (B.2), and Null suppression (R-3) have thorough unit test coverage but no integration tests yet — DemoPuzzle doesn't use these features. Gap will resolve with task 4.2 (PuzzleGenerator integration).
+
+## B.3 — Implement Heavy aspect placement constraint in Gravity bags
+- Date: 2026-03-04
+- Commit: 9affe1d
+- Notes: Added Heavy placement constraint to Gravity bags via IsHeavyConstraintValid() in MetaGrid. In a Gravity bag column, Heavy reagent cells must be at or below all non-Heavy cells. The method checks both directions: when placing Heavy, scans below for non-Heavy occupants; when placing non-Heavy, scans above for Heavy occupants. Added ReagentHasHeavyAspect() helper that checks the definition's AspectsPerCell. Updated PuzzleGenerator.PlaceReagentsValidly to sort Heavy reagents first (before largest-first tiebreaker) so they naturally land at the bottom of Gravity bags. In non-Gravity bags, Heavy has no special placement effect. 8 new MetaGrid tests + 1 PuzzleGenerator test. All 210 tests pass (202 existing + 8 new).

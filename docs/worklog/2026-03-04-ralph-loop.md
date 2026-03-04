@@ -61,3 +61,13 @@ reagents and requires at least 3 reagents before locking any, ensuring the playe
 meaningful choices. PuzzleReagent.IsLocked was already in PuzzleState.cs from task 2.2 — nice
 foresight that made serialization zero-effort.
 Commit: a0039c7
+
+## 05:45 — B.3: Heavy aspect placement constraint in Gravity bags
+Gravity bags already enforced "no floating" from B.1, but Heavy reagents needed an additional
+constraint: they must always sink to the bottom. The implementation adds a column-wise check in
+MetaGrid — when placing a Heavy reagent, it scans below for non-Heavy occupants (rejects if found),
+and when placing a non-Heavy reagent, it scans above for Heavy occupants (rejects if found). The
+PuzzleGenerator now sorts Heavy reagents first in the placement order so they naturally land at the
+bottom of Gravity bags before non-Heavy reagents stack on top. Clean separation: the constraint lives
+entirely in MetaGrid validation, while the generator just ensures placement order.
+Commit: 9affe1d

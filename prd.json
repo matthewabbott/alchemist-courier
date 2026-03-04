@@ -211,7 +211,7 @@
       "phase": "bag-mechanics",
       "depends_on": ["B.1", "R-4"],
       "verification": "dotnet test -- Heavy falling and crushing tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "B.4",
