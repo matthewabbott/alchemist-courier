@@ -85,3 +85,16 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: e610037
 - Notes: Created StatusBarPanel (HBoxContainer) with AspectBar sub-components for each WholeInventory cumulative rule (Heat/4, Cold/4, Toxicity/3). Each bar shows a colored fill proportional to current/threshold with color shifting: aspect color → yellow (threshold-1) → red (at/above threshold). Panel auto-refreshes on placement/removal via Refresh() calls in PuzzleScreen's OnReagentPlaced, OnReagentRemoved, and RemoveReagentAt. Integration test in TestHarness verifies values across placement sequence: Fire Pebble (hot=2), +Blast Jelly (hot=3), +Poison Fang (toxic=3), then removal (hot=1). Build succeeds, all 168 unit tests pass.
+
+## Integration Review — 2026-03-04
+- Reviewed commits: 36b1865..e610037 (R-2, R-1, 3.1, 3.2)
+- Build: PASS (168/168 unit tests)
+- Harness: 9/9 tests pass, 0 failures
+- Visual: All 11 screenshots verified, no regressions
+- Issues: 0
+- Notes: Status bar color shifting and placement warnings (3-tier) both working correctly end-to-end. Stable buffering mechanic well-covered by 7 unit tests; integration coverage indirect but adequate.
+
+## 3.3 — Add objective panel
+- Date: 2026-03-04
+- Commit: 1579136
+- Notes: Created ObjectivePanel (VBoxContainer) with header label "OBJECTIVE:" and objective text driven by PuzzleType enum. Three texts: FitAllSafely ("Place all reagents without triggering reactions."), MaximizeValue ("Place the highest total value..."), MeetRequirement ("Meet the requirement..."). Wired into PuzzleScreen below the reagent tray in a right-column VBoxContainer layout. Defaults to FitAllSafely for the current DemoPuzzle. Added SetPuzzleType() for dynamic updates and public ObjectiveText accessor for testing. Integration test in TestHarness verifies default text matches FitAllSafely, verifies SetPuzzleType updates text correctly. Build succeeds, all 168 unit tests pass.

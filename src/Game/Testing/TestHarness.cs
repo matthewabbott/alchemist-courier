@@ -51,6 +51,7 @@ public partial class TestHarness : Control
         await WaitFrames(3);
 
         await Test_RenderInitial();
+        await Test_ObjectivePanel();
         await Test_PlaceFirePebble();
         await Test_PlaceIceShardRotated();
         await Test_InvalidPlacement();
@@ -78,6 +79,37 @@ public partial class TestHarness : Control
         bool pass = _puzzleScreen.Grid.PlacedBags.Count == 2 &&
                     _puzzleScreen.Grid.PlacedReagents.Count == 0;
         EndTest("render_initial", pass);
+    }
+
+    private async Task Test_ObjectivePanel()
+    {
+        BeginTest("objective_panel");
+
+        // Verify objective panel exists and shows the default FitAllSafely text
+        var objective = _puzzleScreen.Objective;
+        var text = objective.ObjectiveText;
+        Log($"[STATE] objective_text=\"{text}\"");
+
+        var expectedText = Game.Inventory.ObjectivePanel.GetObjectiveText(
+            AlchemistCourier.Core.Puzzle.PuzzleType.FitAllSafely);
+        bool hasText = !string.IsNullOrEmpty(text) && text == expectedText;
+
+        // Verify SetPuzzleType updates the text
+        objective.SetPuzzleType(AlchemistCourier.Core.Puzzle.PuzzleType.MaximizeValue);
+        var updatedText = objective.ObjectiveText;
+        Log($"[STATE] objective_text_updated=\"{updatedText}\"");
+        var expectedUpdated = Game.Inventory.ObjectivePanel.GetObjectiveText(
+            AlchemistCourier.Core.Puzzle.PuzzleType.MaximizeValue);
+        bool updatedCorrectly = updatedText == expectedUpdated;
+
+        // Reset back to default
+        objective.SetPuzzleType(AlchemistCourier.Core.Puzzle.PuzzleType.FitAllSafely);
+
+        await CaptureScreenshot("02_objective_panel.png");
+
+        bool pass = hasText && updatedCorrectly;
+        EndTest("objective_panel", pass, pass ? null
+            : $"text=\"{text}\" expected=\"{expectedText}\" updated=\"{updatedText}\" expectedUpdated=\"{expectedUpdated}\"");
     }
 
     private async Task Test_PlaceFirePebble()

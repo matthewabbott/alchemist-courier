@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Game.Inventory;
@@ -16,7 +17,9 @@ public partial class PuzzleScreen : Control
     private MetaGridView _gridView = null!;
     private ReagentTray _reagentTray = null!;
     private StatusBarPanel _statusBar = null!;
+    private ObjectivePanel _objectivePanel = null!;
     private Label _statusLabel = null!;
+    private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
 
     // --- Public state inspection ---
     public MetaGrid Grid => _metaGrid;
@@ -24,6 +27,7 @@ public partial class PuzzleScreen : Control
     public Reagent? SelectedReagent => _selectedReagent;
     public MetaGridView GridView => _gridView;
     public StatusBarPanel StatusBar => _statusBar;
+    public ObjectivePanel Objective => _objectivePanel;
 
     public override void _Ready()
     {
@@ -92,6 +96,12 @@ public partial class PuzzleScreen : Control
         // Spacer
         hbox.AddChild(new Control { CustomMinimumSize = new Vector2(24, 0) });
 
+        // Right column: tray + objective
+        var rightColumn = new VBoxContainer();
+        rightColumn.SizeFlagsVertical = SizeFlags.ExpandFill;
+        rightColumn.AddThemeConstantOverride("separation", 12);
+        hbox.AddChild(rightColumn);
+
         // Tray
         var trayScroll = new ScrollContainer
         {
@@ -102,7 +112,12 @@ public partial class PuzzleScreen : Control
         _reagentTray.Initialize(_trayReagents);
         _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         trayScroll.AddChild(_reagentTray);
-        hbox.AddChild(trayScroll);
+        rightColumn.AddChild(trayScroll);
+
+        // Objective panel
+        _objectivePanel = new ObjectivePanel();
+        _objectivePanel.Initialize(_puzzleType);
+        rightColumn.AddChild(_objectivePanel);
 
         // Status bar (cumulative aspect thresholds)
         vbox.AddChild(new HSeparator());
