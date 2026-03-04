@@ -80,12 +80,18 @@ public static class ChemistryEngine
         {
             foreach (var pos in reagent.GetCurrentMetaGridPositions())
             {
+                if (IsAspectSuppressed(grid, pos))
+                    continue;
+
                 var cellAspects = reagent.GetAspectsAtMetaGridPosition(pos);
 
                 foreach (var adjCell in grid.GetAdjacentCells(pos))
                 {
                     var neighbor = grid.GetReagentAtCell(adjCell.Position);
                     if (neighbor == null || neighbor == reagent)
+                        continue;
+
+                    if (IsAspectSuppressed(grid, adjCell.Position))
                         continue;
 
                     var neighborAspects = neighbor.GetAspectsAtMetaGridPosition(adjCell.Position);
@@ -144,6 +150,10 @@ public static class ChemistryEngine
 
         foreach (var bag in grid.PlacedBags)
         {
+            // Null bags suppress all aspects — skip entirely
+            if (bag.HasProperty(BagPropertyType.Null))
+                continue;
+
             // Collect distinct reagents in this bag
             var reagentsInBag = new HashSet<Reagent>();
             foreach (var cell in bag.OwnedCells)
@@ -157,7 +167,7 @@ public static class ChemistryEngine
             if (sameAspect)
             {
                 // Count reagents that have this aspect (for threshold check)
-                var withAspect = reagentList.Where(r => ReagentHasAspect(r, aspect1)).ToList();
+                var withAspect = reagentList.Where(r => ReagentHasUnsuppressedAspect(grid, r, aspect1)).ToList();
                 var affectedCells = GetAllCellsForReagents(withAspect);
                 int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
                 int effectiveThreshold = rule.Threshold + stableBuffer;
@@ -182,8 +192,8 @@ public static class ChemistryEngine
                         var b = reagentList[j];
 
                         bool triggered =
-                            (ReagentHasAspect(a, aspect1) && ReagentHasAspect(b, aspect2)) ||
-                            (ReagentHasAspect(a, aspect2) && ReagentHasAspect(b, aspect1));
+                            (ReagentHasUnsuppressedAspect(grid, a, aspect1) && ReagentHasUnsuppressedAspect(grid, b, aspect2)) ||
+                            (ReagentHasUnsuppressedAspect(grid, a, aspect2) && ReagentHasUnsuppressedAspect(grid, b, aspect1));
 
                         if (triggered)
                         {
@@ -229,6 +239,9 @@ public static class ChemistryEngine
             {
                 foreach (var pos in reagent.GetCurrentMetaGridPositions())
                 {
+                    if (IsAspectSuppressed(grid, pos))
+                        continue;
+
                     var aspects = reagent.GetAspectsAtMetaGridPosition(pos);
                     int mag = aspects.GetMagnitude(aspectId);
                     if (mag > 0)
@@ -243,7 +256,7 @@ public static class ChemistryEngine
         {
             foreach (var reagent in grid.PlacedReagents)
             {
-                if (ReagentHasAspect(reagent, aspectId))
+                if (ReagentHasUnsuppressedAspect(grid, reagent, aspectId))
                 {
                     totalMagnitude++;
                     affectedCells.AddRange(reagent.GetCurrentMetaGridPositions());
@@ -285,6 +298,9 @@ public static class ChemistryEngine
                 if (involvedCells.Contains(adjCell.Position))
                     continue;
 
+                if (IsAspectSuppressed(grid, adjCell.Position))
+                    continue;
+
                 var reagent = grid.GetReagentAtCell(adjCell.Position);
                 if (reagent == null)
                     continue;
@@ -299,6 +315,31 @@ public static class ChemistryEngine
         }
 
         return totalStable;
+    }
+
+    /// <summary>
+    /// Check if a cell's aspects are suppressed by being in a Null bag.
+    /// </summary>
+    private static bool IsAspectSuppressed(MetaGrid grid, Vector2I pos)
+    {
+        var bag = grid.GetBagAtCell(pos);
+        return bag != null && bag.HasProperty(BagPropertyType.Null);
+    }
+
+    /// <summary>
+    /// Check if a reagent has a specific aspect on any of its non-suppressed cells.
+    /// Cells in Null bags are skipped.
+    /// </summary>
+    private static bool ReagentHasUnsuppressedAspect(MetaGrid grid, Reagent reagent, string aspectId)
+    {
+        foreach (var pos in reagent.GetCurrentMetaGridPositions())
+        {
+            if (IsAspectSuppressed(grid, pos))
+                continue;
+            if (reagent.GetAspectsAtMetaGridPosition(pos).Has(aspectId))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>

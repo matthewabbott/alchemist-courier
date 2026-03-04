@@ -732,4 +732,222 @@ public class ChemistryEngineTests
 
         Assert.Empty(results);
     }
+
+    // =====================================================
+    // Null bag aspect suppression tests
+    // =====================================================
+
+    /// <summary>Helper: set up a grid with a Null bag and a normal bag side by side.</summary>
+    private static MetaGrid SetupNullBagGrid(
+        int width, int height,
+        BagDefinition nullBagDef, Vector2I nullBagPos,
+        BagDefinition normalBagDef, Vector2I normalBagPos,
+        params (Reagent reagent, Vector2I pos)[] placements)
+    {
+        var grid = new MetaGrid(width, height);
+        var nullBag = new Bag(nullBagDef);
+        var normalBag = new Bag(normalBagDef);
+        grid.PlaceBag(nullBag, nullBagPos);
+        grid.PlaceBag(normalBag, normalBagPos);
+
+        foreach (var (reagent, pos) in placements)
+            grid.PlaceReagent(reagent, pos);
+
+        return grid;
+    }
+
+    [Fact]
+    public void Evaluate_ReagentInNullBag_AdjacentExplosionSuppressed()
+    {
+        // Hot in Null bag, Volatile in normal bag — adjacent but Hot is suppressed
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 3),
+            new[] { BagPropertyType.Null });
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 3));
+
+        // Null bag at (0,0), normal bag at (3,0) — adjacent at boundary
+        var grid = SetupNullBagGrid(6, 1,
+            nullBagDef, new Vector2I(0, 0),
+            normalBagDef, new Vector2I(3, 0),
+            (hotReagent, new Vector2I(2, 0)),     // Hot in Null bag, rightmost cell
+            (volatileReagent, new Vector2I(3, 0))); // Volatile in normal bag, leftmost cell
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Hot is suppressed by Null bag — no explosion
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_ReagentInNormalBag_AdjacentExplosionNotSuppressed()
+    {
+        // Both in normal bags — explosion should still fire
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var bag1Def = new BagDefinition("bag1", "Bag1", CreateFilledShape(1, 3));
+        var bag2Def = new BagDefinition("bag2", "Bag2", CreateFilledShape(1, 3));
+
+        var grid = SetupTwoBagGrid(6, 1,
+            bag1Def, new Vector2I(0, 0),
+            bag2Def, new Vector2I(3, 0),
+            (hotReagent, new Vector2I(2, 0)),
+            (volatileReagent, new Vector2I(3, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_SpanningReagent_NullBagCellsSuppressed_NormalBagCellsActive()
+    {
+        // A 2-cell domino spans Null bag and normal bag.
+        // Cell in Null bag is suppressed, cell in normal bag retains aspects.
+        var hotDomino = MakeDominoReagent("hot_dom",
+            new AspectSet(Aspect.Hot()), new AspectSet(Aspect.Hot()));
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        // Null bag: cols 0-1, Normal bag: cols 2-3
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 2),
+            new[] { BagPropertyType.Null });
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 2));
+
+        var grid = SetupNullBagGrid(4, 1,
+            nullBagDef, new Vector2I(0, 0),
+            normalBagDef, new Vector2I(2, 0),
+            (hotDomino, new Vector2I(1, 0)),       // Spans: (1,0) in Null, (2,0) in Normal
+            (volatileReagent, new Vector2I(3, 0))); // Adjacent to Hot at (2,0) in Normal
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Hot at (2,0) is in normal bag — still active — should trigger explosion with Volatile
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_NullBag_SameBagNeutralizationSuppressed()
+    {
+        // Hot and Cold in same Null bag — no neutralization because aspects are suppressed
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(2, 3),
+            new[] { BagPropertyType.Null });
+
+        var grid = new MetaGrid(3, 2);
+        var nullBag = new Bag(nullBagDef);
+        grid.PlaceBag(nullBag, new Vector2I(0, 0));
+        grid.PlaceReagent(hotReagent, new Vector2I(0, 0));
+        grid.PlaceReagent(coldReagent, new Vector2I(2, 0));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Neutralization);
+    }
+
+    [Fact]
+    public void Evaluate_NullBag_CumulativeOverheatingSuppressed()
+    {
+        // 4 Hot reagents in a Null bag — cumulative threshold should not be reached
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 5),
+            new[] { BagPropertyType.Null });
+
+        var grid = new MetaGrid(5, 1);
+        var nullBag = new Bag(nullBagDef);
+        grid.PlaceBag(nullBag, new Vector2I(0, 0));
+        grid.PlaceReagent(h1, new Vector2I(0, 0));
+        grid.PlaceReagent(h2, new Vector2I(1, 0));
+        grid.PlaceReagent(h3, new Vector2I(2, 0));
+        grid.PlaceReagent(h4, new Vector2I(3, 0));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_NullBag_ToxicCloudSuppressed()
+    {
+        // 2 Toxic reagents in a Null bag — toxic cloud should not trigger
+        var t1 = MakeSingleCellReagent("t1", Aspect.Toxic());
+        var t2 = MakeSingleCellReagent("t2", Aspect.Toxic());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 3),
+            new[] { BagPropertyType.Null });
+
+        var grid = new MetaGrid(3, 1);
+        var nullBag = new Bag(nullBagDef);
+        grid.PlaceBag(nullBag, new Vector2I(0, 0));
+        grid.PlaceReagent(t1, new Vector2I(0, 0));
+        grid.PlaceReagent(t2, new Vector2I(1, 0));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.ToxicCloud);
+    }
+
+    [Fact]
+    public void Evaluate_NullBag_StableBufferingAlsoSuppressed()
+    {
+        // Stable in Null bag adjacent to Hot+Volatile in normal bag — Stable is suppressed,
+        // so it should NOT buffer the explosion
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 1),
+            new[] { BagPropertyType.Null });
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 3));
+
+        // Null bag at (0,0) with Stable, Normal bag at (1,0) with Hot at (1,0) and Volatile at (2,0)
+        var grid = SetupNullBagGrid(4, 1,
+            nullBagDef, new Vector2I(0, 0),
+            normalBagDef, new Vector2I(1, 0),
+            (stableReagent, new Vector2I(0, 0)),
+            (hotReagent, new Vector2I(1, 0)),
+            (volatileReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Stable is suppressed — explosion should still fire
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_MixedBags_CumulativeSkipsNullBagCells()
+    {
+        // 3 Hot in normal bag + 1 Hot in Null bag — only 3 count, below threshold of 4
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4Null = MakeSingleCellReagent("h4", Aspect.Hot());
+
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 4));
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 1),
+            new[] { BagPropertyType.Null });
+
+        var grid = new MetaGrid(5, 1);
+        var normalBag = new Bag(normalBagDef);
+        var nullBag = new Bag(nullBagDef);
+        grid.PlaceBag(normalBag, new Vector2I(0, 0));
+        grid.PlaceBag(nullBag, new Vector2I(4, 0));
+
+        grid.PlaceReagent(h1, new Vector2I(0, 0));
+        grid.PlaceReagent(h2, new Vector2I(1, 0));
+        grid.PlaceReagent(h3, new Vector2I(2, 0));
+        grid.PlaceReagent(h4Null, new Vector2I(4, 0)); // In Null bag
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Only 3 Hot counted (h4 suppressed) — below threshold of 4
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
 }
