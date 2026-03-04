@@ -60,7 +60,7 @@
       "phase": "puzzle-infrastructure",
       "depends_on": [],
       "verification": "dotnet test — determinism tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "2.2",
