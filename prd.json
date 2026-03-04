@@ -1,0 +1,216 @@
+{
+  "project": "Alchemist Courier MVP",
+  "description": "Daily web puzzle game — inventory tetris with alchemically reactive reagents",
+  "tasks": [
+    {
+      "id": "1.1",
+      "title": "Add adjacency detection to MetaGrid",
+      "description": "Add methods to MetaGrid: GetAdjacentCells(Vector2I) returns cardinal neighbor cells (up/down/left/right) that exist in the grid. GetAdjacentReagents(Reagent) returns distinct reagents occupying cells adjacent to any cell of the given reagent. Add comprehensive unit tests in tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs covering: empty grid, single reagent (no neighbors), two adjacent reagents, diagonal-only (not adjacent), reagent adjacent to itself (excluded), multiple neighbors.",
+      "priority": 1,
+      "phase": "core-chemistry",
+      "depends_on": [],
+      "verification": "dotnet test — new adjacency tests pass, existing 47 tests still pass",
+      "status": "pending"
+    },
+    {
+      "id": "1.2",
+      "title": "Add ReactionRule and ReactionResult data models",
+      "description": "Create src/Core/Chemistry/ReactionRule.cs and ReactionResult.cs. ReactionRule: TriggerAspects (list of aspect names that must be co-present), SensitivityTier enum (Adjacent, SameBag, WholeInventory), Granularity enum (PerCell, PerItem), Threshold (int, for cumulative rules — 0 means any contact triggers), ResultType (ReactionResultType enum). ReactionResult: Type (Explosion, Neutralization, Breakage, StatusEffect, Overheating, Hypothermia, Poisoning), Magnitude (float), AffectedCells (list of Vector2I), SourceRule (reference to the ReactionRule that triggered it). Add ReactionResultType enum. These are pure data models — no logic yet. Verify dotnet build succeeds.",
+      "priority": 2,
+      "phase": "core-chemistry",
+      "depends_on": [],
+      "verification": "dotnet build succeeds with zero errors",
+      "status": "pending"
+    },
+    {
+      "id": "1.3",
+      "title": "Add reaction rule database",
+      "description": "Create src/Core/Chemistry/ReactionRuleDatabase.cs — a static class providing GetMvpRules() returning List<ReactionRule> with the Physical/Chemistry school rules from docs/chemistry-system.md: Hot+Volatile=Explosion (Adjacent), Hot+Cold=Neutralization (SameBag), Sharp+Fragile=Breakage (Adjacent), Toxic+Toxic=ToxicCloud (SameBag), cumulative Hot threshold (Overheating, threshold=4, WholeInventory), cumulative Cold threshold (Hypothermia, threshold=4, WholeInventory), cumulative Toxic threshold (Poisoning, threshold=3, WholeInventory). Also add GetRulesForAspects(string aspect1, string aspect2) lookup method. Add unit tests verifying: correct number of rules returned, specific rule lookups work, threshold values are correct.",
+      "priority": 3,
+      "phase": "core-chemistry",
+      "depends_on": ["1.2"],
+      "verification": "dotnet test — rule database tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "1.4",
+      "title": "Add ChemistryEngine evaluator",
+      "description": "Create src/Core/Chemistry/ChemistryEngine.cs with static method Evaluate(MetaGrid, List<ReactionRule>) returning List<ReactionResult>. Implementation: (1) For each adjacency rule, iterate all placed reagents, check adjacent reagents for matching trigger aspects. (2) For each same-bag rule, iterate all bags, check reagents in the same bag for matching aspects. (3) For each cumulative rule, sum aspect magnitudes across the whole inventory and check against threshold. Add comprehensive unit tests: empty grid (no reactions), two hot+volatile reagents adjacent (explosion), hot+volatile separated by gap (no reaction), cumulative heat exceeding threshold (overheating), hot+cold in same bag (neutralization), mixed scenario with multiple reactions.",
+      "priority": 4,
+      "phase": "core-chemistry",
+      "depends_on": ["1.1", "1.3"],
+      "verification": "dotnet test — chemistry evaluation tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "1.5",
+      "title": "Add prospective evaluation",
+      "description": "Add static method to ChemistryEngine: EvaluateProspective(MetaGrid, Reagent, Vector2I, List<ReactionRule>) returning List<ReactionResult>. This temporarily places the reagent at the given position, evaluates, then removes it — returning what WOULD happen without mutating the grid. Implementation: clone or use temporary placement. Add unit tests: prospective place in safe spot (empty results), prospective place adjacent to volatile (explosion result), verify grid is unchanged after call.",
+      "priority": 5,
+      "phase": "core-chemistry",
+      "depends_on": ["1.4"],
+      "verification": "dotnet test — prospective evaluation tests pass, grid unchanged after call",
+      "status": "pending"
+    },
+    {
+      "id": "2.1",
+      "title": "Add SeededRandom deterministic RNG",
+      "description": "Create src/Core/SeededRandom.cs — a deterministic random number generator. Constructor takes int seed. Methods: Next() returns int, Next(max) returns 0..max-1, Next(min, max) returns min..max-1, NextFloat() returns 0.0..1.0, Shuffle<T>(List<T>) shuffles in place. Use System.Random internally (it's deterministic given a seed in .NET). Add unit tests: same seed produces same sequence, different seeds produce different sequences, Shuffle is deterministic, Next(min,max) stays in range.",
+      "priority": 6,
+      "phase": "puzzle-infrastructure",
+      "depends_on": [],
+      "verification": "dotnet test — determinism tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "2.2",
+      "title": "Add PuzzleState and DifficultyParams data models",
+      "description": "Create src/Core/Puzzle/PuzzleState.cs and DifficultyParams.cs. PuzzleState: Seed (int), Difficulty (DifficultyLevel enum: Tutorial1-Tutorial5, Easy, Medium, Hard), PuzzleType (enum: FitAllSafely, MaximizeValue, MeetRequirement), Bags (list of bag definitions with grid positions), Reagents (list of reagent definitions), Placements (list of {reagentIndex, position, rotation} — current player state), Solution (list of {reagentIndex, position, rotation} — the valid answer). DifficultyParams: BagCount, BagMinSize, BagMaxSize, ReagentCount, MaxAspectCount, SpareSpacePercent, AllowSpecialBags. Add JSON serialization round-trip unit test (serialize PuzzleState to JSON string, deserialize back, verify equality).",
+      "priority": 7,
+      "phase": "puzzle-infrastructure",
+      "depends_on": [],
+      "verification": "dotnet test — serialization round-trip test passes",
+      "status": "pending"
+    },
+    {
+      "id": "2.3",
+      "title": "Add PuzzleGenerator",
+      "description": "Create src/Core/Puzzle/PuzzleGenerator.cs implementing the disassemble-a-solution algorithm from docs/mvp-specification.md. Method: Generate(int seed, DifficultyParams) returning PuzzleState. Algorithm: (1) Create SeededRandom from seed. (2) Generate bags based on difficulty. (3) Generate reagents with aspects based on difficulty. (4) Place reagents into bags following rules (using ChemistryEngine to validate no negative reactions). (5) Record solution. (6) Remove reagents to create puzzle. Start simple: rectangular bags only, 1-2 cell reagents, basic aspects. Add unit tests: generated puzzle has non-empty bags and reagents, solution is valid (ChemistryEngine returns no negative reactions when solution is applied), same seed produces same puzzle.",
+      "priority": 8,
+      "phase": "puzzle-infrastructure",
+      "depends_on": ["1.4", "2.1", "2.2"],
+      "verification": "dotnet test — puzzle generation tests pass, solution validates",
+      "status": "pending"
+    },
+    {
+      "id": "2.4",
+      "title": "Add PuzzleSolver / validator",
+      "description": "Create src/Core/Puzzle/PuzzleSolver.cs with static method ValidateSolution(PuzzleState) returning bool. Checks: all reagents placed, no overlaps, all placements within bag bounds, ChemistryEngine returns no negative reactions. Also add IsSolvable(PuzzleState) that tries the stored solution. Add unit tests: valid solution validates, solution with overlap fails, solution with reaction fails, empty placement fails.",
+      "priority": 9,
+      "phase": "puzzle-infrastructure",
+      "depends_on": ["1.4", "2.2"],
+      "verification": "dotnet test — solver validation tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "3.1",
+      "title": "Add placement warnings to MetaGridView",
+      "description": "Modify src/Game/Inventory/MetaGridView.cs ghost preview to use ChemistryEngine.EvaluateProspective. Currently ghost cells are a single color. Change to: green (safe — no reactions), yellow (warning — reaction exists but within threshold), red (danger — explosion, breakage, or exceeds threshold). Requires passing reaction rules to MetaGridView. Update ghost cell coloring in UpdateGhostPreview(). Add a test to TestHarness that places a reagent near a dangerous one and screenshots the warning colors.",
+      "priority": 10,
+      "phase": "ui-chemistry",
+      "depends_on": ["1.5"],
+      "verification": "dotnet build + test harness screenshot shows colored warnings",
+      "status": "pending"
+    },
+    {
+      "id": "3.2",
+      "title": "Add status bar panel",
+      "description": "Create status bar UI below the grid in PuzzleScreen showing cumulative aspect totals with threshold bars. For each tracked cumulative aspect (Hot, Cold, Toxic): show a labeled bar with current sum / threshold. Update on each placement or removal. Use ColorRect bars with labels. Add to test harness: after placing reagents, screenshot shows status bar with non-zero values.",
+      "priority": 11,
+      "phase": "ui-chemistry",
+      "depends_on": ["1.4"],
+      "verification": "dotnet build + test harness screenshot shows status bars",
+      "status": "pending"
+    },
+    {
+      "id": "3.3",
+      "title": "Add objective panel",
+      "description": "Add objective text display to PuzzleScreen showing the current puzzle's win condition (e.g. 'Place all reagents without explosions'). PuzzleType enum drives the text. Position above or beside the reagent tray per MVP mockup. Add to test harness: verify objective text is visible in screenshot.",
+      "priority": 12,
+      "phase": "ui-chemistry",
+      "depends_on": ["2.2"],
+      "verification": "dotnet build + test harness screenshot shows objective text",
+      "status": "pending"
+    },
+    {
+      "id": "3.4",
+      "title": "Add confirm and reset buttons",
+      "description": "Add Confirm and Reset buttons to PuzzleScreen. Reset: returns all placed reagents to tray, clears grid. Confirm: triggers win/loss evaluation (placeholder — just checks if all reagents are placed for now). Add programmatic methods ConfirmPuzzle() and ResetPuzzle() to PuzzleScreen for test harness access. Add test harness steps: place some reagents, reset (verify all unplaced), place all, confirm.",
+      "priority": 13,
+      "phase": "ui-chemistry",
+      "depends_on": ["1.4"],
+      "verification": "dotnet build + test harness verifies reset and confirm behavior",
+      "status": "pending"
+    },
+    {
+      "id": "3.5",
+      "title": "Add aspect interaction primer",
+      "description": "Create a toggleable overlay panel showing aspect interaction rules. Lists each rule from ReactionRuleDatabase with simple icons/text: 'Hot + Volatile (adjacent) = Explosion'. Toggle via a button on PuzzleScreen. Can be a VBoxContainer with Label children, shown/hidden on button press. Add programmatic TogglePrimer() to PuzzleScreen.",
+      "priority": 14,
+      "phase": "ui-chemistry",
+      "depends_on": ["1.3"],
+      "verification": "dotnet build + test harness screenshot shows primer overlay",
+      "status": "pending"
+    },
+    {
+      "id": "4.1",
+      "title": "Add win/loss evaluation to PuzzleScreen",
+      "description": "Wire Confirm button to full win/loss logic: (1) Check all reagents placed (for FitAllSafely type). (2) Run ChemistryEngine.Evaluate on the grid. (3) If no negative reactions → WIN. If negative reactions → show which reactions occurred. Display result overlay (simple Label for now). Add test harness: place all reagents safely → confirm → verify win state. Place reagent causing explosion → confirm → verify loss state.",
+      "priority": 15,
+      "phase": "game-flow",
+      "depends_on": ["1.4", "3.4"],
+      "verification": "dotnet build + test harness verifies win and loss paths",
+      "status": "pending"
+    },
+    {
+      "id": "4.2",
+      "title": "Replace DemoPuzzle with PuzzleGenerator",
+      "description": "Modify PuzzleScreen to accept a PuzzleState instead of using hard-coded DemoPuzzle. Add a factory method or constructor parameter. PuzzleScreen._Ready() creates grid, bags, and reagents from PuzzleState. Keep DemoPuzzle as a fallback (if no PuzzleState provided, use demo). Update test harness to test both: demo puzzle and a generated puzzle from seed.",
+      "priority": 16,
+      "phase": "game-flow",
+      "depends_on": ["2.3"],
+      "verification": "dotnet build + test harness runs with both demo and generated puzzles",
+      "status": "pending"
+    },
+    {
+      "id": "4.3",
+      "title": "Add tutorial lesson data model and first 5 lessons",
+      "description": "Create src/Core/Puzzle/TutorialLesson.cs: LessonNumber, ConceptName, HintText, FixedSeed, DifficultyParams, RequiredPuzzleType. Create TutorialData.cs with static GetLessons() returning the first 5 lessons from docs/mvp-specification.md: (1) Basic placement, (2) Shapes & rotation, (3) Multiple reagents tight fit, (4) Aspects: Hot, (5) Aspects: Volatile. Unit test: lessons have valid seeds, difficulty params produce solvable puzzles.",
+      "priority": 17,
+      "phase": "game-flow",
+      "depends_on": ["2.2"],
+      "verification": "dotnet test — tutorial lesson tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "4.4",
+      "title": "Add tutorial flow screen",
+      "description": "Create src/Game/TutorialScreen.cs (or modify PuzzleScreen) to support tutorial mode: show lesson hint text, track which lesson the player is on, advance to next lesson on win. Store current lesson index. Add test harness test: start tutorial, complete lesson 1, verify advances to lesson 2.",
+      "priority": 18,
+      "phase": "game-flow",
+      "depends_on": ["4.3"],
+      "verification": "dotnet build + test harness verifies tutorial progression",
+      "status": "pending"
+    },
+    {
+      "id": "4.5",
+      "title": "Add daily puzzle mode",
+      "description": "Create src/Game/DailyPuzzleManager.cs: generates today's puzzle using date seed (YYYYMMDD as int). Difficulty rotates on 3-day cycle (Easy/Medium/Hard). PuzzleType also varies by seed. Wire into a 'Play Daily' entry point. Add test: same date always produces same puzzle, different dates produce different puzzles.",
+      "priority": 19,
+      "phase": "game-flow",
+      "depends_on": ["4.2"],
+      "verification": "dotnet test — daily puzzle determinism test passes",
+      "status": "pending"
+    },
+    {
+      "id": "4.6",
+      "title": "Add save system",
+      "description": "Create src/Core/Save/SaveData.cs (tutorial progress, daily completion history, streak count) and SaveManager.cs (serialize to/from JSON file). For now use file-based persistence (swap to localStorage for web export later). Add unit tests: save round-trip, streak calculation, daily completion tracking.",
+      "priority": 20,
+      "phase": "game-flow",
+      "depends_on": ["4.4", "4.5"],
+      "verification": "dotnet test — save system round-trip tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "5.1",
+      "title": "UI layout polish to match MVP mockup",
+      "description": "Reorganize PuzzleScreen layout to match the MVP mockup in docs/mvp-specification.md: header bar (title, day count, streak), meta-grid centered left, reagent tray right, objective below tray, status bar at bottom, confirm/reset/primer buttons in bottom bar. Adjust sizing and spacing.",
+      "priority": 21,
+      "phase": "polish",
+      "depends_on": ["3.2", "3.3"],
+      "verification": "Test harness screenshot matches MVP mockup layout",
+      "status": "pending"
+    }
+  ]
+}
