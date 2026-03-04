@@ -172,7 +172,7 @@ public static class ChemistryEngine
                         continue;
 
                     var neighbor = grid.GetReagentAtCell(adjCell.Position);
-                    if (neighbor == null)
+                    if (neighbor == null || neighbor == reagent)
                         continue;
 
                     var neighborAspects = neighbor.GetAspectsAtMetaGridPosition(adjCell.Position);
