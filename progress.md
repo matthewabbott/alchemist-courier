@@ -35,3 +35,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-03
 - Commit: b8a965d
 - Notes: Simple wrapper around System.Random. Constructor takes int seed, exposes Seed property. Methods: Next(), Next(max), Next(min,max), NextFloat(), Shuffle<T>(List<T>) using Fisher-Yates. Placed at src/Core/SeededRandom.cs with namespace AlchemistCourier.Core. 10 new tests covering determinism (same seed = same sequence), different seeds diverge, range bounds for Next(max)/Next(min,max)/NextFloat(), shuffle determinism, element preservation, and edge cases (empty/single-element lists). All 110 tests pass (100 existing + 10 new).
+
+## Code Review — 2026-03-03
+- Reviewed commits: b970518..0975041 (tasks 1.5, 2.1)
+- Findings: 0 (P0: 0, P1: 0, P2: 0)
+- Fixed: 0, Tasks created: 0
