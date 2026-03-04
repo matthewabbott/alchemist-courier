@@ -480,4 +480,115 @@ public class ChemistryEngineTests
 
         Assert.Contains(results, r => r.Type == ReactionResultType.Hypothermia);
     }
+
+    // =====================================================
+    // EvaluateProspective tests
+    // =====================================================
+
+    [Fact]
+    public void EvaluateProspective_SafeSpot_ReturnsEmpty()
+    {
+        var stable = MakeSingleCellReagent("s1", Aspect.Stable());
+        var prospective = MakeSingleCellReagent("s2", Aspect.Stable());
+
+        var grid = SetupGrid(5, 5, (stable, new Vector2I(0, 0)));
+
+        var results = ChemistryEngine.EvaluateProspective(
+            grid, prospective, new Vector2I(2, 2), AllRules);
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void EvaluateProspective_AdjacentToVolatile_ReturnsExplosion()
+    {
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+
+        var grid = SetupGrid(5, 5, (volatileReagent, new Vector2I(1, 1)));
+
+        var results = ChemistryEngine.EvaluateProspective(
+            grid, hotReagent, new Vector2I(2, 1), AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void EvaluateProspective_GridUnchangedAfterCall()
+    {
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+
+        var grid = SetupGrid(5, 5, (volatileReagent, new Vector2I(1, 1)));
+
+        // Record state before
+        int reagentCountBefore = grid.PlacedReagents.Count;
+
+        ChemistryEngine.EvaluateProspective(
+            grid, hotReagent, new Vector2I(2, 1), AllRules);
+
+        // Grid should be unchanged
+        Assert.Equal(reagentCountBefore, grid.PlacedReagents.Count);
+        Assert.DoesNotContain(hotReagent, grid.PlacedReagents);
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(2, 1)));
+        Assert.False(hotReagent.IsPlaced);
+    }
+
+    [Fact]
+    public void EvaluateProspective_InvalidPosition_ReturnsEmpty()
+    {
+        var reagent = MakeSingleCellReagent("r1", Aspect.Hot());
+
+        // Grid with no bags — no valid placement positions
+        var grid = new MetaGrid(5, 5);
+
+        var results = ChemistryEngine.EvaluateProspective(
+            grid, reagent, new Vector2I(0, 0), AllRules);
+
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public void EvaluateProspective_CumulativeWouldExceedThreshold_ReturnsReaction()
+    {
+        // 3 hot already placed; prospective 4th would trigger overheating (threshold 4)
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+
+        var grid = SetupGrid(5, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)));
+
+        // Before: no overheating
+        var before = ChemistryEngine.Evaluate(grid, AllRules);
+        Assert.DoesNotContain(before, r => r.Type == ReactionResultType.Overheating);
+
+        // Prospective: would cause overheating
+        var results = ChemistryEngine.EvaluateProspective(
+            grid, h4, new Vector2I(3, 0), AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+
+        // After: still no overheating (grid unchanged)
+        var after = ChemistryEngine.Evaluate(grid, AllRules);
+        Assert.DoesNotContain(after, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void EvaluateProspective_OccupiedPosition_ReturnsEmpty()
+    {
+        var existing = MakeSingleCellReagent("r1", Aspect.Hot());
+        var prospective = MakeSingleCellReagent("r2", Aspect.Volatile());
+
+        var grid = SetupGrid(5, 5, (existing, new Vector2I(1, 1)));
+
+        // Can't place on an already-occupied cell
+        var results = ChemistryEngine.EvaluateProspective(
+            grid, prospective, new Vector2I(1, 1), AllRules);
+
+        Assert.Empty(results);
+    }
 }

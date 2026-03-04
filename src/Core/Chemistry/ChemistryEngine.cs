@@ -13,6 +13,28 @@ namespace AlchemistCourier.Core.Chemistry;
 public static class ChemistryEngine
 {
     /// <summary>
+    /// Evaluate what would happen if a reagent were placed at the given position,
+    /// without permanently mutating the grid. Temporarily places the reagent,
+    /// evaluates all rules, then removes it.
+    /// </summary>
+    public static List<ReactionResult> EvaluateProspective(
+        MetaGrid grid, Reagent reagent, Vector2I position, List<ReactionRule> rules)
+    {
+        if (!grid.CanPlaceReagent(reagent, position))
+            return new List<ReactionResult>();
+
+        grid.PlaceReagent(reagent, position);
+        try
+        {
+            return Evaluate(grid, rules);
+        }
+        finally
+        {
+            grid.RemoveReagent(reagent);
+        }
+    }
+
+    /// <summary>
     /// Evaluate all given reaction rules against the current grid state.
     /// Returns a list of all reactions that triggered.
     /// </summary>
