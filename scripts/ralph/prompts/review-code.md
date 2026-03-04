@@ -56,7 +56,14 @@ You are a code quality reviewer for the Alchemist Courier game. Your job is to r
 
 9. **Quality gates**: If you made any code fixes, run `dotnet build` and `dotnet test` to verify you didn't break anything. Commit fixes with message prefix `review: `.
 
-10. **Exit**: You're done with this iteration.
+10. **Update worklog**: Append a review summary to `docs/worklog/[YYYY-MM-DD]-ralph-loop.md` (create the file if it doesn't exist, with a `# Ralph Loop — [date]` header):
+    ```
+    ## [HH:MM] — Code Review
+    [1-3 sentence summary: what was reviewed, what was found, what was fixed or flagged.
+    Mention specific quality wins or concerning patterns.]
+    ```
+
+11. **Exit**: You're done with this iteration.
 
 ## Critical Caveats (from deslop.md)
 

@@ -57,19 +57,30 @@ You are an autonomous coding agent working on the Alchemist Courier game. Each i
     - Notes: [what you learned, any gotchas, patterns discovered]
     ```
 
-11. **If stuck**: If you can't complete the task after a reasonable effort:
+11. **Update worklog**: Append a narrative entry to `docs/worklog/[YYYY-MM-DD]-ralph-loop.md` (create the file if it doesn't exist, with a `# Ralph Loop — [date]` header). Use this template:
+    ```
+    ## [HH:MM] — [Task ID]: [Task Title]
+    [1-3 sentence narrative: what you built, why it matters, any interesting design choices
+    or trade-offs. Write for a human reading this as a dev journal months later.]
+    Commit: [hash]
+    ```
+    Keep it brief but meaningful — focus on the "story" of the task, not a changelog.
+
+12. **If stuck**: If you can't complete the task after a reasonable effort:
     - Set the task's status to `"blocked"` in `prd.json`
     - Add a note in `progress.md` explaining what went wrong
+    - Add a worklog entry explaining the blocker
     - Do NOT commit broken code
     - Exit so the next iteration (or a human) can address it
 
-12. **Exit**: You're done with this iteration. Exit cleanly.
+13. **Exit**: You're done with this iteration. Exit cleanly.
 
 ## Key Files
 
 - `CLAUDE.md` — Project conventions (auto-loaded)
 - `prd.json` — Task list (pick next task from here)
 - `progress.md` — Learnings log (append after each task)
+- `docs/worklog/` — Dev journal (append narrative entry per task)
 - `docs/mvp-specification.md` — What to build
 - `docs/architecture.md` — Data models and structure
 - `docs/core-mechanics.md` — Grid, bags, reagents rules
