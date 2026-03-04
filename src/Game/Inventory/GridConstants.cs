@@ -36,17 +36,17 @@ public static class GridConstants
 
     public static Color GetAspectColor(string aspectId) => aspectId switch
     {
-        "hot"       => new Color(0.9f, 0.25f, 0.15f),
-        "cold"      => new Color(0.2f, 0.45f, 0.9f),
-        "volatile"  => new Color(0.95f, 0.6f, 0.15f),
-        "toxic"     => new Color(0.2f, 0.75f, 0.25f),
-        "fragile"   => new Color(0.7f, 0.7f, 0.9f),
-        "heavy"     => new Color(0.5f, 0.4f, 0.3f),
-        "sharp"     => new Color(0.8f, 0.8f, 0.8f),
-        "medicinal" => new Color(0.9f, 0.5f, 0.7f),
-        "stable"    => new Color(0.6f, 0.6f, 0.6f),
-        "catalytic" => new Color(0.9f, 0.85f, 0.2f),
-        _           => new Color(0.7f, 0.7f, 0.7f),
+        AspectIds.Hot       => new Color(0.9f, 0.25f, 0.15f),
+        AspectIds.Cold      => new Color(0.2f, 0.45f, 0.9f),
+        AspectIds.Volatile  => new Color(0.95f, 0.6f, 0.15f),
+        AspectIds.Toxic     => new Color(0.2f, 0.75f, 0.25f),
+        AspectIds.Fragile   => new Color(0.7f, 0.7f, 0.9f),
+        AspectIds.Heavy     => new Color(0.5f, 0.4f, 0.3f),
+        AspectIds.Sharp     => new Color(0.8f, 0.8f, 0.8f),
+        AspectIds.Medicinal => new Color(0.9f, 0.5f, 0.7f),
+        AspectIds.Stable    => new Color(0.6f, 0.6f, 0.6f),
+        AspectIds.Catalytic => new Color(0.9f, 0.85f, 0.2f),
+        _                   => new Color(0.7f, 0.7f, 0.7f),
     };
 
     public static Color GetDominantColor(Reagent reagent, Core.Grid.Vector2I localPos)

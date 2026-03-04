@@ -19,7 +19,7 @@ public static class ReactionRuleDatabase
             // Hot + Volatile (adjacent) = Explosion
             new ReactionRule(
                 name: "Explosion",
-                triggerAspects: new List<string> { "hot", "volatile" },
+                triggerAspects: new List<string> { AspectIds.Hot, AspectIds.Volatile },
                 sensitivity: SensitivityTier.Adjacent,
                 granularity: Granularity.PerCell,
                 threshold: 0,
@@ -28,7 +28,7 @@ public static class ReactionRuleDatabase
             // Hot + Cold (same bag) = Neutralization
             new ReactionRule(
                 name: "Neutralization",
-                triggerAspects: new List<string> { "hot", "cold" },
+                triggerAspects: new List<string> { AspectIds.Hot, AspectIds.Cold },
                 sensitivity: SensitivityTier.SameBag,
                 granularity: Granularity.PerItem,
                 threshold: 0,
@@ -37,7 +37,7 @@ public static class ReactionRuleDatabase
             // Sharp + Fragile (adjacent) = Breakage
             new ReactionRule(
                 name: "Breakage",
-                triggerAspects: new List<string> { "sharp", "fragile" },
+                triggerAspects: new List<string> { AspectIds.Sharp, AspectIds.Fragile },
                 sensitivity: SensitivityTier.Adjacent,
                 granularity: Granularity.PerCell,
                 threshold: 0,
@@ -46,7 +46,7 @@ public static class ReactionRuleDatabase
             // Toxic + Toxic (same bag) = Toxic Cloud
             new ReactionRule(
                 name: "Toxic Cloud",
-                triggerAspects: new List<string> { "toxic", "toxic" },
+                triggerAspects: new List<string> { AspectIds.Toxic, AspectIds.Toxic },
                 sensitivity: SensitivityTier.SameBag,
                 granularity: Granularity.PerItem,
                 threshold: 2,
@@ -55,7 +55,7 @@ public static class ReactionRuleDatabase
             // Cumulative Hot > threshold = Overheating
             new ReactionRule(
                 name: "Overheating",
-                triggerAspects: new List<string> { "hot" },
+                triggerAspects: new List<string> { AspectIds.Hot },
                 sensitivity: SensitivityTier.WholeInventory,
                 granularity: Granularity.PerCell,
                 threshold: 4,
@@ -64,7 +64,7 @@ public static class ReactionRuleDatabase
             // Cumulative Cold > threshold = Hypothermia
             new ReactionRule(
                 name: "Hypothermia",
-                triggerAspects: new List<string> { "cold" },
+                triggerAspects: new List<string> { AspectIds.Cold },
                 sensitivity: SensitivityTier.WholeInventory,
                 granularity: Granularity.PerCell,
                 threshold: 4,
@@ -73,7 +73,7 @@ public static class ReactionRuleDatabase
             // Cumulative Toxic > threshold = Poisoning
             new ReactionRule(
                 name: "Poisoning",
-                triggerAspects: new List<string> { "toxic" },
+                triggerAspects: new List<string> { AspectIds.Toxic },
                 sensitivity: SensitivityTier.WholeInventory,
                 granularity: Granularity.PerCell,
                 threshold: 3,

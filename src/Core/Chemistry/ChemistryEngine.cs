@@ -305,7 +305,7 @@ public static class ChemistryEngine
                 if (reagent == null)
                     continue;
 
-                int mag = reagent.GetAspectsAtMetaGridPosition(adjCell.Position).GetMagnitude("stable");
+                int mag = reagent.GetAspectsAtMetaGridPosition(adjCell.Position).GetMagnitude(AspectIds.Stable);
                 if (mag > 0)
                 {
                     totalStable += mag;

@@ -41,16 +41,16 @@ public class Aspect : IEquatable<Aspect>
 
     // --- Standard Physical/Chemistry aspects (MVP) ---
 
-    public static Aspect Hot(int magnitude = 1) => new("hot", "Hot", SchoolType.Physical, magnitude);
-    public static Aspect Cold(int magnitude = 1) => new("cold", "Cold", SchoolType.Physical, magnitude);
-    public static Aspect Volatile(int magnitude = 1) => new("volatile", "Volatile", SchoolType.Physical, magnitude);
-    public static Aspect Fragile(int magnitude = 1) => new("fragile", "Fragile", SchoolType.Physical, magnitude);
-    public static Aspect Toxic(int magnitude = 1) => new("toxic", "Toxic", SchoolType.Physical, magnitude);
-    public static Aspect Heavy(int magnitude = 1) => new("heavy", "Heavy", SchoolType.Physical, magnitude);
-    public static Aspect Sharp(int magnitude = 1) => new("sharp", "Sharp", SchoolType.Physical, magnitude);
-    public static Aspect Medicinal(int magnitude = 1) => new("medicinal", "Medicinal", SchoolType.Physical, magnitude);
-    public static Aspect Stable(int magnitude = 1) => new("stable", "Stable", SchoolType.Physical, magnitude);
-    public static Aspect Catalytic(int magnitude = 1) => new("catalytic", "Catalytic", SchoolType.Physical, magnitude);
+    public static Aspect Hot(int magnitude = 1) => new(AspectIds.Hot, "Hot", SchoolType.Physical, magnitude);
+    public static Aspect Cold(int magnitude = 1) => new(AspectIds.Cold, "Cold", SchoolType.Physical, magnitude);
+    public static Aspect Volatile(int magnitude = 1) => new(AspectIds.Volatile, "Volatile", SchoolType.Physical, magnitude);
+    public static Aspect Fragile(int magnitude = 1) => new(AspectIds.Fragile, "Fragile", SchoolType.Physical, magnitude);
+    public static Aspect Toxic(int magnitude = 1) => new(AspectIds.Toxic, "Toxic", SchoolType.Physical, magnitude);
+    public static Aspect Heavy(int magnitude = 1) => new(AspectIds.Heavy, "Heavy", SchoolType.Physical, magnitude);
+    public static Aspect Sharp(int magnitude = 1) => new(AspectIds.Sharp, "Sharp", SchoolType.Physical, magnitude);
+    public static Aspect Medicinal(int magnitude = 1) => new(AspectIds.Medicinal, "Medicinal", SchoolType.Physical, magnitude);
+    public static Aspect Stable(int magnitude = 1) => new(AspectIds.Stable, "Stable", SchoolType.Physical, magnitude);
+    public static Aspect Catalytic(int magnitude = 1) => new(AspectIds.Catalytic, "Catalytic", SchoolType.Physical, magnitude);
 
     /// <summary>
     /// Creates an Aspect from its string ID (e.g., "hot", "cold", "volatile").
@@ -58,16 +58,16 @@ public class Aspect : IEquatable<Aspect>
     /// </summary>
     public static Aspect FromId(string id) => id switch
     {
-        "hot" => Hot(),
-        "cold" => Cold(),
-        "volatile" => Volatile(),
-        "fragile" => Fragile(),
-        "toxic" => Toxic(),
-        "sharp" => Sharp(),
-        "heavy" => Heavy(),
-        "medicinal" => Medicinal(),
-        "stable" => Stable(),
-        "catalytic" => Catalytic(),
+        AspectIds.Hot => Hot(),
+        AspectIds.Cold => Cold(),
+        AspectIds.Volatile => Volatile(),
+        AspectIds.Fragile => Fragile(),
+        AspectIds.Toxic => Toxic(),
+        AspectIds.Sharp => Sharp(),
+        AspectIds.Heavy => Heavy(),
+        AspectIds.Medicinal => Medicinal(),
+        AspectIds.Stable => Stable(),
+        AspectIds.Catalytic => Catalytic(),
         _ => new Aspect(id, id, SchoolType.Physical),
     };
 }

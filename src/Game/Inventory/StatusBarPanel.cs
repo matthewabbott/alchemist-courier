@@ -205,9 +205,9 @@ public partial class AspectBar : HBoxContainer
 
     private static string FormatLabel(string aspectId) => aspectId switch
     {
-        "hot" => "Heat:",
-        "cold" => "Cold:",
-        "toxic" => "Toxicity:",
+        AspectIds.Hot => "Heat:",
+        AspectIds.Cold => "Cold:",
+        AspectIds.Toxic => "Toxicity:",
         _ => $"{char.ToUpper(aspectId[0])}{aspectId[1..]}:",
     };
 }

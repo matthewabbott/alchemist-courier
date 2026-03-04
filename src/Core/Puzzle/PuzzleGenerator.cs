@@ -18,7 +18,7 @@ public class PuzzleGenerator
     private const int MetaGridPadding = 2;
 
     /// <summary>Available aspect IDs for the MVP Physical/Chemistry school.</summary>
-    private static readonly string[] MvpAspects = { "hot", "cold", "volatile", "stable", "heavy", "toxic" };
+    private static readonly string[] MvpAspects = { AspectIds.Hot, AspectIds.Cold, AspectIds.Volatile, AspectIds.Stable, AspectIds.Heavy, AspectIds.Toxic };
 
     /// <summary>
     /// Predefined non-rectangular bag shapes for higher difficulties.
@@ -537,7 +537,7 @@ public class PuzzleGenerator
     {
         foreach (var aspectSet in reagent.Definition.AspectsPerCell)
         {
-            if (aspectSet.Has("heavy"))
+            if (aspectSet.Has(AspectIds.Heavy))
                 return true;
         }
         return false;

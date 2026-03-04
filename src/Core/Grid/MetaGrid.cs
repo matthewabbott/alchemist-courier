@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AlchemistCourier.Core.Bags;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Core.Grid;
@@ -338,7 +339,7 @@ public class MetaGrid
     {
         foreach (var aspectSet in reagent.Definition.AspectsPerCell)
         {
-            if (aspectSet.Has("heavy"))
+            if (aspectSet.Has(AspectIds.Heavy))
                 return true;
         }
         return false;
