@@ -302,6 +302,23 @@ public class ChemistryEngineTests
         Assert.Equal(2f, explosion.Magnitude);
     }
 
+    [Fact]
+    public void Evaluate_VolatileNetHot_SameReagentHotDoesNotSelfExplode()
+    {
+        // A reagent with both Hot and Volatile cells adjacent should NOT self-explode.
+        // Only Hot cells from OTHER reagents contribute to the net-hot calculation.
+        var blastJelly = MakeDominoReagent("blast",
+            new AspectSet(Aspect.Hot()),
+            new AspectSet(Aspect.Volatile()));
+
+        var grid = SetupGrid(5, 5,
+            (blastJelly, new Vector2I(1, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
     // --- Adjacent: Sharp + Fragile = Breakage ---
 
     [Fact]
