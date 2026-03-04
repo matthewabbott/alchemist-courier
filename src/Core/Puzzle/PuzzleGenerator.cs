@@ -21,6 +21,67 @@ public class PuzzleGenerator
     private static readonly string[] MvpAspects = { "hot", "cold", "volatile", "stable", "heavy", "toxic" };
 
     /// <summary>
+    /// Predefined non-rectangular bag shapes for higher difficulties.
+    /// Each is a bool[rows, cols] matrix. Grouped by cell count.
+    /// </summary>
+    private static readonly bool[][,] NonRectBagShapes =
+    {
+        // 6-cell L
+        new bool[,] {
+            { true, false, false },
+            { true, false, false },
+            { true, true,  true  },
+        },
+        // 6-cell T
+        new bool[,] {
+            { true, true, true },
+            { false, true, false },
+            { false, true, false },
+        },
+        // 7-cell hourglass
+        new bool[,] {
+            { true, true, true },
+            { false, true, false },
+            { true, true, true },
+        },
+        // 8-cell S-step
+        new bool[,] {
+            { true, true, false },
+            { true, true, false },
+            { false, true, true },
+            { false, true, true },
+        },
+        // 8-cell plus
+        new bool[,] {
+            { false, true, false },
+            { true,  true, true  },
+            { true,  true, true  },
+            { false, true, false },
+        },
+        // 9-cell U
+        new bool[,] {
+            { true, false, true },
+            { true, false, true },
+            { true, false, true },
+            { true, true,  true },
+        },
+        // 10-cell notched rectangle
+        new bool[,] {
+            { true,  true, false },
+            { true,  true, true  },
+            { true,  true, true  },
+            { false, true, true  },
+        },
+        // 12-cell chunky L
+        new bool[,] {
+            { true,  true, false, false },
+            { true,  true, false, false },
+            { true,  true, true,  true  },
+            { true,  true, true,  true  },
+        },
+    };
+
+    /// <summary>
     /// Predefined reagent shapes: each is a bool[rows, cols] matrix.
     /// Ordered by cell count (1-cell, 2-cell, 3-cell, 4-cell).
     /// </summary>
@@ -194,10 +255,21 @@ public class PuzzleGenerator
         for (int i = 0; i < difficulty.BagCount; i++)
         {
             int targetCells = rng.Next(difficulty.BagMinSize, difficulty.BagMaxSize + 1);
-            var shape = GenerateRectangularBag(rng, targetCells);
+            var shape = PickBagShape(rng, targetCells, difficulty.AllowSpecialBags);
             bags.Add(shape);
         }
         return bags;
+    }
+
+    private static bool[,] PickBagShape(SeededRandom rng, int targetCells, bool allowNonRect)
+    {
+        if (allowNonRect && rng.NextFloat() < 0.4f)
+        {
+            var matching = NonRectBagShapes.Where(s => CellCount(s) == targetCells).ToArray();
+            if (matching.Length > 0)
+                return matching[rng.Next(matching.Length)];
+        }
+        return GenerateRectangularBag(rng, targetCells);
     }
 
     private static bool[,] GenerateRectangularBag(SeededRandom rng, int targetCells)

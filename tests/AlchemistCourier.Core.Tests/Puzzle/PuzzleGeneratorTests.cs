@@ -327,6 +327,152 @@ public class PuzzleGeneratorTests
         }
     }
 
+    // --- Non-Rectangular Bag Shape Tests ---
+
+    [Fact]
+    public void Generate_WithAllowSpecialBags_ProducesNonRectangularBag()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        bool foundNonRect = false;
+        for (int seed = 1; seed <= 50; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            foreach (var bag in puzzle.Bags)
+            {
+                if (HasFalseCellInBoundingBox(bag.Shape))
+                {
+                    foundNonRect = true;
+                    break;
+                }
+            }
+            if (foundNonRect) break;
+        }
+
+        Assert.True(foundNonRect, "Expected at least one seed to produce a non-rectangular bag with AllowSpecialBags=true");
+    }
+
+    [Fact]
+    public void Generate_WithoutAllowSpecialBags_ProducesOnlyRectangularBags()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy); // AllowSpecialBags=false
+
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            foreach (var bag in puzzle.Bags)
+            {
+                Assert.False(HasFalseCellInBoundingBox(bag.Shape),
+                    $"Seed {seed}: found non-rectangular bag when AllowSpecialBags=false");
+            }
+        }
+    }
+
+    [Fact]
+    public void Generate_NonRectBagSolutionIsValid_NoReactions()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+        var rules = ReactionRuleDatabase.GetMvpRules();
+
+        for (int seed = 1; seed <= 30; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            var grid = ReconstructGrid(puzzle);
+            var reagents = ReconstructReagents(puzzle);
+
+            foreach (var placement in puzzle.Solution)
+            {
+                var reagent = reagents[placement.ReagentIndex];
+                reagent.Rotation = placement.Rotation;
+                var pos = new Vector2I(placement.PositionCol, placement.PositionRow);
+                bool placed = grid.PlaceReagent(reagent, pos);
+                Assert.True(placed, $"Seed {seed}: failed to place reagent {placement.ReagentIndex}");
+            }
+
+            var reactions = ChemistryEngine.Evaluate(grid, rules);
+            Assert.Empty(reactions);
+        }
+    }
+
+    [Fact]
+    public void Generate_NonRectBagPlacementsWithinBagBounds()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        for (int seed = 1; seed <= 30; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            var grid = ReconstructGrid(puzzle);
+            var reagents = ReconstructReagents(puzzle);
+
+            foreach (var placement in puzzle.Solution)
+            {
+                var reagent = reagents[placement.ReagentIndex];
+                reagent.Rotation = placement.Rotation;
+                var pos = new Vector2I(placement.PositionCol, placement.PositionRow);
+
+                foreach (var cellPos in reagent.GetMetaGridPositions(pos))
+                {
+                    var cell = grid.GetCell(cellPos);
+                    Assert.NotNull(cell);
+                    Assert.True(cell!.IsInBag, $"Seed {seed}: cell {cellPos} is not in a bag");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Generate_NonRectBagNoOverlapsInSolution()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        for (int seed = 1; seed <= 30; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            var occupiedCells = new HashSet<Vector2I>();
+            var reagents = ReconstructReagents(puzzle);
+
+            foreach (var placement in puzzle.Solution)
+            {
+                var reagent = reagents[placement.ReagentIndex];
+                reagent.Rotation = placement.Rotation;
+                var pos = new Vector2I(placement.PositionCol, placement.PositionRow);
+
+                foreach (var cellPos in reagent.GetMetaGridPositions(pos))
+                {
+                    bool isNew = occupiedCells.Add(cellPos);
+                    Assert.True(isNew, $"Seed {seed}: overlapping placement at {cellPos}");
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void Generate_NonRectBagSolverValidatesSolution()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Hard);
+
+        for (int seed = 1; seed <= 30; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            Assert.True(PuzzleSolver.IsSolvable(puzzle),
+                $"Seed {seed}: PuzzleSolver should validate the generated solution");
+        }
+    }
+
+    /// <summary>Check if a jagged shape array has any false cell (non-rectangular).</summary>
+    private static bool HasFalseCellInBoundingBox(bool[][] shape)
+    {
+        foreach (var row in shape)
+        {
+            foreach (var cell in row)
+            {
+                if (!cell) return true;
+            }
+        }
+        return false;
+    }
+
     // --- Helper methods ---
 
     private static MetaGrid ReconstructGrid(PuzzleState puzzle)
