@@ -56,6 +56,44 @@ public class Bag
         return IsPlaced ? GetMetaGridPositions(PositionOnMetaGrid!.Value) : new List<Vector2I>();
     }
 
+    /// <summary>
+    /// Check if a meta-grid position is an edge cell of this bag.
+    /// An edge cell is a bag cell that has at least one cardinal neighbor
+    /// that is NOT part of this same bag.
+    /// </summary>
+    public bool IsEdgeCell(Vector2I metaGridPos)
+    {
+        if (!IsPlaced)
+            return false;
+
+        // Convert to local position
+        var origin = PositionOnMetaGrid!.Value;
+        var localCol = metaGridPos.Col - origin.Col;
+        var localRow = metaGridPos.Row - origin.Row;
+
+        // Check if this position is even in the bag
+        if (localRow < 0 || localRow >= Definition.ShapeRows ||
+            localCol < 0 || localCol >= Definition.ShapeCols ||
+            !Definition.Shape[localRow, localCol])
+            return false;
+
+        // Check each cardinal neighbor — if any is not part of this bag, it's an edge
+        foreach (var dir in Vector2I.CardinalDirections)
+        {
+            var neighborLocalRow = localRow + dir.Row;
+            var neighborLocalCol = localCol + dir.Col;
+
+            if (neighborLocalRow < 0 || neighborLocalRow >= Definition.ShapeRows ||
+                neighborLocalCol < 0 || neighborLocalCol >= Definition.ShapeCols ||
+                !Definition.Shape[neighborLocalRow, neighborLocalCol])
+            {
+                return true; // Neighbor is outside the bag shape
+            }
+        }
+
+        return false; // All cardinal neighbors are within the bag
+    }
+
     public override string ToString()
     {
         var pos = IsPlaced ? PositionOnMetaGrid!.Value.ToString() : "not placed";

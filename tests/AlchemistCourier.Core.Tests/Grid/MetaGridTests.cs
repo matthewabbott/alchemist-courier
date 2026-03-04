@@ -755,4 +755,191 @@ public class MetaGridTests
         Assert.NotNull(cell);
         Assert.Equal(reagent, cell!.OccupyingReagent);
     }
+
+    // --- Sharp Edge Placement Constraints ---
+
+    private static ReagentDefinition CreateSharpReagentDef(bool[,] shape)
+    {
+        int cellCount = 0;
+        int rows = shape.GetLength(0);
+        int cols = shape.GetLength(1);
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                if (shape[r, c]) cellCount++;
+
+        var aspects = new List<AspectSet>();
+        for (int i = 0; i < cellCount; i++)
+            aspects.Add(new AspectSet(Aspect.FromId(AspectIds.Sharp)));
+        return new ReagentDefinition("sharp_r", "Sharp Reagent", shape,
+            aspectsPerCell: aspects);
+    }
+
+    [Fact]
+    public void Sharp_BlockedOnEdgeOfNormalBag()
+    {
+        // 3x3 normal bag at (0,0). Edge cells are all cells on the perimeter.
+        // Interior cell is only (1,1).
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // (0,0) is a corner (edge) — should be blocked
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 0)));
+        // (1,0) is a top edge — should be blocked
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(1, 0)));
+        // (0,1) is a left edge — should be blocked
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 1)));
+    }
+
+    [Fact]
+    public void Sharp_AllowedInInteriorOfNormalBag()
+    {
+        // 3x3 bag — only interior cell is (1,1)
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // (1,1) is interior — all 4 cardinal neighbors are within the bag
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void Sharp_AllowedOnEdgeOfReinforcedBag()
+    {
+        // Reinforced bag allows Sharp on edge cells.
+        var shape = new bool[,]
+        {
+            { true, true, true },
+            { true, true, true },
+            { true, true, true },
+        };
+        var reinforcedDef = new BagDefinition("reinforced_bag", "Reinforced Bag", shape,
+            new[] { BagPropertyType.Reinforced });
+        var grid = CreateGrid();
+        var bag = new Bag(reinforcedDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // (0,0) is edge but bag is Reinforced — should be allowed
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void Sharp_MultiCellWithOneEdgeCell_Blocked()
+    {
+        // Sharp domino (2 cells horizontal) in a 4x4 bag.
+        // If placed at (0,1): occupies (0,1) and (1,1).
+        // (0,1) is on the left edge — blocked.
+        var shape = new bool[,]
+        {
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true },
+        };
+        var bagDef = new BagDefinition("big_bag", "Big Bag", shape);
+        var grid = CreateGrid();
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true, true } }));
+        // (0,1) is left edge — blocked
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 1)));
+        // (1,1) occupies (1,1) and (2,1) — both are interior — allowed
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void Sharp_NonSharpOnEdge_Allowed()
+    {
+        // Non-Sharp reagent on an edge cell — no constraint.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var nonSharp = new Reagent(ReagentDefinition.SingleCell);
+        // (0,0) is edge but reagent is not Sharp — allowed
+        Assert.True(grid.CanPlaceReagent(nonSharp, new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void Sharp_LargerBagHasMoreInterior()
+    {
+        // 5x5 bag: interior is a 3x3 area (1,1) to (3,3).
+        // Sharp single-cell should be allowed anywhere in interior.
+        var shape = new bool[5, 5];
+        for (int r = 0; r < 5; r++)
+            for (int c = 0; c < 5; c++)
+                shape[r, c] = true;
+        var bagDef = new BagDefinition("large_bag", "Large Bag", shape);
+        var grid = CreateGrid();
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(2, 2))); // center
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(1, 1))); // interior corner
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(3, 3))); // interior corner
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 2))); // left edge
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(4, 2))); // right edge
+    }
+
+    [Fact]
+    public void Sharp_NonRectBagEdgeDetection()
+    {
+        // L-shaped bag:
+        //   [true, false]
+        //   [true, false]
+        //   [true, true ]
+        // All cells in an L-shape are edge cells (every cell has at least one
+        // cardinal neighbor outside the bag), so Sharp can't be placed anywhere.
+        var lShape = new bool[,]
+        {
+            { true, false },
+            { true, false },
+            { true, true  },
+        };
+        var bagDef = new BagDefinition("l_bag", "L Bag", lShape);
+        var grid = CreateGrid();
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // Every cell in the L-shape is an edge cell
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 0)));
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 1)));
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 2)));
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void Sharp_PlusShapedBag_HasInterior()
+    {
+        // Plus-shaped bag:
+        //   [false, true,  false]
+        //   [true,  true,  true ]
+        //   [false, true,  false]
+        // Center cell (1,1) has all 4 cardinal neighbors inside bag — it's interior.
+        var plusShape = new bool[,]
+        {
+            { false, true,  false },
+            { true,  true,  true  },
+            { false, true,  false },
+        };
+        var bagDef = new BagDefinition("plus_bag", "Plus Bag", plusShape);
+        var grid = CreateGrid();
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // Center (1,1) is interior — allowed
+        Assert.True(grid.CanPlaceReagent(sharp, new Vector2I(1, 1)));
+        // Arms are all edge cells — blocked
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(1, 0))); // top
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(0, 1))); // left
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(2, 1))); // right
+        Assert.False(grid.CanPlaceReagent(sharp, new Vector2I(1, 2))); // bottom
+    }
 }

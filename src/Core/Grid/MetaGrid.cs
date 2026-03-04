@@ -238,6 +238,10 @@ public class MetaGrid
         if (!IsHeavyConstraintValid(reagent, positions))
             return false;
 
+        // Check Sharp aspect constraint: Sharp reagents can't be on edge cells of non-Reinforced bags
+        if (!IsSharpConstraintValid(reagent, positions))
+            return false;
+
         return true;
     }
 
@@ -327,6 +331,33 @@ public class MetaGrid
                         return false; // Heavy reagent above a non-Heavy one
                 }
             }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Check that Sharp reagents are not placed on edge cells of non-Reinforced bags.
+    /// An edge cell is any bag cell with at least one cardinal neighbor outside the bag.
+    /// In Reinforced bags, Sharp reagents are allowed on edge cells.
+    /// Non-Sharp reagents are unaffected by this constraint.
+    /// </summary>
+    private bool IsSharpConstraintValid(Reagent reagent, List<Vector2I> positions)
+    {
+        if (!reagent.HasAspect(AspectIds.Sharp))
+            return true;
+
+        foreach (var pos in positions)
+        {
+            var bag = GetBagAtCell(pos);
+            if (bag == null)
+                continue;
+
+            if (bag.HasProperty(BagPropertyType.Reinforced))
+                continue;
+
+            if (bag.IsEdgeCell(pos))
+                return false;
         }
 
         return true;

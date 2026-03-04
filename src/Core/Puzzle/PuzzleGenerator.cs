@@ -437,10 +437,12 @@ public class PuzzleGenerator
         var placements = new List<Placement>();
 
         // Sort: Heavy reagents first (so they land at the bottom of Gravity bags),
+        // then Sharp reagents (they need interior cells which are scarce),
         // then largest-first for better packing
         var indexed = reagents
             .Select((r, i) => (reagent: r, index: i))
             .OrderByDescending(x => x.reagent.HasAspect(AspectIds.Heavy) ? 1 : 0)
+            .ThenByDescending(x => x.reagent.HasAspect(AspectIds.Sharp) ? 1 : 0)
             .ThenByDescending(x => x.reagent.Definition.CellCount)
             .ToList();
 
