@@ -15,6 +15,7 @@ public partial class PuzzleScreen : Control
 
     private MetaGridView _gridView = null!;
     private ReagentTray _reagentTray = null!;
+    private StatusBarPanel _statusBar = null!;
     private Label _statusLabel = null!;
 
     // --- Public state inspection ---
@@ -22,6 +23,7 @@ public partial class PuzzleScreen : Control
     public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
     public Reagent? SelectedReagent => _selectedReagent;
     public MetaGridView GridView => _gridView;
+    public StatusBarPanel StatusBar => _statusBar;
 
     public override void _Ready()
     {
@@ -102,8 +104,13 @@ public partial class PuzzleScreen : Control
         trayScroll.AddChild(_reagentTray);
         hbox.AddChild(trayScroll);
 
-        // Status label
+        // Status bar (cumulative aspect thresholds)
         vbox.AddChild(new HSeparator());
+        _statusBar = new StatusBarPanel();
+        _statusBar.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
+        vbox.AddChild(_statusBar);
+
+        // Status label
         _statusLabel = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -140,6 +147,7 @@ public partial class PuzzleScreen : Control
         _reagentTray.ClearSelection();
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
+        _statusBar.Refresh();
 
         int remaining = CountUnplaced();
         if (remaining == 0)
@@ -156,6 +164,7 @@ public partial class PuzzleScreen : Control
     {
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
+        _statusBar.Refresh();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
     }
 
@@ -201,6 +210,7 @@ public partial class PuzzleScreen : Control
         reagent.Rotation = 0;
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
+        _statusBar.Refresh();
         UpdateStatus($"Removed {reagent.Definition.Name}.");
         return true;
     }

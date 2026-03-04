@@ -57,6 +57,7 @@ public partial class TestHarness : Control
         await Test_PlacePoisonFang();
         await Test_RemoveReagent();
         await Test_PlacementWarnings();
+        await Test_StatusBar();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -194,6 +195,57 @@ public partial class TestHarness : Control
                  && safeLevel == PlacementWarningLevel.Safe;
         EndTest("placement_warnings", pass, pass ? null
             : $"danger={dangerLevel} warning={warningLevel} safe={safeLevel}");
+    }
+
+    private async Task Test_StatusBar()
+    {
+        BeginTest("status_bar");
+
+        // Clean up: remove all placed reagents
+        while (_puzzleScreen.Grid.PlacedReagents.Count > 0)
+        {
+            var r = _puzzleScreen.Grid.PlacedReagents[0];
+            var pos = r.PlacedPosition!.Value;
+            _puzzleScreen.RemoveReagentAt(pos.Col, pos.Row);
+        }
+
+        // Verify status bar starts at zero
+        var bar = _puzzleScreen.StatusBar;
+        int hotBefore = bar.GetAspectTotal("hot");
+        Log($"[STATE] hot_before={hotBefore} (expected=0)");
+
+        // Place Fire Pebble (index 0) — has hot magnitude 2 — at (2,2) in SmallPouch
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 2, 2);
+
+        int hotAfterPebble = bar.GetAspectTotal("hot");
+        Log($"[STATE] hot_after_fire_pebble={hotAfterPebble} (expected=2)");
+
+        // Place Blast Jelly (index 3) — has 1 hot cell + 3 volatile cells — at (4,1) in Satchel
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);
+
+        int hotAfterJelly = bar.GetAspectTotal("hot");
+        Log($"[STATE] hot_after_blast_jelly={hotAfterJelly} (expected=3)");
+
+        // Place Poison Fang (index 2) — has 3 toxic + 1 sharp — at (1,1) in SmallPouch
+        TestActions.SelectAndPlace(_puzzleScreen, 2, 1, 1);
+
+        int toxicAfter = bar.GetAspectTotal("toxic");
+        Log($"[STATE] toxic_after_poison_fang={toxicAfter} (expected=3)");
+
+        await CaptureScreenshot("11_status_bar.png");
+
+        // Remove Fire Pebble — hot should decrease
+        _puzzleScreen.RemoveReagentAt(2, 2);
+        int hotAfterRemove = bar.GetAspectTotal("hot");
+        Log($"[STATE] hot_after_remove={hotAfterRemove} (expected=1)");
+
+        bool pass = hotBefore == 0
+                 && hotAfterPebble == 2
+                 && hotAfterJelly == 3
+                 && toxicAfter == 3
+                 && hotAfterRemove == 1;
+        EndTest("status_bar", pass, pass ? null
+            : $"hotBefore={hotBefore} hotAfterPebble={hotAfterPebble} hotAfterJelly={hotAfterJelly} toxicAfter={toxicAfter} hotAfterRemove={hotAfterRemove}");
     }
 
     private async Task Test_RenderFinal()
