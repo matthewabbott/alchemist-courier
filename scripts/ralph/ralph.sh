@@ -19,7 +19,17 @@ set -e
 # Claude Desktop's environment variables
 unset CLAUDECODE 2>/dev/null || true
 
-# Claude Code on Windows needs to know where git-bash lives
+# ── Preflight checks ──
+# Fail loudly if prerequisites are missing
+
+# 1. Claude CLI must be available
+if ! command -v claude >/dev/null 2>&1; then
+    echo "[RALPH] FATAL: 'claude' CLI not found on PATH."
+    echo "[RALPH] Install: irm https://claude.ai/install.ps1 | iex"
+    exit 1
+fi
+
+# 2. Claude Code on Windows needs to know where git-bash lives
 if [ -z "$CLAUDE_CODE_GIT_BASH_PATH" ]; then
     for candidate in \
         "/c/Program Files/Git/bin/bash.exe" \
@@ -28,10 +38,31 @@ if [ -z "$CLAUDE_CODE_GIT_BASH_PATH" ]; then
     do
         if [ -f "$candidate" ]; then
             export CLAUDE_CODE_GIT_BASH_PATH="$(cygpath -w "$candidate")"
-            echo "[RALPH] Set CLAUDE_CODE_GIT_BASH_PATH=$CLAUDE_CODE_GIT_BASH_PATH"
             break
         fi
     done
+fi
+
+if [ -z "$CLAUDE_CODE_GIT_BASH_PATH" ]; then
+    echo "[RALPH] FATAL: Could not find git-bash. Set CLAUDE_CODE_GIT_BASH_PATH manually."
+    echo "[RALPH] Example: export CLAUDE_CODE_GIT_BASH_PATH='D:\\Program Files\\Git\\bin\\bash.exe'"
+    exit 1
+fi
+echo "[RALPH] CLAUDE_CODE_GIT_BASH_PATH=$CLAUDE_CODE_GIT_BASH_PATH"
+
+# 3. Verify claude can actually start (quick smoke test)
+CLAUDE_SMOKE=$(claude --version 2>&1) || true
+if ! echo "$CLAUDE_SMOKE" | grep -q "Claude Code"; then
+    echo "[RALPH] FATAL: 'claude --version' failed. Output:"
+    echo "$CLAUDE_SMOKE"
+    echo "[RALPH] Check your Claude Code installation and authentication."
+    exit 1
+fi
+echo "[RALPH] Claude CLI: $CLAUDE_SMOKE"
+
+# 4. Python must be available (for phase detection)
+if ! command -v python >/dev/null 2>&1; then
+    echo "[RALPH] WARNING: 'python' not found. Phase detection will be disabled."
 fi
 
 MAX_ITER=${1:-20}
@@ -118,7 +149,7 @@ while [ $ITER -lt $MAX_ITER ]; do
     echo "[RALPH] Log: $ITER_LOG"
 
     if [ ! -f "$PROMPT_FILE" ]; then
-        echo "[RALPH] ERROR: Prompt file not found: $PROMPT_FILE"
+        echo "[RALPH] FATAL: Prompt file not found: $PROMPT_FILE"
         exit 1
     fi
 
@@ -131,10 +162,27 @@ while [ $ITER -lt $MAX_ITER ]; do
         # Run Claude Code with the selected prompt, logging output
         echo "[RALPH] Starting Claude Code ($ROLE)..."
         echo "[RALPH] Tail the log: tail -f $ITER_LOG"
-        claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || {
-            echo "[RALPH] Claude Code exited with error (code $?). Continuing..."
-        }
-        echo "[RALPH] Log saved: $ITER_LOG ($(wc -l < "$ITER_LOG") lines)"
+        CLAUDE_EXIT=0
+        claude -p "$(cat "$PROMPT_FILE")" --output-format text 2>&1 | tee "$ITER_LOG" || CLAUDE_EXIT=$?
+
+        LOG_LINES=$(wc -l < "$ITER_LOG" 2>/dev/null | tr -d '[:space:]')
+        echo "[RALPH] Log saved: $ITER_LOG ($LOG_LINES lines)"
+
+        # Fail loudly if claude produced no output (likely auth/config issue)
+        if [ "${LOG_LINES:-0}" -le 1 ]; then
+            echo "[RALPH] ERROR: Claude produced no output. Possible causes:"
+            echo "[RALPH]   - Not authenticated (run 'claude' interactively first)"
+            echo "[RALPH]   - Git-bash not found (check CLAUDE_CODE_GIT_BASH_PATH)"
+            echo "[RALPH]   - API key / billing issue"
+            echo "[RALPH] Log contents:"
+            cat "$ITER_LOG" 2>/dev/null || echo "(empty)"
+            echo "[RALPH] Aborting loop."
+            exit 1
+        fi
+
+        if [ $CLAUDE_EXIT -ne 0 ]; then
+            echo "[RALPH] Claude Code exited with error (code $CLAUDE_EXIT). Continuing..."
+        fi
     fi
 
     # Increment impl counter for implementation runs (including dry run, for accurate simulation)
