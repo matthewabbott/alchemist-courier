@@ -105,3 +105,22 @@ itself — any aspect can now be queried without knowing the internal AspectsPer
 also sets up cleanly for future aspect-based queries (e.g., A.2 Sharp edge constraints will need
 `reagent.HasAspect(AspectIds.Sharp)`).
 Commit: 8e82a2e
+
+## Code Review (d)
+Reviewed R-6 and R-7 changes. Both are clean refactoring — no P0/P1/P2 issues.
+R-7's HasAspect method is well-placed, general-purpose, and properly tested.
+R-6 string literal replacement is thorough across Core/ and Game/ (one P3 note:
+TestHarness still uses raw strings in GetAspectTotal calls, acceptable for test code).
+Verified no remaining duplicated aspect-check patterns — ChemistryEngine's
+ReagentHasUnsuppressedAspect is intentionally distinct (grid/Null-bag-aware).
+
+## A.1: Volatile net-hot calculation
+The most meaningful chemistry rework yet — transformed Volatile from a simple pair-trigger
+("Hot adjacent? Explode.") into a nuanced net-hot calculation where each Volatile cell sums
+its neighbors' Hot magnitudes minus Cold magnitudes. This makes Cold strategically interesting:
+it's no longer just a cumulative liability, but a tool players can deliberately place as a heat
+shield between Hot and Volatile reagents. The implementation lives in a new
+EvaluateVolatileNetHotRule method dispatched when an Adjacent rule has a single trigger aspect.
+All 21 existing explosion-related tests pass unchanged because the basic behavior (Hot next to
+Volatile = explosion) is preserved — the new dimension is that Cold can now prevent it.
+Commit: ebe0fe1

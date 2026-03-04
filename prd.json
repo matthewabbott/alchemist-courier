@@ -231,7 +231,7 @@
       "phase": "aspect-rework",
       "depends_on": ["1.4", "R-3"],
       "verification": "dotnet test -- net-hot explosion tests pass, cold-as-shield test passes",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.2",
