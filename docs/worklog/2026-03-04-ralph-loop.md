@@ -135,3 +135,15 @@ Sharp reagents in placement order (after Heavy, before size-sorting) since inter
 scarce. Non-rectangular bag shapes interact nicely — an L-shaped bag has zero interior cells,
 while a plus-shaped bag has exactly one.
 Commit: c00e323
+
+## A.3: Implement Fragile universal vulnerability
+Fragile's core design philosophy is "universally vulnerable" — it breaks from ANY adjacent
+reaction, not just the Sharp+Fragile pair. This makes Fragile interesting on its own: placing
+a Fragile reagent near any potential reaction site is risky, even if there's no Sharp in the
+puzzle. Implemented as a second pass in ChemistryEngine.Evaluate: after all standard reaction
+rules fire, we collect every affected cell and check if any Fragile reagent is adjacent. The
+dedup logic skips Fragile reagents already broken by the Sharp+Fragile pair rule to avoid
+double-counting. Also added a Gravity bag placement constraint — Fragile things can't survive
+the falling/stacking environment. Both mechanics reinforce Fragile's identity as a high-risk,
+high-reward aspect (once value scoring arrives).
+Commit: c7d689b

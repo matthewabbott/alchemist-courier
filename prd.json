@@ -251,7 +251,7 @@
       "phase": "aspect-rework",
       "depends_on": ["1.4", "B.1"],
       "verification": "dotnet test -- Fragile vulnerability tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.4",
