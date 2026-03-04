@@ -19,7 +19,7 @@ public class ReactionRuleDatabaseTests
         var rules = ReactionRuleDatabase.GetMvpRules();
         var explosion = rules.Single(r => r.Name == "Explosion");
 
-        Assert.Contains("hot", explosion.TriggerAspects);
+        Assert.Single(explosion.TriggerAspects);
         Assert.Contains("volatile", explosion.TriggerAspects);
         Assert.Equal(SensitivityTier.Adjacent, explosion.Sensitivity);
         Assert.Equal(Granularity.PerCell, explosion.Granularity);

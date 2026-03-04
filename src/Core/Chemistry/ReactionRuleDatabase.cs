@@ -16,10 +16,10 @@ public static class ReactionRuleDatabase
     {
         return new List<ReactionRule>
         {
-            // Hot + Volatile (adjacent) = Explosion
+            // Volatile net-hot explosion: for each Volatile cell, sum adjacent Hot - Cold magnitudes
             new ReactionRule(
                 name: "Explosion",
-                triggerAspects: new List<string> { AspectIds.Hot, AspectIds.Volatile },
+                triggerAspects: new List<string> { AspectIds.Volatile },
                 sensitivity: SensitivityTier.Adjacent,
                 granularity: Granularity.PerCell,
                 threshold: 0,

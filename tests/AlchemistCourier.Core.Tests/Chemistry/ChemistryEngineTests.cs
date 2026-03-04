@@ -160,6 +160,148 @@ public class ChemistryEngineTests
         Assert.Contains(new Vector2I(2, 1), explosion.AffectedCells);
     }
 
+    // --- Net-hot: Volatile with Cold as heat shield ---
+
+    [Fact]
+    public void Evaluate_VolatileWithHotAndColdBalanced_NoExplosion()
+    {
+        // Hot(1) + Cold(1) adjacent to Volatile → net_hot = 1 - 1 = 0 → no explosion
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        // Layout: [Hot] [Volatile] [Cold] — both Hot and Cold adjacent to Volatile
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (volatileReagent, new Vector2I(1, 0)),
+            (coldReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_VolatileWithMoreHotThanCold_Explodes()
+    {
+        // Hot(1) + Hot(1) + Cold(1) adjacent to Volatile → net_hot = 2 - 1 = 1 → explosion
+        var hot1 = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("hot2", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        // Layout:       [Hot2]
+        //         [Hot1] [Volatile] [Cold]
+        var grid = SetupGrid(5, 5,
+            (hot1, new Vector2I(0, 1)),
+            (volatileReagent, new Vector2I(1, 1)),
+            (coldReagent, new Vector2I(2, 1)),
+            (hot2, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_ColdAsHeatShield_PreventsExplosion()
+    {
+        // Cold adjacent to Volatile neutralizes 1 Hot → net_hot = 0 → safe
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        // Layout: [Hot] [Volatile] [Cold]
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (volatileReagent, new Vector2I(1, 0)),
+            (coldReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_VolatileWithNoHotNeighbors_NoExplosion()
+    {
+        // Volatile alone — no Hot neighbors → net_hot = 0 → safe
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var grid = SetupGrid(5, 5,
+            (volatileReagent, new Vector2I(2, 2)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_VolatileNetHot_StableRaisesThreshold()
+    {
+        // Volatile with Hot(1) adjacent + Stable(1) adjacent → net_hot=1, effectiveThreshold=0+1=1
+        // 1 > 1 is false → suppressed
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var stableReagent = MakeSingleCellReagent("stb1", Aspect.Stable());
+
+        // Layout: [Hot] [Volatile] [Stable]
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 0)),
+            (volatileReagent, new Vector2I(1, 0)),
+            (stableReagent, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_VolatileNetHot_NullSuppressedHotDoesNotContribute()
+    {
+        // Hot in Null bag adjacent to Volatile → Hot is suppressed → net_hot = 0
+        var hotReagent = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 2),
+            new[] { BagPropertyType.Null });
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 2));
+
+        var grid = SetupNullBagGrid(4, 1,
+            nullBagDef, new Vector2I(0, 0),
+            normalBagDef, new Vector2I(2, 0),
+            (hotReagent, new Vector2I(1, 0)),      // Hot in Null bag
+            (volatileReagent, new Vector2I(2, 0))); // Volatile in Normal bag
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_VolatileNetHot_HighMagnitudeHotOvercomesCold()
+    {
+        // Hot(3) adjacent + Cold(1) adjacent to Volatile → net_hot = 3 - 1 = 2 → explosion
+        var def = new ReagentDefinition("hot1", "hot1", new bool[,] { { true } },
+            aspectsPerCell: new List<AspectSet> { new AspectSet(Aspect.Hot(3)) });
+        var hotReagent = new Reagent(def);
+        var coldReagent = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatileReagent = MakeSingleCellReagent("vol1", Aspect.Volatile());
+
+        // Layout:        [Cold]
+        //         [Hot3] [Volatile]
+        var grid = SetupGrid(5, 5,
+            (hotReagent, new Vector2I(0, 1)),
+            (volatileReagent, new Vector2I(1, 1)),
+            (coldReagent, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+        var explosion = results.Single(r => r.Type == ReactionResultType.Explosion);
+        Assert.Equal(2f, explosion.Magnitude);
+    }
+
     // --- Adjacent: Sharp + Fragile = Breakage ---
 
     [Fact]

@@ -62,11 +62,17 @@ public static class ChemistryEngine
     }
 
     /// <summary>
-    /// Evaluate an Adjacent sensitivity rule. For each pair of adjacent reagents,
-    /// check if their touching cells have the required trigger aspects.
+    /// Evaluate an Adjacent sensitivity rule. Dispatches to net-hot evaluation for
+    /// single-trigger rules (Volatile), or pair evaluation for two-trigger rules.
     /// </summary>
     private static void EvaluateAdjacentRule(MetaGrid grid, ReactionRule rule, List<ReactionResult> results)
     {
+        if (rule.TriggerAspects.Count == 1)
+        {
+            EvaluateVolatileNetHotRule(grid, rule, results);
+            return;
+        }
+
         if (rule.TriggerAspects.Count != 2)
             return;
 
@@ -130,6 +136,75 @@ public static class ChemistryEngine
                                 rule));
                         }
                     }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Evaluate a single-trigger Adjacent rule using net-hot calculation.
+    /// For each cell with the trigger aspect (Volatile), sum adjacent Hot magnitudes
+    /// minus adjacent Cold magnitudes. If net_hot > effective_threshold, trigger.
+    /// </summary>
+    private static void EvaluateVolatileNetHotRule(MetaGrid grid, ReactionRule rule, List<ReactionResult> results)
+    {
+        var triggerAspect = rule.TriggerAspects[0];
+
+        foreach (var reagent in grid.PlacedReagents)
+        {
+            foreach (var pos in reagent.GetCurrentMetaGridPositions())
+            {
+                if (IsAspectSuppressed(grid, pos))
+                    continue;
+
+                var cellAspects = reagent.GetAspectsAtMetaGridPosition(pos);
+                if (!cellAspects.Has(triggerAspect))
+                    continue;
+
+                // Compute net_hot from cardinal neighbors
+                int hotSum = 0;
+                int coldSum = 0;
+                var hotCells = new List<Vector2I>();
+
+                foreach (var adjCell in grid.GetAdjacentCells(pos))
+                {
+                    if (IsAspectSuppressed(grid, adjCell.Position))
+                        continue;
+
+                    var neighbor = grid.GetReagentAtCell(adjCell.Position);
+                    if (neighbor == null)
+                        continue;
+
+                    var neighborAspects = neighbor.GetAspectsAtMetaGridPosition(adjCell.Position);
+                    int hotMag = neighborAspects.GetMagnitude(AspectIds.Hot);
+                    int coldMag = neighborAspects.GetMagnitude(AspectIds.Cold);
+
+                    if (hotMag > 0)
+                    {
+                        hotSum += hotMag;
+                        hotCells.Add(adjCell.Position);
+                    }
+                    coldSum += coldMag;
+                }
+
+                int netHot = hotSum - coldSum;
+                if (netHot <= 0)
+                    continue;
+
+                var affectedCells = new List<Vector2I> { pos };
+                affectedCells.AddRange(hotCells);
+
+                // Stable buffering raises the effective threshold
+                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
+                int effectiveThreshold = rule.Threshold + stableBuffer;
+
+                if (netHot > effectiveThreshold)
+                {
+                    results.Add(new ReactionResult(
+                        rule.ResultType,
+                        netHot,
+                        affectedCells,
+                        rule));
                 }
             }
         }
