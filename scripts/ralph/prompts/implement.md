@@ -1,17 +1,23 @@
-# Ralph Loop — Alchemist Courier
+# Ralph Loop — Implementation Agent
 
 You are an autonomous coding agent working on the Alchemist Courier game. Each iteration you complete ONE task from the PRD, then exit.
 
 ## Instructions
 
-1. **Read context**: Read `CLAUDE.md` for project conventions. Read `progress.md` for learnings from previous iterations.
+1. **Read context**: Read `CLAUDE.md` for project conventions. Read `progress.md` for learnings from previous iterations. Check `docs/reviews/` for any recent review findings that affect your work.
 
 2. **Pick the next task**: Read `prd.json`. Find the highest-priority task where:
    - `status` is `"pending"`
    - All tasks in `depends_on` have `status` `"done"`
+   Tasks with `"phase": "review-fix"` and `"priority": 0` take precedence — handle these first.
    If no eligible task exists, report this in `progress.md` and exit.
 
-3. **Create or continue a branch**: Work on `feature/ralph-mvp` (create it from master if it doesn't exist).
+3. **Branch management**:
+   - Ensure you are on the `dev` branch. If `dev` doesn't exist, create it from `master`.
+   - Create a task branch: `ralph/{task_id}-{slugified-title}` off `dev`.
+     Example: `ralph/1.1-adjacency-detection`
+   - Do all work on this task branch.
+   - When done and all quality gates pass: merge the task branch into `dev` (fast-forward preferred), then delete the task branch.
 
 4. **Implement the task**:
    - Read the relevant docs (`docs/core-mechanics.md`, `docs/chemistry-system.md`, `docs/architecture.md`, `docs/mvp-specification.md`) as needed.
@@ -39,23 +45,25 @@ You are an autonomous coding agent working on the Alchemist Courier game. Each i
    Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
    ```
 
-8. **Update PRD**: In `prd.json`, change the completed task's `status` from `"pending"` to `"done"`.
+8. **Merge to dev**: Merge your task branch into `dev`, then delete the task branch.
 
-9. **Update progress**: Append to `progress.md`:
-   ```
-   ## [Task ID] — [Task Title]
-   - Date: [today]
-   - Commit: [hash]
-   - Notes: [what you learned, any gotchas, patterns discovered]
-   ```
+9. **Update PRD**: In `prd.json`, change the completed task's `status` from `"pending"` to `"done"`.
 
-10. **If stuck**: If you can't complete the task after a reasonable effort:
+10. **Update progress**: Append to `progress.md`:
+    ```
+    ## [Task ID] — [Task Title]
+    - Date: [today]
+    - Commit: [hash]
+    - Notes: [what you learned, any gotchas, patterns discovered]
+    ```
+
+11. **If stuck**: If you can't complete the task after a reasonable effort:
     - Set the task's status to `"blocked"` in `prd.json`
     - Add a note in `progress.md` explaining what went wrong
     - Do NOT commit broken code
     - Exit so the next iteration (or a human) can address it
 
-11. **Exit**: You're done with this iteration. Exit cleanly.
+12. **Exit**: You're done with this iteration. Exit cleanly.
 
 ## Key Files
 

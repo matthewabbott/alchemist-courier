@@ -20,8 +20,11 @@ scenes/       — Godot .tscn scene files
 resources/    — Godot .tres resource files
 docs/         — Design documentation
 docs/worklog/ — Session worklogs (see docs/agent-workflow.md)
+docs/reviews/ — Review agent output (architecture, code, integration)
+docs/agents/  — Agent instruction docs (deslop.md, etc.)
 tests/        — xUnit test projects
 scripts/ralph/ — Ralph loop tooling (autonomous agent)
+scripts/ralph/prompts/ — Role-specific prompts (implement, review-code, etc.)
 prd.json       — MVP task list for Ralph loop
 progress.md    — Ralph loop learnings log
 ```
@@ -97,7 +100,7 @@ Read tool on test_output/*.png files
 
 ## Ralph Loop (Autonomous Agent)
 
-For overnight autonomous development, a Ralph loop runs Claude Code repeatedly, one PRD task per iteration.
+For overnight autonomous development, a Ralph loop runs Claude Code repeatedly with rotating agent roles.
 
 ```bash
 # Run the loop (from project root):
@@ -106,14 +109,31 @@ For overnight autonomous development, a Ralph loop runs Claude Code repeatedly, 
 ./scripts/ralph/ralph.sh 5 --dry # Dry run (preview only)
 ```
 
+### Branch strategy
+- `dev` branch is the integration branch (created from `master` automatically)
+- Implementation agent creates per-task branches `ralph/{id}-{slug}` off `dev`
+- Human merges `dev` → `master` when satisfied
+
+### Agent roles
+The loop rotates between four roles:
+- **implement** (default) — Pick a task from `prd.json`, implement, test, commit
+- **review-code** (every 3 implementations) — Deslop review against `docs/agents/deslop.md`
+- **review-integration** (every 5 implementations) — Run test harness, verify game works
+- **review-architecture** (at phase boundaries) — Check alignment with game vision and docs
+
+Review agents can fix small issues directly or create priority-0 tasks in `prd.json` (R-prefix IDs).
+
 ### Key files
 - `prd.json` — Prioritized task list. Agent picks next `"pending"` task with satisfied dependencies.
-- `scripts/ralph/PROMPT.md` — The prompt fed to Claude Code each iteration
-- `scripts/ralph/ralph.sh` — The bash loop script
+- `scripts/ralph/prompts/` — Role-specific prompts (implement.md, review-code.md, etc.)
+- `scripts/ralph/ralph.sh` — The bash loop script with role selection
+- `scripts/ralph/check-phase.py` — Phase completion detector
 - `progress.md` — Append-only log of completed tasks and learnings
+- `docs/reviews/` — Review agent output reports
+- `docs/agents/deslop.md` — Coding principles for code review agent
 
 ### How it works
-Each iteration: read PRD → pick task → implement → `dotnet build` + `dotnet test` → commit → mark done → exit. Fresh context each iteration. Progress persists in git + `prd.json` + `progress.md`.
+Each iteration: select role → run prompt → agent works → exit. Implementation iterations: read PRD → pick task → branch → implement → test → commit → merge to dev → mark done. Review iterations: check recent work → fix or flag issues → write report. Fresh context each iteration. Progress persists in git + `prd.json` + `progress.md`.
 
 ## Key Design Docs
 - `docs/architecture.md` — Data models, project structure, technical decisions

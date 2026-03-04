@@ -27,6 +27,9 @@ obj/
 # Test output (screenshots from integration test harness)
 test_output/
 
+# Ralph loop state
+.ralph-phase-marker
+
 # OS
 Thumbs.db
 .DS_Store
