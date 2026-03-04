@@ -20,7 +20,7 @@
       "phase": "core-chemistry",
       "depends_on": [],
       "verification": "dotnet build succeeds with zero errors",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "1.3",
