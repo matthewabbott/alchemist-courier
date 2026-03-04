@@ -10,7 +10,7 @@
       "phase": "core-chemistry",
       "depends_on": [],
       "verification": "dotnet test — new adjacency tests pass, existing 47 tests still pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "1.2",
