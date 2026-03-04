@@ -102,12 +102,14 @@ Read tool on test_output/*.png files
 
 For overnight autonomous development, a Ralph loop runs Claude Code repeatedly with rotating agent roles.
 
-```bash
-# Run the loop (from project root):
-./scripts/ralph/ralph.sh         # Default 20 iterations
-./scripts/ralph/ralph.sh 50      # 50 iterations max
-./scripts/ralph/ralph.sh 5 --dry # Dry run (preview only)
+```powershell
+# Run the loop (from project root, in PowerShell):
+.\scripts\ralph\ralph.ps1              # Default 20 iterations
+.\scripts\ralph\ralph.ps1 -MaxIter 50  # 50 iterations max
+.\scripts\ralph\ralph.ps1 -DryRun      # Dry run (preview only)
 ```
+
+> **Note:** Use PowerShell, not Git Bash. The `claude -p` command requires a real Windows console which mintty/Git Bash cannot provide.
 
 ### Branch strategy
 - `dev` branch is the integration branch (created from `master` automatically)
@@ -126,8 +128,10 @@ Review agents can fix small issues directly or create priority-0 tasks in `prd.j
 ### Key files
 - `prd.json` — Prioritized task list. Agent picks next `"pending"` task with satisfied dependencies.
 - `scripts/ralph/prompts/` — Role-specific prompts (implement.md, review-code.md, etc.)
-- `scripts/ralph/ralph.sh` — The bash loop script with role selection
+- `scripts/ralph/ralph.ps1` — The PowerShell loop script with role selection
+- `scripts/ralph/ralph.sh` — Legacy bash version (does not work on Windows mintty)
 - `scripts/ralph/check-phase.py` — Phase completion detector
+- `.mcp.json` — MCP server config for CLI (Godot integration for test agent)
 - `progress.md` — Append-only log of completed tasks and learnings
 - `docs/reviews/` — Review agent output reports
 - `docs/agents/deslop.md` — Coding principles for code review agent
