@@ -221,7 +221,7 @@
       "phase": "bag-mechanics",
       "depends_on": ["2.3"],
       "verification": "dotnet test -- non-rectangular bag generation tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.1",

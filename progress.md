@@ -146,3 +146,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 9affe1d
 - Notes: Added Heavy placement constraint to Gravity bags via IsHeavyConstraintValid() in MetaGrid. In a Gravity bag column, Heavy reagent cells must be at or below all non-Heavy cells. The method checks both directions: when placing Heavy, scans below for non-Heavy occupants; when placing non-Heavy, scans above for Heavy occupants. Added ReagentHasHeavyAspect() helper that checks the definition's AspectsPerCell. Updated PuzzleGenerator.PlaceReagentsValidly to sort Heavy reagents first (before largest-first tiebreaker) so they naturally land at the bottom of Gravity bags. In non-Gravity bags, Heavy has no special placement effect. 8 new MetaGrid tests + 1 PuzzleGenerator test. All 210 tests pass (202 existing + 8 new).
+
+## Code Review — 2026-03-04 (c)
+- Reviewed commits: 8bcf6ce..e204a80 (B.2, B.3)
+- Findings: 3 (P0: 0, P1: 0, P2: 0, P3: 3)
+- Fixed: 0, Tasks created: 0
+
+## B.4 — Add non-rectangular bag shapes to generator
+- Date: 2026-03-04
+- Commit: 7487949
+- Notes: Added 8 non-rectangular bag shape templates (L, T, hourglass, S-step, plus, U, notched rectangle, chunky L) covering cell counts 6-12. New PickBagShape method gives ~40% chance of non-rectangular selection when AllowSpecialBags is true (Medium/Hard). Lower difficulties remain rectangular-only. The existing per-cell bag ownership in MetaGrid meant no changes were needed to the placement algorithm — CanPlaceReagent already checks actual cell occupancy rather than bounding box. 6 new tests across 30 seeds verify non-rect bags appear, Easy stays rectangular, solutions are valid (no reactions, in-bounds, no overlaps), and PuzzleSolver validates. All 216 tests pass (210 existing + 6 new).

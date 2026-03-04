@@ -71,3 +71,21 @@ PuzzleGenerator now sorts Heavy reagents first in the placement order so they na
 bottom of Gravity bags before non-Heavy reagents stack on top. Clean separation: the constraint lives
 entirely in MetaGrid validation, while the generator just ensures placement order.
 Commit: 9affe1d
+
+## Code Review (c)
+Reviewed B.2 (locked reagents) and B.3 (Heavy placement constraint). Code is clean — no P0/P1/P2
+issues found. Three P3 observations: duplicated HasHeavyAspect helper between MetaGrid and
+PuzzleGenerator (only 2 occurrences, Rule of Three says don't abstract yet), magic string "heavy"
+(consistent with existing codebase patterns), and MetaGrid gaining aspect-specific knowledge
+(acceptable for MVP, flag if more aspect-placement rules emerge). Positive notes: good constraint
+separation, bidirectional checking, thorough tests, Heavy-first sort strategy.
+
+## B.4: Non-rectangular bag shapes
+Until now every generated bag was a plain rectangle — functional but visually monotonous and
+strategically flat. Added a pool of 8 non-rectangular templates (L, T, hourglass, S-step, plus,
+U, notched rectangle, chunky L) that the generator draws from at higher difficulties (~40% per
+bag when AllowSpecialBags is true). The elegant part: zero changes to MetaGrid's placement
+validation, because it already operates on per-cell bag ownership rather than bounding boxes.
+Non-rectangular bags create more interesting packing puzzles and interact naturally with Gravity
+constraints from B.1 — an L-shaped Gravity bag forces very specific stacking patterns.
+Commit: 7487949
