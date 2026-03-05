@@ -331,7 +331,7 @@
       "phase": "game-flow",
       "depends_on": ["4.3"],
       "verification": "dotnet build + test harness verifies tutorial progression",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "4.5",

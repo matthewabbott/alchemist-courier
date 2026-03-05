@@ -267,3 +267,14 @@ at a time. Lesson 4 intentionally steps back to fewer reagents (3 vs 4) so the p
 focus on the new concept without spatial overwhelm. All seeds validated as producing solvable
 puzzles via PuzzleGenerator + PuzzleSolver.IsSolvable.
 Commit: 9e6a035
+
+## 4.4: Add tutorial flow screen
+Created TutorialScreen as a wrapper around PuzzleScreen that manages the 5-lesson tutorial
+sequence. Each lesson generates its puzzle from TutorialLesson params, displays lesson name
+and hint text in a styled panel at the top, and reveals a "Next Lesson" button on win. The
+key design decision was adding a PuzzleConfirmed event to PuzzleScreen rather than polling
+or modifying PuzzleScreen's internals—TutorialScreen subscribes to the event and reacts to
+wins. AdvanceLesson() tears down the current PuzzleScreen and builds a fresh one from the
+next lesson's data. Integration test applies lesson 1's solution programmatically, confirms
+win, advances, and verifies lesson 2 loads with different hint text and a new PuzzleScreen.
+Commit: 9a993b6
