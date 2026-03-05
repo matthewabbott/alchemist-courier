@@ -17,9 +17,6 @@ public class PuzzleGenerator
     private const int MaxRetries = 50;
     private const int MetaGridPadding = 2;
 
-    /// <summary>Available aspect IDs for the MVP Physical/Chemistry school.</summary>
-    private static readonly string[] MvpAspects = { AspectIds.Hot, AspectIds.Cold, AspectIds.Volatile, AspectIds.Stable, AspectIds.Heavy, AspectIds.Toxic };
-
     /// <summary>
     /// Predefined non-rectangular bag shapes for higher difficulties.
     /// Each is a bool[rows, cols] matrix. Grouped by cell count.
@@ -118,7 +115,7 @@ public class PuzzleGenerator
     public PuzzleState Generate(int seed, DifficultyParams difficulty)
     {
         var rng = new SeededRandom(seed);
-        var rules = ReactionRuleDatabase.GetMvpRules();
+        var rules = ComplexityFilter.GetRules(difficulty.ComplexityLevel);
 
         for (int attempt = 0; attempt < MaxRetries; attempt++)
         {
@@ -166,8 +163,9 @@ public class PuzzleGenerator
         if (grid == null)
             return null;
 
-        // Step 5: Assign aspects to reagents
-        var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes);
+        // Step 5: Assign aspects to reagents (filtered by complexity level)
+        var availableAspects = ComplexityFilter.GetAspects(difficulty.ComplexityLevel);
+        var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes, availableAspects);
 
         // Step 6: Create runtime objects and try to place all reagents validly
         var reagentDefs = new List<ReagentDefinition>();
@@ -346,7 +344,8 @@ public class PuzzleGenerator
 
     private List<List<AspectSet>> AssignAspects(
         SeededRandom rng, DifficultyParams difficulty,
-        List<(bool[,] shape, int cellCount)> reagentShapes)
+        List<(bool[,] shape, int cellCount)> reagentShapes,
+        List<string> availableAspects)
     {
         var result = new List<List<AspectSet>>();
 
@@ -366,7 +365,7 @@ public class PuzzleGenerator
             {
                 // Pick how many distinct aspect types this reagent gets (1..MaxAspectCount)
                 int numAspectTypes = rng.Next(1, difficulty.MaxAspectCount + 1);
-                var chosenAspects = PickDistinctAspects(rng, numAspectTypes);
+                var chosenAspects = PickDistinctAspects(rng, numAspectTypes, availableAspects);
 
                 for (int c = 0; c < cellCount; c++)
                 {
@@ -390,11 +389,11 @@ public class PuzzleGenerator
         return result;
     }
 
-    private static List<string> PickDistinctAspects(SeededRandom rng, int count)
+    private static List<string> PickDistinctAspects(SeededRandom rng, int count, List<string> availableAspects)
     {
-        var available = new List<string>(MvpAspects);
-        rng.Shuffle(available);
-        return available.Take(Math.Min(count, available.Count)).ToList();
+        var pool = new List<string>(availableAspects);
+        rng.Shuffle(pool);
+        return pool.Take(Math.Min(count, pool.Count)).ToList();
     }
 
     private (MetaGrid? grid, List<Vector2I> positions) BuildMetaGridWithBags(
