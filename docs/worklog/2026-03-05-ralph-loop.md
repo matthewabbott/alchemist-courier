@@ -156,3 +156,16 @@ implementation mirrors ComputeConstraintHighlights exactly but targets GhostOver
 two layers visually distinct: Constraint marks the grid, GhostOverlay marks the ghost. Clean task
 since the GhostOverlay layer enum value and renderer support were already in place from H.7.
 Commit: fdc1e46
+
+## H.14: Visual polish design document
+The capstone of the highlight-system phase: a 10-section design document (docs/visual-polish-design.md)
+capturing the full visual polish vision for future implementation. Covers per-aspect icon designs
+(flame, snowflake, skull, etc.), highlight visual styles (crosshatching for danger zones, pulsing
+glow for interactions, animated dashed borders for eagle sense), the RetroDiffusion sprite pipeline
+for generating reagent portraits and bag textures, contiguous boundary refinements (glow, shadow,
+shimmer), a "quiet mode" for experienced players, a sprite editor tool concept for iterating on
+highlight parameters without recompiling, information density guidelines (4 progressive disclosure
+levels from clean grid to full eagle sense), eagle sense visual treatment (deep overlay, glowing
+connection lines, silhouetted reagents), layout balance at different viewport sizes, and a
+canonical color palette reference matching the existing GridConstants values.
+Commit: 83cf900
