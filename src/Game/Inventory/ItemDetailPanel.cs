@@ -12,8 +12,6 @@ namespace AlchemistCourier.Game.Inventory;
 /// </summary>
 public partial class ItemDetailPanel : PanelContainer
 {
-    private const int PreviewCellSize = 16;
-
     private VBoxContainer _content = null!;
     private DetailShapePreview _shapePreview = null!;
     private Label _nameLabel = null!;
@@ -61,14 +59,14 @@ public partial class ItemDetailPanel : PanelContainer
         _shapePreview.Visible = false;
         _content.AddChild(_shapePreview);
 
-        // Name label (bold white)
+        // Name label
         _nameLabel = new Label();
         _nameLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.95f, 0.95f));
         _nameLabel.AddThemeFontSizeOverride("font_size", 14);
         _nameLabel.Visible = false;
         _content.AddChild(_nameLabel);
 
-        // Flavor text (italic gray)
+        // Flavor text
         _flavorLabel = new Label
         {
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
