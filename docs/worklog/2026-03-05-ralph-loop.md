@@ -87,3 +87,13 @@ make highlights pop. The overlay renders layer-by-layer (Constraint → Interact
 GhostOverlay) and deduplicates fills per position. This is the bridge between the pure-Core
 highlight engine (H.5-H.6) and the visual game — H.8 will wire it into MetaGridView.
 Commit: 8b22c2a
+
+## H.8: MetaGridView highlight integration
+The culmination of H.1–H.7: wiring the highlight system into the actual game view. HighlightOverlay
+now lives as a child of MetaGridView at ZIndex 4 (above ghost preview at Z3), and UpdateGhostPreview
+automatically computes constraint + interaction highlights whenever a reagent hovers. Sharp reagent
+over a non-Reinforced bag edge? Red boundary highlights on the violating cells. Hot reagent near
+Volatile? Interaction highlights on the neighbor cells. PuzzleScreen builds StatusThresholds from
+the status bar after each placement so highlight severity reflects the current cumulative state.
+Added HoveredReagentChanged signal for future use by the item detail panel (H.11) and legend (H.10).
+Commit: d8474fe

@@ -566,7 +566,7 @@
         "H.7"
       ],
       "verification": "dotnet build + test harness screenshot shows constraint highlights on hover",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.9",
