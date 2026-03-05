@@ -31,7 +31,7 @@ public partial class PuzzleScreen : Control
     private Button _confirmButton = null!;
     private Button _resetButton = null!;
     private Button _primerButton = null!;
-    private AspectPrimerPanel _primerPanel = null!;
+    private AspectLegendPanel _legendPanel = null!;
     private PanelContainer _resultOverlay = null!;
     private Label _resultLabel = null!;
     private Label _dayLabel = null!;
@@ -64,7 +64,7 @@ public partial class PuzzleScreen : Control
     public ObjectivePanel Objective => _objectivePanel;
     public ConfirmResult LastConfirmResult => _lastConfirmResult;
     public IReadOnlyList<ReactionResult> LastReactions => _lastReactions.AsReadOnly();
-    public AspectPrimerPanel PrimerPanel => _primerPanel;
+    public AspectLegendPanel LegendPanel => _legendPanel;
 
     /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
     public event System.Action<ConfirmResult>? PuzzleConfirmed;
@@ -232,10 +232,10 @@ public partial class PuzzleScreen : Control
         _objectivePanel.Initialize(_puzzleType);
         rightColumn.AddChild(_objectivePanel);
 
-        // Aspect interaction primer (toggleable)
-        _primerPanel = new AspectPrimerPanel();
-        _primerPanel.Initialize(ReactionRuleDatabase.GetMvpRules());
-        rightColumn.AddChild(_primerPanel);
+        // Aspect legend panel (collapsible entries)
+        _legendPanel = new AspectLegendPanel();
+        _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
+        rightColumn.AddChild(_legendPanel);
 
         // ---- Bottom section ----
         var bottomSeparator = new HSeparator();
@@ -260,7 +260,7 @@ public partial class PuzzleScreen : Control
         _resetButton.Pressed += OnResetPressed;
         buttonBar.AddChild(_resetButton);
 
-        _primerButton = CreateStyledButton("Reactions", new Color(0.3f, 0.3f, 0.4f));
+        _primerButton = CreateStyledButton("Aspects", new Color(0.3f, 0.3f, 0.4f));
         _primerButton.Pressed += OnPrimerPressed;
         buttonBar.AddChild(_primerButton);
 
@@ -509,9 +509,9 @@ public partial class PuzzleScreen : Control
         return _lastConfirmResult;
     }
 
-    public void TogglePrimer()
+    public void ToggleLegend()
     {
-        _primerPanel.Toggle();
+        _legendPanel.Visible = !_legendPanel.Visible;
     }
 
     private void OnResetPressed()
@@ -526,7 +526,7 @@ public partial class PuzzleScreen : Control
 
     private void OnPrimerPressed()
     {
-        TogglePrimer();
+        ToggleLegend();
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)

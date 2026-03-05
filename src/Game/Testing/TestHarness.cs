@@ -54,7 +54,7 @@ public partial class TestHarness : Control
 
         await Test_RenderInitial();
         await Test_ObjectivePanel();
-        await Test_AspectPrimer();
+        await Test_AspectLegend();
         await Test_PlaceFirePebble();
         await Test_PlaceIceShardRotated();
         await Test_InvalidPlacement();
@@ -123,34 +123,49 @@ public partial class TestHarness : Control
             : $"text=\"{text}\" expected=\"{expectedText}\" updated=\"{updatedText}\" expectedUpdated=\"{expectedUpdated}\"");
     }
 
-    private async Task Test_AspectPrimer()
+    private async Task Test_AspectLegend()
     {
-        BeginTest("aspect_primer");
+        BeginTest("aspect_legend");
 
-        // Verify primer panel starts hidden
-        var primer = _puzzleScreen.PrimerPanel;
-        bool startsHidden = !primer.Visible;
-        Log($"[STATE] primer_visible={primer.Visible} (expected=False)");
+        var legend = _puzzleScreen.LegendPanel;
 
-        // Toggle open
-        _puzzleScreen.TogglePrimer();
-        bool nowVisible = primer.Visible;
-        Log($"[STATE] primer_visible_after_toggle={primer.Visible} (expected=True)");
+        // Verify legend is visible by default
+        bool startsVisible = legend.Visible;
+        Log($"[STATE] legend_visible={legend.Visible} (expected=True)");
 
-        // Verify rule count matches MVP rules (7 rules)
-        int ruleCount = primer.RuleCount;
-        Log($"[STATE] primer_rule_count={ruleCount} (expected=7)");
+        // Verify entry count matches puzzle-relevant aspects
+        int entryCount = legend.EntryCount;
+        Log($"[STATE] legend_entry_count={entryCount} (expected>0)");
 
-        await CaptureScreenshot("02b_primer_open.png");
+        // Toggle an entry open: 'hot' should be relevant in the demo puzzle
+        legend.ToggleEntry("hot");
+        bool hotExpanded = legend.IsExpanded("hot");
+        Log($"[STATE] hot_expanded={hotExpanded} (expected=True)");
 
-        // Toggle closed
-        _puzzleScreen.TogglePrimer();
-        bool hiddenAgain = !primer.Visible;
-        Log($"[STATE] primer_visible_after_second_toggle={primer.Visible} (expected=False)");
+        await CaptureScreenshot("02b_legend_open.png");
 
-        bool pass = startsHidden && nowVisible && ruleCount == 7 && hiddenAgain;
-        EndTest("aspect_primer", pass, pass ? null
-            : $"startsHidden={startsHidden} nowVisible={nowVisible} ruleCount={ruleCount} hiddenAgain={hiddenAgain}");
+        // Collapse it
+        legend.ToggleEntry("hot");
+        bool hotCollapsed = !legend.IsExpanded("hot");
+        Log($"[STATE] hot_collapsed_again={hotCollapsed} (expected=True)");
+
+        // Test highlight
+        var aspects = new System.Collections.Generic.HashSet<string> { "hot", "cold" };
+        legend.HighlightAspects(aspects);
+        await CaptureScreenshot("02c_legend_highlight.png");
+        legend.ClearHighlight();
+
+        // Toggle visibility via button
+        _puzzleScreen.ToggleLegend();
+        bool nowHidden = !legend.Visible;
+        _puzzleScreen.ToggleLegend();
+        bool visibleAgain = legend.Visible;
+        Log($"[STATE] legend_toggle_hidden={nowHidden} visible_again={visibleAgain}");
+
+        bool pass = startsVisible && entryCount > 0 && hotExpanded && hotCollapsed
+                 && nowHidden && visibleAgain;
+        EndTest("aspect_legend", pass, pass ? null
+            : $"startsVisible={startsVisible} entryCount={entryCount} hotExpanded={hotExpanded} hotCollapsed={hotCollapsed} nowHidden={nowHidden} visibleAgain={visibleAgain}");
     }
 
     private async Task Test_PlaceFirePebble()
