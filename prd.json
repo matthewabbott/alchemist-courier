@@ -261,7 +261,7 @@
       "phase": "aspect-rework",
       "depends_on": ["R-1", "R-5"],
       "verification": "dotnet test -- Catalytic threshold lowering tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.5",

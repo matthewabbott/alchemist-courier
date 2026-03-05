@@ -147,3 +147,14 @@ double-counting. Also added a Gravity bag placement constraint — Fragile thing
 the falling/stacking environment. Both mechanics reinforce Fragile's identity as a high-risk,
 high-reward aspect (once value scoring arrives).
 Commit: c7d689b
+
+## A.4: Add Catalytic aspect to ChemistryEngine
+Catalytic is the strategic mirror of Stable — where Stable raises effective thresholds to
+suppress reactions, Catalytic lowers them to make reactions easier to trigger. The core formula
+is `effectiveThreshold = max(0, threshold + stableBuffer - catalyticReduction)`, applied
+consistently across all three sensitivity tiers. Refactored the existing
+`GetAdjacentStableMagnitude` into a generic `GetAdjacentAspectMagnitude` parameterized by
+aspect ID, eliminating the need for a duplicate method. An interesting edge case: Catalytic
+can't reduce thresholds below 0, so pair reactions (Sharp+Fragile, threshold=0) fire regardless
+of nearby Catalytic — but Catalytic CAN counter Stable suppression of those same pairs.
+Commit: a69a5fa
