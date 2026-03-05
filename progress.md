@@ -330,3 +330,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 2da34f1..119d125 (H.3, H.4, H.5)
 - Findings: 0 (P0: 0, P1: 0, P2: 0)
 - Fixed: 0, Tasks created: 0
+
+## H.6 — HighlightEngine interaction, legend, and eagle sense methods
+- Date: 2026-03-05
+- Commit: 9668f51
+- Notes: Three new methods on HighlightEngine: (1) ComputeInteractionHighlights finds adjacent cells with reactive aspects for a given reagent position, using interaction pairs derived from Adjacent rules — 2-trigger rules yield direct pairs (Sharp↔Fragile), 1-trigger rules (Volatile) yield Hot/Cold pairs for the net-hot mechanic. Groups highlighted neighbor cells by aspect, computes ContiguousBoundary per group for clean edge rendering, severity from StatusThresholds (defaults to Warning for aspects without entries). (2) ComputeLegendHighlights finds all placed cells with a given aspect and returns Legend layer highlights with contiguous boundary edges. (3) ComputeEagleSenseHighlights merges interaction highlights for all placed reagents. BuildInteractionPairs helper centralizes rule-to-pair extraction. Null bag suppression checked on both reagent cells and neighbors. 16 new tests covering all three methods: Volatile↔Hot, Volatile↔Cold, Sharp↔Fragile, Hot↔Volatile (reverse direction), no interaction, contiguous boundary internal edge elimination, severity from thresholds, default severity, legend with boundary, legend empty, eagle sense union, eagle sense empty, eagle sense multiple interactions. All 461 tests pass (445 existing + 16 new).

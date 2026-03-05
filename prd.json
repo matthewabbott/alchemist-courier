@@ -28,7 +28,9 @@
       "description": "Create src/Core/Chemistry/ReactionRuleDatabase.cs -- a static class providing GetMvpRules() returning List<ReactionRule> with the Physical/Chemistry school rules from docs/chemistry-system.md: Hot+Volatile=Explosion (Adjacent), Hot+Cold=Neutralization (SameBag), Sharp+Fragile=Breakage (Adjacent), Toxic+Toxic=ToxicCloud (SameBag), cumulative Hot threshold (Overheating, threshold=4, WholeInventory), cumulative Cold threshold (Hypothermia, threshold=4, WholeInventory), cumulative Toxic threshold (Poisoning, threshold=3, WholeInventory). Also add GetRulesForAspects(string aspect1, string aspect2) lookup method. Add unit tests verifying: correct number of rules returned, specific rule lookups work, threshold values are correct.",
       "priority": 3,
       "phase": "core-chemistry",
-      "depends_on": ["1.2"],
+      "depends_on": [
+        "1.2"
+      ],
       "verification": "dotnet test -- rule database tests pass",
       "status": "done"
     },
@@ -38,7 +40,10 @@
       "description": "Create src/Core/Chemistry/ChemistryEngine.cs with static method Evaluate(MetaGrid, List<ReactionRule>) returning List<ReactionResult>. Implementation: (1) For each adjacency rule, iterate all placed reagents, check adjacent reagents for matching trigger aspects. (2) For each same-bag rule, iterate all bags, check reagents in the same bag for matching aspects. (3) For each cumulative rule, sum aspect magnitudes across the whole inventory and check against threshold. Add comprehensive unit tests: empty grid (no reactions), two hot+volatile reagents adjacent (explosion), hot+volatile separated by gap (no reaction), cumulative heat exceeding threshold (overheating), hot+cold in same bag (neutralization), mixed scenario with multiple reactions.",
       "priority": 4,
       "phase": "core-chemistry",
-      "depends_on": ["1.1", "1.3"],
+      "depends_on": [
+        "1.1",
+        "1.3"
+      ],
       "verification": "dotnet test -- chemistry evaluation tests pass",
       "status": "done"
     },
@@ -48,7 +53,9 @@
       "description": "Add static method to ChemistryEngine: EvaluateProspective(MetaGrid, Reagent, Vector2I, List<ReactionRule>) returning List<ReactionResult>. This temporarily places the reagent at the given position, evaluates, then removes it -- returning what WOULD happen without mutating the grid. Implementation: clone or use temporary placement. Add unit tests: prospective place in safe spot (empty results), prospective place adjacent to volatile (explosion result), verify grid is unchanged after call.",
       "priority": 5,
       "phase": "core-chemistry",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet test -- prospective evaluation tests pass, grid unchanged after call",
       "status": "done"
     },
@@ -78,7 +85,11 @@
       "description": "Create src/Core/Puzzle/PuzzleGenerator.cs implementing the disassemble-a-solution algorithm from docs/mvp-specification.md. Method: Generate(int seed, DifficultyParams) returning PuzzleState. Algorithm: (1) Create SeededRandom from seed. (2) Generate bags based on difficulty. (3) Generate reagents with aspects based on difficulty. (4) Place reagents into bags following rules (using ChemistryEngine to validate no negative reactions). (5) Record solution. (6) Remove reagents to create puzzle. Start simple: rectangular bags only, 1-2 cell reagents, basic aspects. Add unit tests: generated puzzle has non-empty bags and reagents, solution is valid (ChemistryEngine returns no negative reactions when solution is applied), same seed produces same puzzle.",
       "priority": 8,
       "phase": "puzzle-infrastructure",
-      "depends_on": ["1.4", "2.1", "2.2"],
+      "depends_on": [
+        "1.4",
+        "2.1",
+        "2.2"
+      ],
       "verification": "dotnet test -- puzzle generation tests pass, solution validates",
       "status": "done"
     },
@@ -88,7 +99,10 @@
       "description": "Create src/Core/Puzzle/PuzzleSolver.cs with static method ValidateSolution(PuzzleState) returning bool. Checks: all reagents placed, no overlaps, all placements within bag bounds, ChemistryEngine returns no negative reactions. Also add IsSolvable(PuzzleState) that tries the stored solution. Add unit tests: valid solution validates, solution with overlap fails, solution with reaction fails, empty placement fails.",
       "priority": 9,
       "phase": "puzzle-infrastructure",
-      "depends_on": ["1.4", "2.2"],
+      "depends_on": [
+        "1.4",
+        "2.2"
+      ],
       "verification": "dotnet test -- solver validation tests pass",
       "status": "done"
     },
@@ -98,7 +112,9 @@
       "description": "The MVP spec lists Stable as a minimum aspect, but it's missing from PuzzleGenerator.MvpAspects and has no ChemistryEngine support. Three changes needed: (1) Add 'stable' to PuzzleGenerator.MvpAspects array. (2) Add threshold-raising logic to ChemistryEngine -- when evaluating a reaction rule, check if any Stable cell is adjacent to the involved cells; if so, increase the effective threshold by the Stable magnitude. (3) Add unit tests: Stable adjacent to Hot+Volatile pair should suppress Explosion (threshold raised above 0), Stable not adjacent should not suppress, multiple Stable cells should stack. Without this, the core buffering mechanic is absent and puzzles lack strategic depth.",
       "priority": 0,
       "phase": "core-chemistry",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet test -- Stable buffering tests pass, PuzzleGenerator can produce puzzles with Stable reagents",
       "status": "done"
     },
@@ -119,7 +135,9 @@
       "description": "ChemistryEngine never checks BagPropertyType.Null -- aspects of reagents in Null bags are counted fully, making the Null mechanic completely broken. Fix: In EvaluateAdjacentRule, EvaluateSameBagRule, and EvaluateWholeInventoryRule, before reading a cell's aspect magnitudes, check which bag the cell belongs to (via MetaGrid.GetBagAt or similar). If the bag has BagPropertyType.Null, treat that cell's aspect magnitudes as 0 (suppressed). For spanning reagents, only cells physically inside the Null bag are suppressed -- other cells of the same reagent in non-Null bags retain their aspects. Implementation: (1) Add MetaGrid.GetBagForCell(Vector2I) or similar lookup if not present. (2) Add a helper IsAspectSuppressed(MetaGrid, Vector2I) that checks bag property. (3) Integrate into all three evaluation tiers. Add unit tests: reagent in Null bag has aspects suppressed (no explosion), same reagent spanning Null+Normal bag has partial suppression, reagent in Normal bag is unaffected, cumulative thresholds skip Null-suppressed cells.",
       "priority": 0,
       "phase": "review-fix",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet test -- Null suppression tests pass, existing tests still pass",
       "status": "done"
     },
@@ -129,7 +147,9 @@
       "description": "PuzzleGenerator.MvpAspects (line 21) currently contains { hot, cold, volatile, fragile, toxic, sharp, stable } -- this includes Sharp and Fragile (Intermediate tier) but is missing Heavy (Simple tier). Fix: Replace MvpAspects with the 6 Simple-tier aspects: { hot, cold, volatile, stable, heavy, toxic }. Sharp and Fragile should only be included when a future ComplexityLevel filter is Intermediate+. Also verify that Aspect.FromId('heavy') works correctly (it should -- heavy is already registered). Update any tests that depend on the old MvpAspects array contents.",
       "priority": 0,
       "phase": "review-fix",
-      "depends_on": ["2.3"],
+      "depends_on": [
+        "2.3"
+      ],
       "verification": "dotnet test -- all tests pass, MvpAspects contains exactly { hot, cold, volatile, stable, heavy, toxic }",
       "status": "done"
     },
@@ -139,7 +159,9 @@
       "description": "ChemistryEngine has inconsistent Stable buffering: Adjacent and SameBag tiers use a skip pattern (if stableBuffer > rule.Threshold, continue -- skips the entire reaction check, doesn't raise the threshold), while WholeInventory uses the correct additive pattern (effectiveThreshold = rule.Threshold + stableBuffer). The skip pattern is wrong: Stable should raise the effective threshold, not act as a binary skip. Example: if threshold=2, stableBuffer=1, count=3, the skip pattern would NOT skip (1 < 2) and reaction fires at count=3 vs threshold=2. The additive pattern correctly makes effectiveThreshold=3, so count=3 would NOT fire. Fix: Normalize all three tiers to use effectiveThreshold = rule.Threshold + stableBuffer, then compare the computed count/magnitude against effectiveThreshold. Update unit tests to verify boundary behavior: stableBuffer raises threshold by exact magnitude, stableBuffer=0 has no effect, stableBuffer equal to count prevents reaction.",
       "priority": 0,
       "phase": "review-fix",
-      "depends_on": ["R-1"],
+      "depends_on": [
+        "R-1"
+      ],
       "verification": "dotnet test -- all existing Stable tests still pass, new boundary tests pass, consistent behavior across tiers",
       "status": "done"
     },
@@ -149,7 +171,9 @@
       "description": "Modify src/Game/Inventory/MetaGridView.cs ghost preview to use ChemistryEngine.EvaluateProspective. Currently ghost cells are a single color. Change to: green (safe -- no reactions), yellow (warning -- reaction exists but within threshold), red (danger -- explosion, breakage, or exceeds threshold). Requires passing reaction rules to MetaGridView. Update ghost cell coloring in UpdateGhostPreview(). Add a test to TestHarness that places a reagent near a dangerous one and screenshots the warning colors.",
       "priority": 10,
       "phase": "ui-chemistry",
-      "depends_on": ["1.5"],
+      "depends_on": [
+        "1.5"
+      ],
       "verification": "dotnet build + test harness screenshot shows colored warnings",
       "status": "done"
     },
@@ -159,7 +183,9 @@
       "description": "Create status bar UI below the grid in PuzzleScreen showing cumulative aspect totals with threshold bars. For each tracked cumulative aspect (Hot, Cold, Toxic): show a labeled bar with current sum / threshold. Update on each placement or removal. Use ColorRect bars with labels. Add to test harness: after placing reagents, screenshot shows status bar with non-zero values.",
       "priority": 11,
       "phase": "ui-chemistry",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet build + test harness screenshot shows status bars",
       "status": "done"
     },
@@ -169,7 +195,9 @@
       "description": "Add objective text display to PuzzleScreen showing the current puzzle's win condition (e.g. 'Place all reagents without explosions'). PuzzleType enum drives the text. Position above or beside the reagent tray per MVP mockup. Add to test harness: verify objective text is visible in screenshot.",
       "priority": 12,
       "phase": "ui-chemistry",
-      "depends_on": ["2.2"],
+      "depends_on": [
+        "2.2"
+      ],
       "verification": "dotnet build + test harness screenshot shows objective text",
       "status": "done"
     },
@@ -179,7 +207,9 @@
       "description": "Add Confirm and Reset buttons to PuzzleScreen. Reset: returns all placed reagents to tray, clears grid. Confirm: triggers win/loss evaluation (placeholder -- just checks if all reagents are placed for now). Add programmatic methods ConfirmPuzzle() and ResetPuzzle() to PuzzleScreen for test harness access. Add test harness steps: place some reagents, reset (verify all unplaced), place all, confirm.",
       "priority": 13,
       "phase": "ui-chemistry",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet build + test harness verifies reset and confirm behavior",
       "status": "done"
     },
@@ -189,7 +219,9 @@
       "description": "Add Gravity bag placement constraint to the Core layer. In a Gravity bag (BagPropertyType.Gravity -- already exists in the enum), reagents must be 'supported' -- no floating in mid-air. 'Bottom' means the highest row index in the bag's shape matrix (row 0 is top, max row is bottom). A reagent cell at position (col, row) is supported if: (a) row is the maximum occupied row in the bag's shape for that column, OR (b) another reagent cell exists at (col, row+1) in the same bag. Implementation: (1) BagPropertyType.Gravity already exists. Bag stores its property via BagDefinition. (2) Add placement validation: when placing a reagent in a Gravity bag, check that every cell of the reagent is supported per the rule above. (3) Integrate into MetaGrid.CanPlaceReagent() or create a separate GravityValidator that MetaGrid calls. (4) Update PuzzleGenerator.BuildMetaGridWithBags (line ~318) to sometimes create Gravity bags when AllowSpecialBags is true -- use the seeded RNG to decide. (5) Heavy aspect interaction (must be at absolute bottom) is deferred to task B.3 -- this task only validates general support constraint. Add unit tests: valid placement at bottom row, valid stacked placement, rejected floating placement mid-bag, non-gravity bag allows floating, multi-cell reagent partially unsupported is rejected, L-shaped bag gravity works correctly.",
       "priority": 14,
       "phase": "bag-mechanics",
-      "depends_on": ["2.3"],
+      "depends_on": [
+        "2.3"
+      ],
       "verification": "dotnet test -- gravity bag placement tests pass",
       "status": "done"
     },
@@ -199,7 +231,9 @@
       "description": "Add locked placement support. 'Locked' is NOT a bag type -- it's a per-placement flag. Any bag can contain locked reagents (pre-placed reagents that can't be moved or removed by the player). PuzzleReagent.IsLocked already exists in PuzzleState.cs (line ~115) for serialization, but the runtime Reagent class has no IsLocked property and nothing enforces it. Implementation: (1) Add IsLocked bool property to src/Core/Reagents/Reagent.cs. (2) In MetaGrid or the UI layer, prevent removal of reagents where IsLocked is true. (3) Update PuzzleGenerator: add a parameter or difficulty-driven chance to lock 1-2 solution reagents in place (keep them placed, mark IsLocked=true on the Reagent). These become fixed constraints the player must work around. (4) Locked reagents' aspects are fully active and participate in all reactions -- they're constraints, not inert. (5) Update PuzzleSolver.ValidateSolution to ensure locked reagents haven't been moved from their original positions. Note: BagPropertyType.Locked in the enum is a misnomer -- consider renaming it or deprecating it in favor of the per-reagent flag, but that's optional cleanup. Add unit tests: locked reagent blocks removal, locked reagent aspects are active in ChemistryEngine, solver validates locked positions, generator produces puzzles with locked reagents that are still solvable.",
       "priority": 15,
       "phase": "bag-mechanics",
-      "depends_on": ["2.3"],
+      "depends_on": [
+        "2.3"
+      ],
       "verification": "dotnet test -- locked bag tests pass",
       "status": "done"
     },
@@ -209,7 +243,10 @@
       "description": "Add Heavy aspect's Simple-tier mechanic: in Gravity bags, Heavy reagents must be placed at the bottom (highest row indices). 'Heavy' is already registered in Aspect.FromId and should be in MvpAspects after R-4 is done. Implementation: (1) In Gravity bag placement validation (from B.1), add an extra check: if the reagent has any Heavy-aspected cells, ALL of its cells must be on the bottom-most available rows (no non-Heavy reagent below it). (2) A Heavy reagent can have non-Heavy reagents stacked ON TOP of it, but not below. (3) In PuzzleGenerator, when placing reagents in Gravity bags, place Heavy reagents first (they must go to the bottom). (4) In non-Gravity bags, Heavy has no special placement effect -- it's just a normal aspect. (5) Heavy+Fragile crushing (Intermediate tier interaction) is NOT part of this task -- defer to future Intermediate-tier work. Add unit tests: Heavy must be at bottom of Gravity bag, Heavy rejected if non-Heavy reagent is below, Heavy in non-Gravity bag places anywhere, multi-cell Heavy reagent validated correctly, PuzzleGenerator places Heavy reagents first in Gravity bags.",
       "priority": 16,
       "phase": "bag-mechanics",
-      "depends_on": ["B.1", "R-4"],
+      "depends_on": [
+        "B.1",
+        "R-4"
+      ],
       "verification": "dotnet test -- Heavy falling and crushing tests pass",
       "status": "done"
     },
@@ -219,7 +256,9 @@
       "description": "Extend PuzzleGenerator to produce non-rectangular bag shapes (L-shapes, T-shapes, irregular). Implementation: (1) Define a pool of bag shape templates (like reagent shapes but larger: L-shape, T-shape, plus-shape, irregular). (2) Modify bag generation in PuzzleGenerator to select from this pool based on difficulty. (3) Ensure placement algorithm works with non-rectangular bags (verify CanPlaceReagent checks actual bag cell occupancy, not just bounding box). Add unit tests: L-shaped bag is generated, reagent placement works in L-shaped bag, solution is valid for non-rectangular bags.",
       "priority": 17,
       "phase": "bag-mechanics",
-      "depends_on": ["2.3"],
+      "depends_on": [
+        "2.3"
+      ],
       "verification": "dotnet test -- non-rectangular bag generation tests pass",
       "status": "done"
     },
@@ -229,7 +268,10 @@
       "description": "Replace the current simple Hot+Volatile pair-trigger explosion with the net-hot system from docs/chemistry-system.md. The current Explosion rule in ReactionRuleDatabase treats it as a two-aspect pair (triggerAspects: [hot, volatile], Adjacent). The new system works differently: iterate each Volatile cell, compute net_hot = sum(Hot magnitudes of cardinal neighbors) - sum(Cold magnitudes of cardinal neighbors). If net_hot > effective_threshold (base 0 + stable_buffer), trigger Explosion. This makes Cold a strategic heat shield near Volatile. Implementation: (1) Change the Explosion rule to be a single-trigger rule (triggerAspects: [volatile] only). You may need to add a new RuleEvaluationType or special-case Volatile evaluation in EvaluateAdjacentRule. (2) For each placed reagent's Volatile cells, get cardinal neighbor cells, sum Hot magnitudes, subtract Cold magnitudes to get net_hot. (3) If net_hot > 0 + stableBuffer, trigger Explosion with affected cells being the Volatile cell and contributing Hot cells. (4) Null-suppressed cells (from R-3) should contribute 0 magnitude. (5) Update or replace existing Explosion tests. Add new tests: Volatile with Hot neighbor (explodes), Volatile with Hot+Cold balanced (net_hot=0, safe), Volatile with more Hot than Cold (explodes), Cold as heat shield (1 Hot + 1 Cold adjacent = safe), Volatile with no Hot neighbors (safe), Stable buffer raises effective threshold.",
       "priority": 18,
       "phase": "aspect-rework",
-      "depends_on": ["1.4", "R-3"],
+      "depends_on": [
+        "1.4",
+        "R-3"
+      ],
       "verification": "dotnet test -- net-hot explosion tests pass, cold-as-shield test passes",
       "status": "done"
     },
@@ -239,7 +281,9 @@
       "description": "Add Sharp's primary (non-parasitic) mechanic: Sharp reagents can't be placed on edge cells of non-reinforced bags. An 'edge cell' is any bag cell that has at least one cardinal neighbor that is NOT part of the same bag. Implementation: (1) Add edge detection to Bag: IsEdgeCell(Vector2I) checks if any cardinal neighbor of the cell is outside the bag. (2) Add placement validation: when placing a reagent with Sharp aspect, check if any of its cells would land on edge cells. Block placement in non-Reinforced bags. (3) Update PuzzleGenerator to respect this constraint during solution generation. Add unit tests: Sharp blocked on edge, Sharp allowed in interior, Sharp allowed on edge of Reinforced bag, multi-cell Sharp with one edge cell blocked, non-Sharp on edge is fine.",
       "priority": 19,
       "phase": "aspect-rework",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet test -- Sharp edge constraint tests pass",
       "status": "done"
     },
@@ -249,7 +293,10 @@
       "description": "Add Fragile's primary (non-parasitic) mechanic: Fragile reagents break from ANY adjacent reaction, not just Sharp. Implementation: (1) After ChemistryEngine.Evaluate computes all reactions, do a second pass: for each reaction result, check if any Fragile reagent occupies a cell adjacent to the reaction's affected cells. If so, add a Breakage result for the Fragile reagent. (2) Fragile can't be placed in Gravity bags (placement constraint). (3) Fragile reagents should have higher base value to compensate for their vulnerability. Add unit tests: Fragile breaks from adjacent explosion, Fragile breaks from adjacent neutralization, Fragile not adjacent is safe, Fragile blocked from Gravity bag, chain: explosion breaks adjacent Fragile.",
       "priority": 20,
       "phase": "aspect-rework",
-      "depends_on": ["1.4", "B.1"],
+      "depends_on": [
+        "1.4",
+        "B.1"
+      ],
       "verification": "dotnet test -- Fragile vulnerability tests pass",
       "status": "done"
     },
@@ -259,7 +306,10 @@
       "description": "Add Catalytic as the inverse of Stable: it lowers thresholds of adjacent reactions. Implementation: (1) Add 'catalytic' to Aspect.FromId (already registered) and define it as an Intermediate-tier aspect. (2) In ChemistryEngine, mirror the Stable buffering logic (which should be normalized to effectiveThreshold pattern after R-5): when evaluating a reaction, check for adjacent Catalytic cells and REDUCE the effective threshold by their magnitude. Formula: effectiveThreshold = rule.Threshold + stableBuffer - catalyticReduction (minimum 0). (3) Catalytic and Stable adjacent to each other cancel out (net modifier approaches zero). (4) Update ReactionRuleDatabase if needed. Add unit tests: Catalytic lowers threshold causing reaction that wouldn't otherwise trigger, Catalytic+Stable cancel out, multiple Catalytic cells stack, Catalytic alone near non-threshold reaction does nothing, Catalytic can't reduce threshold below 0.",
       "priority": 21,
       "phase": "aspect-rework",
-      "depends_on": ["R-1", "R-5"],
+      "depends_on": [
+        "R-1",
+        "R-5"
+      ],
       "verification": "dotnet test -- Catalytic threshold lowering tests pass",
       "status": "done"
     },
@@ -269,7 +319,9 @@
       "description": "Add Medicinal's primary mechanic: passively reduces cumulative thresholds (Overheating, Hypothermia, Poisoning) while carried. Implementation: (1) Add 'medicinal' to Aspect.FromId and the Intermediate aspect set. (2) In ChemistryEngine's WholeInventory tier evaluation, before checking cumulative totals against thresholds, sum all Medicinal magnitudes across the inventory and add them to the effective threshold. (3) This is passive (no consumption needed in puzzle mode). Add unit tests: Medicinal raises overheating threshold, Medicinal prevents poisoning that would otherwise trigger, multiple Medicinal reagents stack, Medicinal doesn't affect non-cumulative reactions.",
       "priority": 22,
       "phase": "aspect-rework",
-      "depends_on": ["1.4"],
+      "depends_on": [
+        "1.4"
+      ],
       "verification": "dotnet test -- Medicinal threshold relief tests pass",
       "status": "done"
     },
@@ -279,7 +331,9 @@
       "description": "Add ComplexityLevel enum (Simple, Intermediate, Advanced) per docs/chemistry-system.md complexity tiers. This is a filtering/configuration enum -- it controls which aspects and bag types are available, not the implementation of those aspects. Implementation: (1) Create src/Core/Puzzle/ComplexityLevel.cs enum with Simple, Intermediate, Advanced values. (2) Add ComplexityLevel field to DifficultyParams. (3) CRITICAL: DifficultyParams.ForLevel() must set ComplexityLevel = Simple for ALL DifficultyLevels (Tutorial1 through Hard). Per the two-dimensional complexity model, all standalone puzzles use Simple mechanical depth regardless of scale/difficulty. Intermediate and Advanced are only used when explicitly set (future roguelite mode). (4) Add aspect filtering: Simple = { hot, cold, volatile, stable, heavy, toxic }. Intermediate adds { sharp, fragile, catalytic, medicinal }. Advanced adds { magnetic, absorbent }. (5) Add bag type filtering: Simple = { Normal, Null, Gravity, Locked }. Intermediate adds { Reinforced, Insulated, Fragile }. Advanced adds { Body/Levitating }. (6) Update PuzzleGenerator to use ComplexityLevel for filtering instead of the hardcoded MvpAspects array. (7) Add ReactionRuleDatabase.GetRulesForComplexity(ComplexityLevel) that returns only rules involving aspects available at that tier. Add unit tests: ForLevel(Hard) returns Simple complexity, Simple filtering excludes Sharp/Fragile, Intermediate includes them, filtering is correct for bag types.",
       "priority": 23,
       "phase": "aspect-rework",
-      "depends_on": ["2.2"],
+      "depends_on": [
+        "2.2"
+      ],
       "verification": "dotnet test -- complexity level filtering tests pass",
       "status": "done"
     },
@@ -289,7 +343,9 @@
       "description": "Create a toggleable overlay panel showing aspect interaction rules. Lists each rule from ReactionRuleDatabase with simple icons/text: 'Hot + Volatile (adjacent) = Explosion'. Toggle via a button on PuzzleScreen. Can be a VBoxContainer with Label children, shown/hidden on button press. Add programmatic TogglePrimer() to PuzzleScreen.",
       "priority": 24,
       "phase": "ui-chemistry",
-      "depends_on": ["1.3"],
+      "depends_on": [
+        "1.3"
+      ],
       "verification": "dotnet build + test harness screenshot shows primer overlay",
       "status": "done"
     },
@@ -299,7 +355,10 @@
       "description": "Wire Confirm button to full win/loss logic: (1) Check all reagents placed (for FitAllSafely type). (2) Run ChemistryEngine.Evaluate on the grid. (3) If no negative reactions -> WIN. If negative reactions -> show which reactions occurred. Display result overlay (simple Label for now). Add test harness: place all reagents safely -> confirm -> verify win state. Place reagent causing explosion -> confirm -> verify loss state.",
       "priority": 25,
       "phase": "game-flow",
-      "depends_on": ["1.4", "3.4"],
+      "depends_on": [
+        "1.4",
+        "3.4"
+      ],
       "verification": "dotnet build + test harness verifies win and loss paths",
       "status": "done"
     },
@@ -309,7 +368,9 @@
       "description": "Modify PuzzleScreen to accept a PuzzleState instead of using hard-coded DemoPuzzle. PuzzleGenerator already works and produces valid puzzles -- this task wires it into the UI. Implementation: (1) Add a factory method or constructor parameter to PuzzleScreen that accepts PuzzleState. (2) PuzzleScreen._Ready() creates grid, bags, and reagents from PuzzleState data. (3) Keep DemoPuzzle as a fallback (if no PuzzleState provided, use demo for development). (4) Update test harness to test both: demo puzzle and a generated puzzle from a fixed seed. ComplexityLevel filtering (A.6) is NOT required -- the generator works with its current aspect set.",
       "priority": 26,
       "phase": "game-flow",
-      "depends_on": ["2.3"],
+      "depends_on": [
+        "2.3"
+      ],
       "verification": "dotnet build + test harness runs with both demo and generated puzzles",
       "status": "done"
     },
@@ -319,7 +380,9 @@
       "description": "Create src/Core/Puzzle/TutorialLesson.cs: LessonNumber, ConceptName, HintText, FixedSeed, DifficultyParams, RequiredPuzzleType. Create TutorialData.cs with static GetLessons() returning the first 5 lessons from docs/mvp-specification.md: (1) Basic placement, (2) Shapes & rotation, (3) Multiple reagents tight fit, (4) Aspects: Hot, (5) Aspects: Volatile. Unit test: lessons have valid seeds, difficulty params produce solvable puzzles.",
       "priority": 27,
       "phase": "game-flow",
-      "depends_on": ["2.2"],
+      "depends_on": [
+        "2.2"
+      ],
       "verification": "dotnet test -- tutorial lesson tests pass",
       "status": "done"
     },
@@ -329,7 +392,9 @@
       "description": "Create src/Game/TutorialScreen.cs (or modify PuzzleScreen) to support tutorial mode: show lesson hint text, track which lesson the player is on, advance to next lesson on win. Store current lesson index. Add test harness test: start tutorial, complete lesson 1, verify advances to lesson 2.",
       "priority": 28,
       "phase": "game-flow",
-      "depends_on": ["4.3"],
+      "depends_on": [
+        "4.3"
+      ],
       "verification": "dotnet build + test harness verifies tutorial progression",
       "status": "done"
     },
@@ -339,7 +404,9 @@
       "description": "Create src/Game/DailyPuzzleManager.cs: generates today's puzzle using date seed (YYYYMMDD as int). Difficulty rotates on 3-day cycle (Easy/Medium/Hard) based on seed. PuzzleType also varies by seed. IMPORTANT: All daily puzzles use Simple mechanical depth regardless of difficulty -- difficulty scaling is purely through scale (more bags, more reagents, tighter fit), per the two-dimensional complexity model in docs/chemistry-system.md. Wire into a 'Play Daily' entry point. Add test: same date always produces same puzzle, different dates produce different puzzles, all daily puzzles use Simple complexity.",
       "priority": 29,
       "phase": "game-flow",
-      "depends_on": ["4.2"],
+      "depends_on": [
+        "4.2"
+      ],
       "verification": "dotnet test -- daily puzzle determinism test passes",
       "status": "done"
     },
@@ -349,7 +416,10 @@
       "description": "Create src/Core/Save/SaveData.cs (tutorial progress, daily completion history, streak count) and SaveManager.cs (serialize to/from JSON file). For now use file-based persistence (swap to localStorage for web export later). Add unit tests: save round-trip, streak calculation, daily completion tracking.",
       "priority": 30,
       "phase": "game-flow",
-      "depends_on": ["4.4", "4.5"],
+      "depends_on": [
+        "4.4",
+        "4.5"
+      ],
       "verification": "dotnet test -- save system round-trip tests pass",
       "status": "done"
     },
@@ -381,7 +451,12 @@
       "description": "Reorganize PuzzleScreen layout to match the MVP mockup in docs/mvp-specification.md: header bar (title, day count, streak), meta-grid centered left, reagent tray right, objective below tray, status bar at bottom, confirm/reset/primer buttons in bottom bar. Requires all UI panels to exist: status bar (3.2), objective (3.3), confirm/reset buttons (3.4), and primer overlay (3.5). Adjust sizing and spacing to create a cohesive layout.",
       "priority": 31,
       "phase": "polish",
-      "depends_on": ["3.2", "3.3", "3.4", "3.5"],
+      "depends_on": [
+        "3.2",
+        "3.3",
+        "3.4",
+        "3.5"
+      ],
       "verification": "Test harness screenshot matches MVP mockup layout",
       "status": "done"
     },
@@ -421,7 +496,9 @@
       "description": "Create src/Core/Highlight/ContiguousBoundary.cs -- a static utility that computes which edges of each cell in a group form the outer boundary (for non-obstructive highlight rendering). Method: Compute(IReadOnlyCollection<Vector2I> cellPositions) returns Dictionary<Vector2I, CellEdge>. Algorithm: for each cell in the set, check 4 cardinal neighbors. If a neighbor is NOT in the set, that direction's edge is a boundary edge. Single cell = all 4 edges. 2x2 block = only outer 8 edges (no internal cross). L-shape = outer boundary only. Empty set = empty result. This is reusable for bag border rendering and highlight regions. MUST have zero Godot dependencies. Add unit tests: single cell (All edges), 2x2 block (no internal edges), L-shape boundary correct, empty set returns empty, disjoint cells each get All edges, horizontal strip gets top+bottom on middle cells.",
       "priority": 34,
       "phase": "highlight-system",
-      "depends_on": ["H.1"],
+      "depends_on": [
+        "H.1"
+      ],
       "verification": "dotnet test -- contiguous boundary tests pass",
       "status": "done"
     },
@@ -431,7 +508,9 @@
       "description": "Refactor MetaGrid constraint methods from bool returns to detailed violation info. New files: (1) src/Core/Highlight/ConstraintViolation.cs -- class with Type (ConstraintType), AffectedCells (List<Vector2I>), Reason (string, human-readable), AspectId (string). (2) src/Core/Highlight/ConstraintType.cs -- enum: SharpOnEdge, FragileInGravity, HeavyAboveNonHeavy, GravityUnsupported. Modify src/Core/Grid/MetaGrid.cs: add GetSharpViolations(Reagent, List<Vector2I>), GetFragileViolations(Reagent, List<Vector2I>), GetHeavyViolations(Reagent, List<Vector2I>), GetGravityViolations(List<Vector2I>). Each returns List<ConstraintViolation> with per-cell detail and human-readable reason text (e.g. 'Sharp reagent on edge cell of non-Reinforced bag'). Refactor existing bool methods (IsSharpConstraintValid etc.) to call the new methods and return .Count == 0. Add unit tests: Sharp on edge returns violation with correct cells and reason, Fragile in Gravity returns violation, Heavy above non-Heavy returns violation, all existing constraint tests still pass unchanged.",
       "priority": 35,
       "phase": "highlight-system",
-      "depends_on": ["H.1"],
+      "depends_on": [
+        "H.1"
+      ],
       "verification": "dotnet test -- violation detail tests pass, all existing constraint tests still pass",
       "status": "done"
     },
@@ -441,7 +520,10 @@
       "description": "Create the core highlight computation engine. Files: (1) src/Core/Highlight/HighlightEngine.cs -- static class. Implement ComputeConstraintHighlights(MetaGrid grid, Reagent reagent, Vector2I position) that reads violations from MetaGrid's new Get*Violations methods (H.4) and converts them to CellHighlight entries on the Constraint layer. Sharp violations produce Danger severity highlights on edge cells with the Sharp aspect color. Fragile-in-Gravity produces Warning. Also implement GetConstraintViolations(MetaGrid, Reagent, Vector2I) as pass-through aggregating all violation types. (2) src/Core/Highlight/StatusThresholds.cs -- class with Set(string aspectId, int current, int threshold) and GetSeverity(string aspectId) returning HighlightSeverity (Danger if current >= threshold, Warning if current >= threshold-1, Safe otherwise, Info if aspect unknown). MUST have zero Godot dependencies. Add unit tests: Sharp-on-edge produces correct CellHighlights with Danger severity and proper edges, Fragile-in-Gravity produces Warning, StatusThresholds severity boundaries correct.",
       "priority": 36,
       "phase": "highlight-system",
-      "depends_on": ["H.1", "H.4"],
+      "depends_on": [
+        "H.1",
+        "H.4"
+      ],
       "verification": "dotnet test -- constraint highlight computation tests pass",
       "status": "done"
     },
@@ -451,9 +533,13 @@
       "description": "Extend HighlightEngine with the remaining computation methods. (1) ComputeInteractionHighlights(MetaGrid grid, Reagent reagent, Vector2I position, List<ReactionRule> rules, StatusThresholds? thresholds): for each cell of the reagent, check cardinal neighbors for reactive aspects. Volatile cell adjacent to Hot cell: produce an edge-only highlight on the Hot cell's edge facing the Volatile cell, colored by Hot aspect, severity from StatusThresholds. Cold near Volatile: blue edge highlight. Sharp near Fragile: warning. Use ContiguousBoundary.Compute() for groups of same-aspect cells to avoid internal edges. (2) ComputeLegendHighlights(MetaGrid grid, string aspectId): find all placed reagent cells with the given aspect, compute contiguous boundary, return Legend layer highlights. (3) ComputeEagleSenseHighlights(MetaGrid grid, List<ReactionRule> rules, StatusThresholds? thresholds): for every placed reagent, compute interaction highlights, merge all into one HighlightSet. MUST have zero Godot dependencies. Add unit tests: Volatile adjacent to Hot = orange edge on correct side, Cold adjacent = blue edge, legend 'hot' finds all hot cells with boundary edges, eagle sense returns union, contiguous boundary eliminates internal edges.",
       "priority": 37,
       "phase": "highlight-system",
-      "depends_on": ["H.1", "H.3", "H.5"],
+      "depends_on": [
+        "H.1",
+        "H.3",
+        "H.5"
+      ],
       "verification": "dotnet test -- interaction, legend, and eagle sense highlight tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.7",
@@ -461,7 +547,10 @@
       "description": "Create src/Game/Inventory/HighlightOverlay.cs -- a Godot Control node that renders a HighlightSet visually. Uses a pool of ColorRect children for edge segments (3px wide lines along cell edges) and cell fills (semi-transparent rectangles). Method: Render(HighlightSet highlights, bool eagleSenseActive) clears existing visuals and redraws. For each CellHighlight: if Edges != None, draw colored edge rectangles on the specified edges; if Edges == None, draw a semi-transparent cell fill. Colors: base from GridConstants.GetAspectColor(aspectId), modulated by severity alpha (Danger=0.9, Warning=0.65, Safe=0.4, Info=0.5). For eagle sense: render a full-size semi-transparent black overlay (0,0,0,0.6) behind all highlights. Add constants to GridConstants.cs: HighlightEdgeWidth=3, DimOverlayColor. Add integration test to test harness: manually create a HighlightSet, render it, screenshot verify colored edges appear.",
       "priority": 38,
       "phase": "highlight-system",
-      "depends_on": ["H.1", "H.6"],
+      "depends_on": [
+        "H.1",
+        "H.6"
+      ],
       "verification": "dotnet build + test harness screenshot shows highlight overlay rendering",
       "status": "pending"
     },
@@ -471,7 +560,11 @@
       "description": "Wire HighlightOverlay into MetaGridView. (1) Add HighlightOverlay as child node at ZIndex 4 (above ghost preview at Z3). Create in Initialize(). (2) Add SetHighlights(HighlightSet) method that forwards to overlay. (3) Add SetEagleSense(bool) method. (4) In UpdateGhostPreview(): when a selected reagent hovers over the grid, compute constraint highlights via HighlightEngine.ComputeConstraintHighlights() and interaction highlights via HighlightEngine.ComputeInteractionHighlights(). Merge into one HighlightSet and render. Clear highlights when selection is cancelled or mouse leaves grid. (5) Add [Signal] HoveredReagentChanged(Reagent? reagent) -- emitted when mouse hovers over a cell occupied by a placed reagent (for item detail panel and legend linking). Detect by checking if hover cell has a placed reagent. (6) Pass reaction rules and StatusThresholds from PuzzleScreen via new setter methods. Add integration test: select Sharp reagent, hover over bag edge, screenshot shows red edge highlights.",
       "priority": 39,
       "phase": "highlight-system",
-      "depends_on": ["H.5", "H.6", "H.7"],
+      "depends_on": [
+        "H.5",
+        "H.6",
+        "H.7"
+      ],
       "verification": "dotnet build + test harness screenshot shows constraint highlights on hover",
       "status": "pending"
     },
@@ -481,7 +574,11 @@
       "description": "Add contextual rejection tooltips when placement fails. In MetaGridView's click handler, when CanPlaceReagent returns false: (1) Call HighlightEngine.GetConstraintViolations() to get structured reasons. (2) Create a small dark-background Label (PanelContainer with Label child) positioned near the click location showing the first violation's Reason text (e.g. 'Sharp: can't place on bag edges'). (3) Auto-hide after 2 seconds via a Timer or _Process countdown. Also hide on next mouse move. (4) Briefly intensify constraint highlights (increase alpha for 0.3s then fade back) to draw attention to the problem cells. (5) Emit a signal RejectionFlash(string aspectId) that PuzzleScreen can forward to the legend panel to flash the relevant aspect entry. Style: dark background (0.1,0.1,0.15,0.9), colored text matching the constraint aspect color, small font. Add integration test: attempt Sharp placement on edge, verify tooltip text appears in screenshot.",
       "priority": 40,
       "phase": "highlight-system",
-      "depends_on": ["H.4", "H.5", "H.8"],
+      "depends_on": [
+        "H.4",
+        "H.5",
+        "H.8"
+      ],
       "verification": "dotnet build + test harness screenshot shows rejection tooltip",
       "status": "pending"
     },
@@ -491,7 +588,9 @@
       "description": "Create src/Game/Inventory/AspectLegendPanel.cs replacing AspectPrimerPanel. A VBoxContainer sidebar showing puzzle-relevant aspects. (1) Header: 'Aspects' in golden text. (2) Per-aspect entry (initially collapsed): colored square (16x16 dev art icon) + aspect name label. On click: expand to show Description from AspectMetadataDatabase + ConstraintText if present + relevant reaction rules (filtered from ReactionRuleDatabase). Entries are collapsible VBoxContainers. (3) SetPuzzleContext(List<ReactionRule> rules, List<Reagent> reagents): filters to only aspects relevant to this puzzle using AspectMetadataDatabase.GetForPuzzle(). (4) Emit [Signal] AspectSelected(string aspectId) when an entry is clicked (for legend-to-grid highlighting). (5) HighlightAspects(HashSet<string> aspectIds) method: visually marks specified aspect entries (green tinted background, slightly larger) when grid reagent is hovered (for grid-to-legend linking). ClearHighlight() resets. (6) FlashAspect(string aspectId) method: briefly brightens an entry (for rejection tooltip linking). Replace _primerPanel with this in PuzzleScreen.BuildUI(). Add integration test: panel shows correct aspects for puzzle, click expands entry.",
       "priority": 41,
       "phase": "highlight-system",
-      "depends_on": ["H.2"],
+      "depends_on": [
+        "H.2"
+      ],
       "verification": "dotnet build + test harness screenshot shows legend panel with expandable entries",
       "status": "pending"
     },
@@ -501,7 +600,10 @@
       "description": "Create src/Game/Inventory/ItemDetailPanel.cs -- a persistent PanelContainer positioned above the legend in the right column. Shows info about the last-hovered item (Book of Hours pattern: always visible, always in the same place). Contents: (1) Enlarged shape preview (16px per cell, vs tray's 8px) with aspect coloring. (2) Reagent name in bold white text. (3) Flavor text in italic gray (from ReagentDefinition.FlavorText, or blank if null). (4) Aspect breakdown: for each unique aspect in the reagent, show colored square + aspect name + 'x' + magnitude. (5) ShowReagent(Reagent?) method: updates display; null shows empty/placeholder state ('Hover over a reagent to inspect'). Wire to: ReagentTrayItem hover (add MouseEntered/MouseExited signals or input events), MetaGridView.HoveredReagentChanged signal (from H.8). Also enhance ReagentTrayItem: add small aspect icon squares (colored 6x6 dots) in an HBox after the name label -- always visible, no text, just color indicators of which aspects the reagent has. Add to PuzzleScreen right column above the legend. Add integration test: hover tray item shows detail, hover grid reagent shows detail, aspect dots visible on tray items.",
       "priority": 42,
       "phase": "highlight-system",
-      "depends_on": ["H.2", "H.8"],
+      "depends_on": [
+        "H.2",
+        "H.8"
+      ],
       "verification": "dotnet build + test harness screenshot shows item detail panel and tray aspect icons",
       "status": "pending"
     },
@@ -511,7 +613,12 @@
       "description": "Wire all new UI components together in PuzzleScreen. (1) Replace _primerPanel with _aspectLegendPanel (from H.10). (2) Add _itemDetailPanel (from H.11) to right column above legend. (3) Wire AspectLegendPanel.AspectSelected signal: compute HighlightEngine.ComputeLegendHighlights(grid, aspectId), call _gridView.SetHighlights(). Click again or click different aspect to update/clear. (4) Wire MetaGridView.HoveredReagentChanged signal to both _itemDetailPanel.ShowReagent() and _aspectLegendPanel.HighlightAspects(reagent aspects). (5) Wire ReagentTrayItem hover to _itemDetailPanel.ShowReagent(). (6) Add eagle sense toggle on Tab key: _eagleSenseActive bool, compute HighlightEngine.ComputeEagleSenseHighlights(), call _gridView.SetEagleSense(true) and _gridView.SetHighlights(). Toggle off clears. (7) Build StatusThresholds snapshot from StatusBarPanel after each placement/removal and pass to MetaGridView for highlight computation. (8) Wire MetaGridView.RejectionFlash signal (from H.9) to _aspectLegendPanel.FlashAspect(). Add comprehensive integration test: full bidirectional flow -- select reagent, highlights appear, place it, legend updates, hover placed reagent, detail panel and legend respond, toggle eagle sense, all interactions visible.",
       "priority": 43,
       "phase": "highlight-system",
-      "depends_on": ["H.6", "H.8", "H.10", "H.11"],
+      "depends_on": [
+        "H.6",
+        "H.8",
+        "H.10",
+        "H.11"
+      ],
       "verification": "dotnet build + test harness verifies full orchestration and eagle sense toggle",
       "status": "pending"
     },
@@ -521,7 +628,10 @@
       "description": "Add constraint highlights directly on ghost preview cells. Implement ComputeGhostConstraintHighlights(MetaGrid grid, Reagent reagent, Vector2I position) in HighlightEngine: same as ComputeConstraintHighlights but produces highlights on the GhostOverlay layer (rendered on top of the ghost cells themselves). When a Sharp reagent ghost hovers over a bag edge, the ghost cell at that position gets red edge markers showing it's an invalid spot. Integrate into MetaGridView.UpdateGhostPreview(): alongside regular constraint highlights (which mark bag edges), compute ghost constraint highlights (which mark the ghost cells). Merge both into the HighlightSet passed to the overlay. Ghost constraints only show when the ghost is in an invalid or warning position. Add integration test: select Sharp reagent, hover over bag edge, ghost cells show red constraint markers. Move to interior, ghost is normal green (no constraint markers).",
       "priority": 44,
       "phase": "highlight-system",
-      "depends_on": ["H.5", "H.8"],
+      "depends_on": [
+        "H.5",
+        "H.8"
+      ],
       "verification": "dotnet build + test harness screenshot shows ghost constraint highlights",
       "status": "pending"
     },
@@ -551,7 +661,9 @@
       "description": "Create src/Core/Puzzle/HintEngine.cs as a static class. Methods: (1) GetSolutionPlacement(PuzzleState state, int reagentIndex) -> Placement? -- looks up state.Solution for matching ReagentIndex, returns null if not found. (2) ComputeDislodgeList(MetaGrid grid, List<Reagent> reagents, Reagent targetReagent, Placement solutionPlacement) -> List<int> -- compute target positions from solution placement (set target rotation, call GetMetaGridPositions), for each position check grid cell occupancy, collect unique occupying reagent indices excluding the target itself. If any occupying reagent IsLocked, include a flag or return special value indicating blocked. (3) PickNextHintTarget(PuzzleState state, HintState hintState, List<Reagent> reagents) -> int? -- auto-pick: first scan for unplaced reagents whose index is in HintedReagentIndices (snap-back candidates, free), return first found. If none, scan for first unplaced reagent whose index is NOT in HintedReagentIndices (new hint, costs budget). Return null if all placed. (4) ExecuteHint(MetaGrid grid, List<Reagent> reagents, int reagentIndex, Placement solutionPlacement) -> HintResult -- if target is currently placed, call grid.RemoveReagent(target). For each reagent in dislodge list: grid.RemoveReagent(), reset Rotation=0, set IsHinted=false. Set target Rotation to solution rotation. Call grid.PlaceReagent(target, solutionPosition). Set target.IsHinted=true. Return success with dislodge list. Does NOT mutate HintState (caller handles budget). Write 14 unit tests: solution lookup valid/invalid, dislodge empty/occupied/locked-blocker/self-exclusion, auto-pick snap-back-priority/new-hint/all-placed, execute placement/dislodge/IsHinted-flag/rotation-set.",
       "priority": 59,
       "phase": "hint-system",
-      "depends_on": ["HINT.1"],
+      "depends_on": [
+        "HINT.1"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes 14 new HintEngine tests",
       "status": "pending"
     },
@@ -561,7 +673,9 @@
       "description": "Add MaxHints (int) field to src/Core/Puzzle/DifficultyParams.cs. Set values by difficulty level: Tutorial1-5 = 3, Easy = 3, Medium = 2, Hard = 1. In src/Core/Puzzle/PuzzleGenerator.cs, after generating the PuzzleState, set puzzle.MaxHints = difficultyParams.MaxHints (one-line addition in the Generate or TryGenerate method). Add unit tests: verify generated puzzles at each difficulty level have correct MaxHints value. Verify existing puzzle generation tests still pass (MaxHints is additive, doesn't change generation logic).",
       "priority": 60,
       "phase": "hint-system",
-      "depends_on": ["HINT.1"],
+      "depends_on": [
+        "HINT.1"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes new MaxHints tests + all existing generation tests",
       "status": "pending"
     },
@@ -571,7 +685,10 @@
       "description": "Add hint system orchestration to src/Game/Inventory/PuzzleScreen.cs. New fields: HintState _hintState, Button _hintButton, Label _hintCountLabel. In InitializeFromPuzzleState(): create _hintState with MaxHints from state. New OnHintPressed() handler: (1) Call HintEngine.PickNextHintTarget() to get reagentIndex. If null, return (no targets). (2) Look up solution placement via HintEngine.GetSolutionPlacement(). (3) Check if this is a snap-back (hintState.WasHinted(reagentIndex)). (4) If NOT snap-back AND !_hintState.HasHintsRemaining, show 'No hints remaining' status text, return. (5) Call HintEngine.ExecuteHint() on the grid. If blocked by locked reagent, show error status. (6) If not snap-back: increment _hintState.HintsUsed, add to HintedReagentIndices. (7) Call ClearSelectionState(), _tray.RefreshDisplay(), _gridView.RefreshDisplay(), _statusBar.Refresh(). (8) Update _hintCountLabel text. In ResetPuzzle(): clear IsHinted on all reagents, preserve _hintState budget (no refund). Button enable/disable: enabled when _hintState.HasHintsRemaining OR any unplaced reagent has WasHinted(). Wire _hintButton.Pressed += OnHintPressed.",
       "priority": 61,
       "phase": "hint-system",
-      "depends_on": ["HINT.2", "HINT.3"],
+      "depends_on": [
+        "HINT.2",
+        "HINT.3"
+      ],
       "verification": "dotnet build succeeds, hint orchestration testable via integration test (HINT.8)",
       "status": "pending"
     },
@@ -581,7 +698,9 @@
       "description": "Add visual indicators for hinted reagents. In src/Game/Inventory/GridConstants.cs: add HintedBorderColor = new Color(0.55f, 0.45f, 0.75f) (soft purple). In src/Game/Inventory/MetaGridView.cs RefreshDisplay(): after coloring occupied cells, check if the occupying reagent's IsHinted flag is true. If so, draw a 2px purple border around the cell (same pattern as bag borders but with HintedBorderColor). In src/Game/Inventory/ReagentTrayItem.cs: add SetHintIndicator(bool wasHinted) method. When wasHinted is true, show a small purple dot (6x6 ColorRect) next to the reagent name, indicating snap-back is available. In ReagentTray.BuildItems(): check PuzzleScreen's HintState (pass as parameter or expose via interface) and call SetHintIndicator for previously-hinted items now back in tray.",
       "priority": 62,
       "phase": "hint-system",
-      "depends_on": ["HINT.4"],
+      "depends_on": [
+        "HINT.4"
+      ],
       "verification": "dotnet build succeeds, visual indicators visible in integration test screenshots",
       "status": "pending"
     },
@@ -591,17 +710,21 @@
       "description": "Add hint usage persistence to src/Core/Save/SaveData.cs. New field: Dictionary<int, int> DailyHintsUsed (maps dateSeed int to hints used count). New methods: RecordDailyHints(int dateSeed, int hintsUsed) stores the count, GetDailyHintsUsed(int dateSeed) returns count or -1 if not recorded. This follows the existing CompletedDailies pattern. The PuzzleScreen (or app-level orchestrator) should call RecordDailyHints when the puzzle is confirmed/won. Add 2 unit tests: round-trip storage (record then retrieve returns correct count), unknown seed returns -1.",
       "priority": 63,
       "phase": "hint-system",
-      "depends_on": ["HINT.1"],
+      "depends_on": [
+        "HINT.1"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes 2 new SaveData hint tests",
       "status": "pending"
     },
     {
       "id": "HINT.7",
       "title": "Hint button UI in PuzzleScreen",
-      "description": "Add the hint button to PuzzleScreen's UI layout. In the BuildUI() method (around line 248 where Confirm/Reset buttons are created): create _hintButton as a styled Button with purple tint (Color(0.4f, 0.35f, 0.55f)), 'Hint' text, same sizing pattern as Confirm/Reset. Add _hintCountLabel as a Label next to the button showing 'N/M' format (e.g., '0/3'). Position in the button bar (HBoxContainer) — place Hint button before or after Reset. When hints exhausted and no snap-backs available, set _hintButton.Disabled = true and apply dimmed styling. When MaxHints == 0 (old puzzles with no hint support), hide the button entirely.",
+      "description": "Add the hint button to PuzzleScreen's UI layout. In the BuildUI() method (around line 248 where Confirm/Reset buttons are created): create _hintButton as a styled Button with purple tint (Color(0.4f, 0.35f, 0.55f)), 'Hint' text, same sizing pattern as Confirm/Reset. Add _hintCountLabel as a Label next to the button showing 'N/M' format (e.g., '0/3'). Position in the button bar (HBoxContainer) \u00e2\u20ac\u201d place Hint button before or after Reset. When hints exhausted and no snap-backs available, set _hintButton.Disabled = true and apply dimmed styling. When MaxHints == 0 (old puzzles with no hint support), hide the button entirely.",
       "priority": 64,
       "phase": "hint-system",
-      "depends_on": ["HINT.4"],
+      "depends_on": [
+        "HINT.4"
+      ],
       "verification": "dotnet build succeeds, hint button visible in integration test screenshots",
       "status": "pending"
     },
@@ -611,7 +734,10 @@
       "description": "Add Test_HintSystem to src/Game/Testing/TestHarness.cs. Test sequence: (1) Generate a puzzle with MaxHints=2 using PuzzleGenerator (Easy difficulty). (2) Verify _hintState starts at 0/2. (3) Call UseHint via PuzzleScreen (or simulate OnHintPressed). Verify: first reagent placed at its solution position, IsHinted=true, hint counter shows 1/2, reagent removed from tray. (4) Remove the hinted reagent. Verify: returns to tray, IsHinted cleared on the reagent. (5) Press hint again. Verify: snap-back places same reagent at solution position, counter still 1/2 (no budget cost). (6) Press hint. Verify: second unplaced reagent hinted, counter shows 2/2. (7) If possible, test dislodge scenario: manually place a reagent where the next hint target needs to go, then press hint, verify the manually-placed reagent returns to tray. (8) Screenshot at key states. Output [PASS]/[FAIL] markers.",
       "priority": 65,
       "phase": "hint-system",
-      "depends_on": ["HINT.5", "HINT.7"],
+      "depends_on": [
+        "HINT.5",
+        "HINT.7"
+      ],
       "verification": "Test harness reports Test_HintSystem PASS, screenshots show hint progression",
       "status": "pending"
     },
@@ -631,7 +757,9 @@
       "description": "Update three existing docs to cross-reference the new puzzle-design.md. (1) docs/mvp-specification.md: add 'Hint System' entry to the Nice-to-Have section with brief description. Add cross-reference to docs/puzzle-design.md for future puzzle types. (2) docs/game-overview.md: add cross-reference to docs/puzzle-design.md after the 7-stage roadmap (around line 84), noting that detailed puzzle type designs across all tiers are in that doc. (3) docs/chemistry-system.md: replace the brief 'Future: Brewing and Mixing (Aspirational)' section (around line 307) with a cross-reference to puzzle-design.md sections 6 and 7 where destruction, transmutation, and actual alchemy are documented in detail.",
       "priority": 67,
       "phase": "documentation",
-      "depends_on": ["DOC.1"],
+      "depends_on": [
+        "DOC.1"
+      ],
       "verification": "All three docs contain accurate cross-references to puzzle-design.md",
       "status": "pending"
     }

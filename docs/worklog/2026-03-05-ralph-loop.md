@@ -64,3 +64,15 @@ extraction, H.5 HighlightEngine + StatusThresholds. All clean — no P0-P2 issue
 constraint refactoring (private bool → public List<ConstraintViolation>) is well-executed with
 thin expression-body wrappers preserving the CanPlaceReagent API. ContiguousBoundary is clean
 with proper IReadOnlyCollection input. 445 tests passing.
+
+## H.6: HighlightEngine interaction, legend, and eagle sense methods
+The highlight engine now knows about chemistry interactions, not just physical constraints.
+ComputeInteractionHighlights derives reactive aspect pairs from Adjacent rules — 2-trigger rules
+like Sharp+Fragile yield direct pairs, while the single-trigger Volatile rule generates Hot and
+Cold pairs for the net-hot mechanic. This means the highlight system automatically adapts when
+new reaction rules are added. Eagle sense is the "show me everything" mode — it merges interaction
+highlights from all placed reagents into one view. Legend highlights find all cells of a given
+aspect for the upcoming aspect legend panel (H.10). Design choice: severity defaults to Warning
+for aspects without StatusThresholds entries (Sharp, Fragile), while tracked aspects (Hot, Cold,
+Toxic) get severity from their cumulative threshold level.
+Commit: 9668f51
