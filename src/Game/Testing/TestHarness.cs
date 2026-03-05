@@ -65,6 +65,7 @@ public partial class TestHarness : Control
         await Test_WinLossEvaluation();
         await Test_GeneratedPuzzle();
         await Test_TutorialFlow();
+        await Test_DailyPuzzle();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -682,6 +683,65 @@ public partial class TestHarness : Control
         _puzzleScreen = new PuzzleScreen();
         AddChild(_puzzleScreen);
         await WaitFrames(3);
+    }
+
+    private async Task Test_DailyPuzzle()
+    {
+        BeginTest("daily_puzzle");
+
+        // Generate a daily puzzle for a fixed date
+        var date = new System.DateTime(2026, 3, 4);
+        var state = DailyPuzzleManager.GenerateDailyPuzzle(date);
+        int seed = DailyPuzzleManager.DateToSeed(date);
+        var difficulty = DailyPuzzleManager.GetDailyDifficulty(date);
+        var puzzleType = DailyPuzzleManager.GetDailyPuzzleType(seed);
+
+        Log($"[STATE] daily_seed={state.Seed} difficulty={difficulty} puzzle_type={puzzleType}");
+        Log($"[STATE] daily_bags={state.Bags.Count} daily_reagents={state.Reagents.Count}");
+
+        // Load into a new PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        int bags = _puzzleScreen.Grid.PlacedBags.Count;
+        int totalReagents = _puzzleScreen.TrayReagents.Count;
+        bool bagsMatch = bags == state.Bags.Count;
+        bool reagentsMatch = totalReagents == state.Reagents.Count;
+
+        // Apply the known solution
+        int placedCount = _puzzleScreen.Grid.PlacedReagents.Count; // pre-placed (locked)
+        foreach (var placement in state.Solution)
+        {
+            var reagent = _puzzleScreen.TrayReagents[placement.ReagentIndex];
+            if (reagent.IsPlaced) continue;
+
+            _puzzleScreen.SelectReagent(placement.ReagentIndex);
+            for (int r = 0; r < placement.Rotation; r++)
+                _puzzleScreen.RotateSelected();
+            bool placed = _puzzleScreen.PlaceSelectedAt(placement.PositionCol, placement.PositionRow);
+            if (placed) placedCount++;
+        }
+
+        bool allPlaced = placedCount == totalReagents;
+        Log($"[STATE] daily_placed={placedCount} (expected={totalReagents})");
+
+        // Confirm — should win
+        ConfirmResult result = ConfirmResult.None;
+        if (allPlaced)
+        {
+            result = _puzzleScreen.ConfirmPuzzle();
+        }
+        Log($"[STATE] daily_confirm={result} (expected=Win)");
+
+        await CaptureScreenshot("20_daily_puzzle.png");
+
+        bool pass = bagsMatch && reagentsMatch && allPlaced && result == ConfirmResult.Win;
+        EndTest("daily_puzzle", pass, pass ? null
+            : $"bags={bagsMatch} reagents={reagentsMatch} allPlaced={allPlaced}(placed={placedCount}/{totalReagents}) result={result}");
     }
 
     private async Task Test_RenderFinal()
