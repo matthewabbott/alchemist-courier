@@ -279,6 +279,10 @@ next lesson's data. Integration test applies lesson 1's solution programmaticall
 win, advances, and verifies lesson 2 loads with different hint text and a new PuzzleScreen.
 Commit: 9a993b6
 
+## Code Review (g)
+Reviewed tasks 4.3–4.5 (TutorialLesson/TutorialData, TutorialScreen, DailyPuzzleManager, PuzzleConfirmed event).
+All code is clean — no P0/P1/P2 issues. Core/Game boundary respected, event wiring is correct, tests are thorough (14 new unit + 1 integration). Report: docs/reviews/code-review-2026-03-04g.md
+
 ## 4.5: Add daily puzzle mode
 Built the DailyPuzzleManager — a lightweight static class that converts dates into deterministic
 puzzles. The seed is simply YYYYMMDD as an integer, difficulty rotates on a 3-day cycle using
@@ -288,3 +292,15 @@ level, per the two-dimensional complexity model. A Hard daily is hard because it
 reagents with tight fit, not because it introduces Sharp+Fragile. GenerateToday() provides the
 runtime convenience method. The whole thing is 77 lines of pure C# with no Godot dependencies.
 Commit: e029128
+
+## 4.6: Add save system
+The final game-flow phase task: persistent save data. SaveData is intentionally minimal per the
+architecture review's guidance — just tutorial progress (highest lesson completed), daily completion
+history (YYYYMMDD date list), and streak tracking. The streak logic handles edge cases: month
+boundaries work via DateTime arithmetic, duplicate completions are no-ops, and GetEffectiveStreak()
+distinguishes a "live" streak (played today or yesterday) from a stale one. SaveManager provides
+both file-based persistence (desktop) and static Serialize/Deserialize methods for future web
+localStorage swap — no Godot dependency needed since System.Text.Json handles serialization and
+System.IO handles file ops. The graceful degradation pattern (corrupt JSON → fresh SaveData) means
+the game never crashes on a bad save file.
+Commit: c4d78c9

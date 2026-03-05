@@ -258,3 +258,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: e029128
 - Notes: Created DailyPuzzleManager static class in src/Core/Puzzle/. DateToSeed(DateTime) converts to YYYYMMDD integer. GetDailyDifficulty uses day-of-year % 3 to rotate Easy/Medium/Hard. GetDailyPuzzleType uses seed % 3 to vary FitAllSafely/MaximizeValue/MeetRequirement. GenerateDailyPuzzle wires these together through PuzzleGenerator. All daily puzzles use Simple mechanical depth via DifficultyParams.ForLevel(). GenerateToday() convenience method for runtime use. 14 new tests: seed format, determinism (same date = same puzzle), different dates diverge, all difficulties are Simple complexity, 3-day difficulty rotation, puzzle type variation, solvability across 10 dates, correct seed/difficulty/type on generated puzzles. All 323 tests pass (309 existing + 14 new).
+
+## Code Review (g) — 2026-03-04
+- Reviewed commits: 8c571c7..bc59097 (tasks 4.3–4.5)
+- Findings: 0 (P0: 0, P1: 0, P2: 0)
+- Fixed: 0, Tasks created: 0
+
+## 4.6 — Add save system
+- Date: 2026-03-04
+- Commit: c4d78c9
+- Notes: Created SaveData model and SaveManager in src/Core/Save/. SaveData tracks tutorial progress (highest completed lesson number), daily puzzle completions (List<int> of YYYYMMDD dates), streak count, and last completed date. CompleteDailyPuzzle handles streak logic: consecutive days extend streak, gaps reset to 1, duplicate dates are no-ops, older dates don't update LastCompletedDate. GetEffectiveStreak(DateTime today) returns 0 if streak is broken (>1 day gap from today). SaveManager uses System.Text.Json for file-based persistence with static Serialize/Deserialize methods for future web localStorage support. Load() gracefully handles missing files and corrupt JSON by returning fresh SaveData. 33 new tests: 20 SaveData tests (tutorial progression, streak calculation, month boundaries, long streaks, duplicate dates, effective streak staleness) + 13 SaveManager tests (file round-trip, corrupt JSON, directory creation, overwrite, delete). All 356 tests pass (323 existing + 33 new).

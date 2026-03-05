@@ -351,7 +351,7 @@
       "phase": "game-flow",
       "depends_on": ["4.4", "4.5"],
       "verification": "dotnet test -- save system round-trip tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R-6",
