@@ -350,3 +350,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: d0c4e68..c28c85e (H.6, H.7, H.8)
 - Findings: 3 (P0: 0, P1: 0, P2: 1, P3: 2)
 - Fixed: 1, Tasks created: 0
+
+## H.9 — Rejection tooltip display
+- Date: 2026-03-05
+- Commit: 354e7af
+- Notes: Added contextual rejection tooltip to MetaGridView that appears when a player clicks to place a reagent at an invalid position. When CanPlaceReagent fails and HighlightEngine.GetConstraintViolations returns violations, shows the first violation's Reason text in a dark-background PanelContainer positioned near the click cell. Text colored by the constraint's aspect color (e.g., Sharp violations in gray). Tooltip auto-hides after 2 seconds via _Process countdown or immediately on mouse move. Constraint highlights flash briefly (0.3s) by setting HighlightOverlay.Modulate to 1.5x brightness. Added RejectionFlash signal for future AspectLegendPanel linking. Refactored left-click handling into HandleLeftClick() for both real clicks and test access via SimulateLeftClick(). Added LastRejectionReason and IsTooltipVisible properties for testing. Integration test verifies: Sharp reagent on non-Reinforced bag edge → tooltip visible with non-empty reason text. All 461 unit tests pass.

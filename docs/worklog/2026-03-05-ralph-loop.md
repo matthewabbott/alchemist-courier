@@ -104,3 +104,12 @@ Volatile? Interaction highlights on the neighbor cells. PuzzleScreen builds Stat
 the status bar after each placement so highlight severity reflects the current cumulative state.
 Added HoveredReagentChanged signal for future use by the item detail panel (H.11) and legend (H.10).
 Commit: d8474fe
+
+## H.9: Rejection tooltip display
+The missing UX feedback for "why can't I place here?" — when a player clicks an invalid position,
+a tooltip now appears near the cursor showing the constraint violation reason (e.g. "Sharp: can't
+place on bag edges") with text colored by the constraint's aspect. The tooltip auto-hides after 2
+seconds or on mouse move, and constraint highlights flash briefly to draw attention. Refactored
+HandleMouseClick to extract HandleLeftClick for both real input and programmatic test access via
+SimulateLeftClick(). Added RejectionFlash signal as infrastructure for H.10's legend panel linking.
+Commit: 354e7af
