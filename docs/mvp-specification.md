@@ -39,6 +39,9 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [ ] Non-rectangular bag shapes (L-shapes, irregular)
 
 ### Explicitly NOT in MVP
+
+See `docs/roadmap.md` for where each of these features falls in the post-MVP roadmap.
+
 - Venture/encounter map
 - Stamina system
 - Permanent progression

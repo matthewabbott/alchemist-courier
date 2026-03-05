@@ -15,6 +15,8 @@ Like Breath of the Wild's chemistry engine, the aspect system defines general be
 
 ## Complexity Model
 
+See `docs/roadmap.md` for how these complexity tiers map to the development roadmap (MVP, Post-MVP, Aspirational).
+
 Puzzle complexity has **two independent dimensions**:
 
 ### Dimension 1: Scale (size of the puzzle)

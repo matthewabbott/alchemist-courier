@@ -83,6 +83,8 @@ Each stage builds on the previous:
 6. **Regions & Story** — Multiple biomes, narrative, NPC interactions
 7. **Advanced Alchemy** — Multiple schools of alchemy, complex interactions, brewing/mixing
 
+See `docs/roadmap.md` for the complete feature roadmap with tier classifications and detailed cross-references.
+
 ## Key Design Pillars
 
 1. **The puzzle IS the game.** Every other system exists to create interesting puzzle scenarios. If the inventory tetris isn't fun, nothing else matters.
@@ -96,6 +98,7 @@ Each stage builds on the previous:
 - `docs/core-mechanics.md` — Grid system, bags, reagents, adjacency rules
 - `docs/chemistry-system.md` — Aspect schools, interaction rules, the chemistry engine
 - `docs/mvp-specification.md` — Daily puzzle MVP specification
+- `docs/roadmap.md` — Complete feature roadmap (MVP through DLC) with tier classifications
 - `docs/venture-and-progression.md` — Post-MVP venture loop, stamina, quests, base
 - `docs/art-and-style.md` — Visual direction, RetroDiffusion, UI, audio
 - `docs/architecture.md` — Technical architecture, data models, C# patterns

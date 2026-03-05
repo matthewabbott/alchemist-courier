@@ -140,6 +140,7 @@ Review agents can fix small issues directly or create priority-0 tasks in `prd.j
 Each iteration: select role → run prompt → agent works → exit. Implementation iterations: read PRD → pick task → branch → implement → test → commit → merge to dev → mark done. Review iterations: check recent work → fix or flag issues → write report. Fresh context each iteration. Progress persists in git + `prd.json` + `progress.md`.
 
 ## Key Design Docs
+- `docs/roadmap.md` — **Start here.** Complete feature roadmap (MVP through DLC) with tier classifications and cross-references to all other docs
 - `docs/architecture.md` — Data models, project structure, technical decisions
 - `docs/core-mechanics.md` — Grid, bags, reagents, adjacency
 - `docs/chemistry-system.md` — Aspects, schools, reaction rules

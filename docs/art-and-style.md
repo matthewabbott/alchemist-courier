@@ -63,7 +63,7 @@ When space is limited, prioritize in this order:
 
 ## Character Representation
 
-The character evolves across development stages:
+The character evolves across development stages. See `docs/roadmap.md` for the full feature roadmap and tier definitions.
 
 ### MVP: Abstract Status Panel
 - No visible character during puzzle gameplay

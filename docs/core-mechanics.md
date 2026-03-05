@@ -280,6 +280,8 @@ All controls are fully customizable.
 
 ## Protrusion System (Aspirational)
 
+See `docs/roadmap.md` for tier classification of aspirational mechanics including protrusion.
+
 Some bags have a "top" or "opening" that allows items to stick out beyond the bag's cell boundaries. This is a post-MVP mechanic noted here for future reference.
 
 ### Basic Rules
