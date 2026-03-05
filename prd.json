@@ -552,7 +552,7 @@
         "H.6"
       ],
       "verification": "dotnet build + test harness screenshot shows highlight overlay rendering",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.8",

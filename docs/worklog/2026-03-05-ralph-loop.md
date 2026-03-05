@@ -76,3 +76,14 @@ aspect for the upcoming aspect legend panel (H.10). Design choice: severity defa
 for aspects without StatusThresholds entries (Sharp, Fragile), while tracked aspects (Hot, Cold,
 Toxic) get severity from their cumulative threshold level.
 Commit: 9668f51
+
+## H.7: HighlightOverlay Godot renderer
+The first Godot-side piece of the highlight system: a Control node that turns HighlightSet data
+into visible colored rectangles. Edge highlights render as thin 3px lines along cell boundaries
+(using CellEdge flags), while cells with no edges get semi-transparent fills. Colors come from
+the existing GetAspectColor() mapping, modulated by severity alpha — Danger is nearly opaque
+at 0.9 while Safe is subtle at 0.4. Eagle sense mode adds a dark overlay behind everything to
+make highlights pop. The overlay renders layer-by-layer (Constraint → Interaction → Legend →
+GhostOverlay) and deduplicates fills per position. This is the bridge between the pure-Core
+highlight engine (H.5-H.6) and the visual game — H.8 will wire it into MetaGridView.
+Commit: 8b22c2a
