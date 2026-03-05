@@ -16,7 +16,14 @@ public static class DemoPuzzle
         var pouch = new Bag(BagDefinition.SmallPouch); // 3x3 at (1,1)
         grid.PlaceBag(pouch, new Vector2I(1, 1));
 
-        var satchel = new Bag(BagDefinition.Satchel); // 4x3 at (4,1)
+        // Reinforced satchel allows Sharp reagents on edge cells
+        var satchelDef = new BagDefinition("satchel", "Satchel", new bool[,]
+        {
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true },
+        }, new[] { BagPropertyType.Reinforced });
+        var satchel = new Bag(satchelDef); // 4x3 Reinforced at (4,1)
         grid.PlaceBag(satchel, new Vector2I(4, 1));
 
         // Create reagents with varied aspects for color variety

@@ -160,8 +160,9 @@ public partial class TestHarness : Control
     {
         BeginTest("place_poison_fang");
 
-        // Poison Fang (index 2) is an L-shape — place at (1,1) inside the SmallPouch
-        bool placed = TestActions.SelectAndPlace(_puzzleScreen, 2, 1, 1);
+        // Poison Fang (index 2) is an L-shape with Sharp — place at (6,1) inside the Reinforced Satchel
+        // (Sharp reagents can't sit on edge cells of non-Reinforced bags, so SmallPouch won't work)
+        bool placed = TestActions.SelectAndPlace(_puzzleScreen, 2, 6, 1);
         PrintState();
         await CaptureScreenshot("05_place_poison_fang.png");
 
@@ -253,17 +254,19 @@ public partial class TestHarness : Control
         int hotAfterPebble = bar.GetAspectTotal("hot");
         Log($"[STATE] hot_after_fire_pebble={hotAfterPebble} (expected=2)");
 
-        // Place Blast Jelly (index 3) — has 1 hot cell + 3 volatile cells — at (4,1) in Satchel
-        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);
-
-        int hotAfterJelly = bar.GetAspectTotal("hot");
-        Log($"[STATE] hot_after_blast_jelly={hotAfterJelly} (expected=3)");
-
-        // Place Poison Fang (index 2) — has 3 toxic + 1 sharp — at (1,1) in SmallPouch
-        TestActions.SelectAndPlace(_puzzleScreen, 2, 1, 1);
+        // Place Poison Fang (index 2) — has 3 toxic + 1 sharp — at (4,1) in Reinforced Satchel
+        // (Sharp reagents need Reinforced bags to sit on edge cells)
+        TestActions.SelectAndPlace(_puzzleScreen, 2, 4, 1);
 
         int toxicAfter = bar.GetAspectTotal("toxic");
         Log($"[STATE] toxic_after_poison_fang={toxicAfter} (expected=3)");
+
+        // Place Blast Jelly (index 3) — has 1 hot cell + 3 volatile cells — at (5,1) in Satchel
+        // (placed after Poison Fang to avoid overlap; T-shape at (5,1) occupies (5,1),(6,1),(7,1),(6,2))
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 5, 1);
+
+        int hotAfterJelly = bar.GetAspectTotal("hot");
+        Log($"[STATE] hot_after_blast_jelly={hotAfterJelly} (expected=3)");
 
         await CaptureScreenshot("11_status_bar.png");
 
