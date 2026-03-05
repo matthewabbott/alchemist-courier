@@ -37,6 +37,11 @@ public partial class PuzzleScreen : Control
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
     private List<ReactionResult> _lastReactions = new();
 
+    /// <summary>
+    /// Set before adding to scene tree to load a generated puzzle instead of the demo.
+    /// </summary>
+    public PuzzleState? PuzzleData { get; set; }
+
     // --- Public state inspection ---
     public MetaGrid Grid => _metaGrid;
     public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
@@ -54,14 +59,43 @@ public partial class PuzzleScreen : Control
         AnchorsPreset = (int)LayoutPreset.FullRect;
         SetAnchorsPreset(LayoutPreset.FullRect);
 
-        // Create demo puzzle
-        var (grid, reagents) = DemoPuzzle.Create();
-        _metaGrid = grid;
-        _trayReagents = reagents;
+        if (PuzzleData != null)
+        {
+            InitializeFromPuzzleState(PuzzleData);
+        }
+        else
+        {
+            var (grid, reagents) = DemoPuzzle.Create();
+            _metaGrid = grid;
+            _trayReagents = reagents;
+        }
 
         BuildUI();
         WireSignals();
         UpdateStatus("Select a reagent from the tray, then click the grid to place it.");
+    }
+
+    private void InitializeFromPuzzleState(PuzzleState state)
+    {
+        _puzzleType = state.PuzzleType;
+        _metaGrid = PuzzleSolver.ReconstructGrid(state);
+        _trayReagents = PuzzleSolver.ReconstructReagents(state);
+
+        // Pre-place locked reagents at their solution positions
+        foreach (var placement in state.Solution)
+        {
+            if (placement.ReagentIndex < 0 || placement.ReagentIndex >= _trayReagents.Count)
+                continue;
+            var reagent = _trayReagents[placement.ReagentIndex];
+            if (!reagent.IsLocked) continue;
+
+            reagent.Rotation = placement.Rotation;
+            var pos = new Core.Grid.Vector2I(placement.PositionCol, placement.PositionRow);
+            if (_metaGrid.CanPlaceReagent(reagent, pos))
+            {
+                _metaGrid.PlaceReagent(reagent, pos);
+            }
+        }
     }
 
     private void BuildUI()
@@ -316,10 +350,11 @@ public partial class PuzzleScreen : Control
             _reagentTray.ClearSelection();
         }
 
-        // Remove all placed reagents
-        while (_metaGrid.PlacedReagents.Count > 0)
+        // Remove all non-locked placed reagents
+        for (int i = _metaGrid.PlacedReagents.Count - 1; i >= 0; i--)
         {
-            var reagent = _metaGrid.PlacedReagents[0];
+            var reagent = _metaGrid.PlacedReagents[i];
+            if (reagent.IsLocked) continue;
             _metaGrid.RemoveReagent(reagent);
             reagent.Rotation = 0;
         }

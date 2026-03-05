@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using AlchemistCourier.Game.Inventory;
+using AlchemistCourier.Core.Puzzle;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Testing;
@@ -62,6 +63,7 @@ public partial class TestHarness : Control
         await Test_StatusBar();
         await Test_ConfirmAndReset();
         await Test_WinLossEvaluation();
+        await Test_GeneratedPuzzle();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -506,6 +508,82 @@ public partial class TestHarness : Control
         bool pass = lossPass && winPass;
         EndTest("win_loss_evaluation", pass, pass ? null
             : $"lossPass={lossPass}(placed={placedForLoss} result={lossResult} reactions={reactionCount} explosion={hasExplosion}) winPass={winPass}(placed={placedForWin} result={winResult} reactions={winReactionCount})");
+    }
+
+    private async Task Test_GeneratedPuzzle()
+    {
+        BeginTest("generated_puzzle");
+
+        // Generate a puzzle from a fixed seed
+        var generator = new PuzzleGenerator();
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+        var state = generator.Generate(42, difficulty);
+
+        Log($"[STATE] generated_bags={state.Bags.Count} generated_reagents={state.Reagents.Count} seed={state.Seed}");
+
+        // Count locked reagents
+        int lockedCount = 0;
+        foreach (var r in state.Reagents)
+        {
+            if (r.IsLocked) lockedCount++;
+        }
+        Log($"[STATE] locked_reagents={lockedCount}");
+
+        // Remove the demo PuzzleScreen and create one from PuzzleState
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Verify grid was reconstructed
+        int bags = _puzzleScreen.Grid.PlacedBags.Count;
+        int prePlaced = _puzzleScreen.Grid.PlacedReagents.Count;
+        int totalReagents = _puzzleScreen.TrayReagents.Count;
+        Log($"[STATE] puzzle_bags={bags} pre_placed={prePlaced} total_reagents={totalReagents}");
+
+        bool bagsMatch = bags == state.Bags.Count;
+        bool reagentsMatch = totalReagents == state.Reagents.Count;
+        bool lockedMatch = prePlaced == lockedCount;
+
+        // Place the solution reagents (skip locked ones — already placed)
+        int placedCount = prePlaced;
+        foreach (var placement in state.Solution)
+        {
+            var reagent = _puzzleScreen.TrayReagents[placement.ReagentIndex];
+            if (reagent.IsPlaced) continue; // Already placed (locked)
+
+            _puzzleScreen.SelectReagent(placement.ReagentIndex);
+            for (int r = 0; r < placement.Rotation; r++)
+                _puzzleScreen.RotateSelected();
+            bool placed = _puzzleScreen.PlaceSelectedAt(placement.PositionCol, placement.PositionRow);
+            if (placed) placedCount++;
+        }
+        Log($"[STATE] placed_from_solution={placedCount} (expected={totalReagents})");
+
+        bool allPlaced = placedCount == totalReagents;
+
+        // Confirm — should win since we applied the known solution
+        ConfirmResult result = ConfirmResult.None;
+        if (allPlaced)
+        {
+            result = _puzzleScreen.ConfirmPuzzle();
+            Log($"[STATE] confirm_result={result} (expected=Win)");
+        }
+
+        await CaptureScreenshot("17_generated_puzzle.png");
+
+        // Reset and verify locked reagents survive
+        _puzzleScreen.ResetPuzzle();
+        int afterReset = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_after_reset={afterReset} (expected={lockedCount})");
+        bool resetKeepsLocked = afterReset == lockedCount;
+
+        bool pass = bagsMatch && reagentsMatch && lockedMatch && allPlaced
+                 && result == ConfirmResult.Win && resetKeepsLocked;
+        EndTest("generated_puzzle", pass, pass ? null
+            : $"bags={bagsMatch} reagents={reagentsMatch} locked={lockedMatch} allPlaced={allPlaced} result={result} resetKeepsLocked={resetKeepsLocked}(after={afterReset} expected={lockedCount})");
     }
 
     private async Task Test_RenderFinal()
