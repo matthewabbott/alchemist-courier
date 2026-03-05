@@ -352,7 +352,11 @@ public static class ChemistryEngine
         // Stable buffering raises, Catalytic lowers the effective threshold
         int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
         int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
-        int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
+
+        // Medicinal passively raises cumulative thresholds (whole inventory, not adjacency-based)
+        int medicinalBuffer = GetTotalAspectMagnitude(grid, AspectIds.Medicinal);
+
+        int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer + medicinalBuffer - catalyticReduction);
 
         if (totalMagnitude >= effectiveThreshold)
         {
@@ -400,6 +404,28 @@ public static class ChemistryEngine
             }
         }
 
+        return total;
+    }
+
+    /// <summary>
+    /// Compute the total magnitude of a given aspect across the entire inventory,
+    /// skipping cells that are suppressed (e.g., in Null bags).
+    /// Used for passive effects like Medicinal that don't require adjacency.
+    /// </summary>
+    private static int GetTotalAspectMagnitude(MetaGrid grid, string aspectId)
+    {
+        int total = 0;
+        foreach (var reagent in grid.PlacedReagents)
+        {
+            foreach (var pos in reagent.GetCurrentMetaGridPositions())
+            {
+                if (IsAspectSuppressed(grid, pos))
+                    continue;
+
+                int mag = reagent.GetAspectsAtMetaGridPosition(pos).GetMagnitude(aspectId);
+                total += mag;
+            }
+        }
         return total;
     }
 

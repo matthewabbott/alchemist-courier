@@ -1631,4 +1631,178 @@ public class ChemistryEngineTests
 
         Assert.Contains(results, r => r.Type == ReactionResultType.ToxicCloud);
     }
+
+    // --- Medicinal passive threshold reduction tests ---
+
+    [Fact]
+    public void Evaluate_MedicinalRaisesOverheatingThreshold()
+    {
+        // 4 Hot (magnitude=4) meets overheating threshold (4). Medicinal(1) raises to 5.
+        // 4 < 5 → no overheating
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var med = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var grid = SetupGrid(5, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (med, new Vector2I(4, 4))); // Not adjacent — Medicinal is passive/global
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_MedicinalPreventsPoisoning()
+    {
+        // 3 Toxic (magnitude=3) meets poisoning threshold (3). Medicinal(1) raises to 4.
+        // 3 < 4 → no poisoning
+        var t1 = MakeSingleCellReagent("t1", Aspect.Toxic());
+        var t2 = MakeSingleCellReagent("t2", Aspect.Toxic());
+        var t3 = MakeSingleCellReagent("t3", Aspect.Toxic());
+        var med = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var grid = SetupGrid(5, 5,
+            (t1, new Vector2I(0, 0)),
+            (t2, new Vector2I(1, 0)),
+            (t3, new Vector2I(2, 0)),
+            (med, new Vector2I(4, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Poisoning);
+    }
+
+    [Fact]
+    public void Evaluate_MultipleMedicinalStack()
+    {
+        // 5 Hot (magnitude=5) exceeds overheating threshold (4).
+        // Two Medicinal(1) reagents raise threshold to 6. 5 < 6 → no overheating
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var h5 = MakeSingleCellReagent("h5", Aspect.Hot());
+        var med1 = MakeSingleCellReagent("med1", Aspect.Medicinal());
+        var med2 = MakeSingleCellReagent("med2", Aspect.Medicinal());
+
+        var grid = SetupGrid(7, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (h5, new Vector2I(4, 0)),
+            (med1, new Vector2I(5, 4)),
+            (med2, new Vector2I(6, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = 4 + 0 + 2 - 0 = 6, magnitude = 5, 5 < 6 → no overheating
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_MedicinalDoesNotAffectAdjacentReactions()
+    {
+        // Medicinal should NOT affect Adjacent-tier reactions (e.g., explosions)
+        // Hot + Volatile adjacent should still explode even with Medicinal in inventory
+        var hot = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var vol = MakeSingleCellReagent("vol1", Aspect.Volatile());
+        var med = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(0, 0)),
+            (vol, new Vector2I(1, 0)),
+            (med, new Vector2I(4, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Explosion);
+    }
+
+    [Fact]
+    public void Evaluate_MedicinalDoesNotAffectSameBagReactions()
+    {
+        // Medicinal should NOT affect SameBag-tier reactions (e.g., neutralization)
+        // Hot + Cold in same bag should still neutralize even with Medicinal
+        var hot = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var cold = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var med = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var grid = SetupGrid(5, 5,
+            (hot, new Vector2I(0, 0)),
+            (cold, new Vector2I(2, 0)),
+            (med, new Vector2I(4, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Neutralization);
+    }
+
+    [Fact]
+    public void Evaluate_MedicinalInNullBag_Suppressed()
+    {
+        // Medicinal in a Null bag should not contribute to threshold relief
+        // 4 Hot meets overheating threshold (4), Medicinal in Null bag has no effect
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var med = MakeSingleCellReagent("med1", Aspect.Medicinal());
+
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 5));
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 1),
+            new[] { BagPropertyType.Null });
+
+        var grid = new MetaGrid(6, 1);
+        grid.PlaceBag(new Bag(normalBagDef), new Vector2I(0, 0));
+        grid.PlaceBag(new Bag(nullBagDef), new Vector2I(5, 0));
+        grid.PlaceReagent(h1, new Vector2I(0, 0));
+        grid.PlaceReagent(h2, new Vector2I(1, 0));
+        grid.PlaceReagent(h3, new Vector2I(2, 0));
+        grid.PlaceReagent(h4, new Vector2I(3, 0));
+        grid.PlaceReagent(med, new Vector2I(5, 0)); // In Null bag
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Medicinal is suppressed — overheating still fires
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_MedicinalHighMagnitude_PreventsMultipleCumulative()
+    {
+        // Medicinal(3) raises all cumulative thresholds by 3
+        // Hot=4 (threshold 4+3=7), Toxic=3 (threshold 3+3=6) — both prevented
+        var h1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var h2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var h3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var h4 = MakeSingleCellReagent("h4", Aspect.Hot());
+        var t1 = MakeSingleCellReagent("t1", Aspect.Toxic());
+        var t2 = MakeSingleCellReagent("t2", Aspect.Toxic());
+        var t3 = MakeSingleCellReagent("t3", Aspect.Toxic());
+        var def = new ReagentDefinition("med1", "med1", new bool[,] { { true } },
+            aspectsPerCell: new List<AspectSet> { new AspectSet(Aspect.Medicinal(3)) });
+        var med = new Reagent(def);
+
+        var grid = SetupGrid(8, 5,
+            (h1, new Vector2I(0, 0)),
+            (h2, new Vector2I(1, 0)),
+            (h3, new Vector2I(2, 0)),
+            (h4, new Vector2I(3, 0)),
+            (t1, new Vector2I(4, 0)),
+            (t2, new Vector2I(5, 0)),
+            (t3, new Vector2I(6, 0)),
+            (med, new Vector2I(7, 4)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Poisoning);
+    }
 }
