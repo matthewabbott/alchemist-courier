@@ -216,6 +216,363 @@ public class HighlightEngineTests
         Assert.True(highlights.IsEmpty);
     }
 
+    // --- Interaction highlight helpers ---
+
+    private static ReagentDefinition CreateAspectReagentDef(string id, string name, bool[,] shape, params Aspect[] aspects)
+    {
+        int cellCount = 0;
+        for (int r = 0; r < shape.GetLength(0); r++)
+            for (int c = 0; c < shape.GetLength(1); c++)
+                if (shape[r, c]) cellCount++;
+
+        var aspectSets = new List<AspectSet>();
+        for (int i = 0; i < cellCount; i++)
+            aspectSets.Add(new AspectSet(aspects));
+        return new ReagentDefinition(id, name, shape, aspectsPerCell: aspectSets);
+    }
+
+    private static List<ReactionRule> MvpRules() => ReactionRuleDatabase.GetMvpRules();
+
+    // --- ComputeInteractionHighlights tests ---
+
+    [Fact]
+    public void Interaction_VolatileAdjacentToHot_HighlightsHotCellWithHotAspect()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place a Hot reagent at (1,1)
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(hotReagent, new Vector2I(1, 1));
+
+        // Volatile reagent at (0,1) — adjacent to Hot on the right
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, volatileReagent, new Vector2I(0, 1), MvpRules(), null);
+
+        Assert.False(highlights.IsEmpty);
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+
+        var h = interactions[0];
+        Assert.Equal(new Vector2I(1, 1), h.Position);
+        Assert.Equal(AspectIds.Hot, h.AspectId);
+    }
+
+    [Fact]
+    public void Interaction_VolatileAdjacentToCold_HighlightsColdCell()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var coldReagent = new Reagent(CreateAspectReagentDef("cold_r", "Ice", new bool[,] { { true } }, Aspect.Cold()));
+        grid.PlaceReagent(coldReagent, new Vector2I(1, 1));
+
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, volatileReagent, new Vector2I(0, 1), MvpRules(), null);
+
+        Assert.False(highlights.IsEmpty);
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+        Assert.Equal(AspectIds.Cold, interactions[0].AspectId);
+    }
+
+    [Fact]
+    public void Interaction_SharpAdjacentToFragile_HighlightsFragileCell()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var fragileReagent = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+        grid.PlaceReagent(fragileReagent, new Vector2I(1, 1));
+
+        var sharpReagent = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // Place Sharp at (2,1) — adjacent to Fragile on the right
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, sharpReagent, new Vector2I(2, 1), MvpRules(), null);
+
+        Assert.False(highlights.IsEmpty);
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+        Assert.Equal(new Vector2I(1, 1), interactions[0].Position);
+        Assert.Equal(AspectIds.Fragile, interactions[0].AspectId);
+    }
+
+    [Fact]
+    public void Interaction_NoReactiveNeighbor_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place a Stable reagent — not reactive with Volatile
+        var stableReagent = new Reagent(CreateAspectReagentDef("stable_r", "Stable", new bool[,] { { true } }, Aspect.Stable()));
+        grid.PlaceReagent(stableReagent, new Vector2I(1, 1));
+
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, volatileReagent, new Vector2I(0, 1), MvpRules(), null);
+
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void Interaction_ContiguousHotCells_BoundaryEliminatesInternalEdges()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Two adjacent Hot reagents: (1,0) and (1,1)
+        var hot1 = new Reagent(CreateAspectReagentDef("hot1", "Fire1", new bool[,] { { true } }, Aspect.Hot()));
+        var hot2 = new Reagent(CreateAspectReagentDef("hot2", "Fire2", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(hot1, new Vector2I(1, 0));
+        grid.PlaceReagent(hot2, new Vector2I(1, 1));
+
+        // Volatile reagent at (0,0) — adjacent to hot1 at (1,0)
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true, true } }, Aspect.Volatile()));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, volatileReagent, new Vector2I(0, 0), MvpRules(), null);
+
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        var hotHighlights = interactions.Where(h => h.AspectId == AspectIds.Hot).ToList();
+        Assert.Equal(2, hotHighlights.Count);
+
+        // The two cells are vertically adjacent — internal Top/Bottom edges eliminated
+        var topCell = hotHighlights.First(h => h.Position == new Vector2I(1, 0));
+        var bottomCell = hotHighlights.First(h => h.Position == new Vector2I(1, 1));
+        Assert.False(topCell.Edges.HasFlag(CellEdge.Bottom));
+        Assert.False(bottomCell.Edges.HasFlag(CellEdge.Top));
+    }
+
+    [Fact]
+    public void Interaction_SeverityFromStatusThresholds()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(hotReagent, new Vector2I(1, 1));
+
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+
+        var thresholds = new StatusThresholds();
+        thresholds.Set(AspectIds.Hot, 4, 4); // Danger level
+
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, volatileReagent, new Vector2I(0, 1), MvpRules(), thresholds);
+
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+        Assert.Equal(HighlightSeverity.Danger, interactions[0].Severity);
+    }
+
+    [Fact]
+    public void Interaction_NoThresholdEntry_DefaultsToWarning()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var fragileReagent = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+        grid.PlaceReagent(fragileReagent, new Vector2I(1, 1));
+
+        var sharpReagent = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, sharpReagent, new Vector2I(2, 1), MvpRules(), new StatusThresholds());
+
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+        // Fragile has no StatusThresholds entry → default Warning
+        Assert.Equal(HighlightSeverity.Warning, interactions[0].Severity);
+    }
+
+    [Fact]
+    public void Interaction_HotAdjacentToVolatile_HighlightsVolatileCell()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Volatile is placed on the grid
+        var volatilePlaced = new Reagent(CreateAspectReagentDef("vol_p", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        grid.PlaceReagent(volatilePlaced, new Vector2I(1, 1));
+
+        // Preview Hot reagent at (0,1)
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        var highlights = HighlightEngine.ComputeInteractionHighlights(
+            grid, hotReagent, new Vector2I(0, 1), MvpRules(), null);
+
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        Assert.Single(interactions);
+        Assert.Equal(new Vector2I(1, 1), interactions[0].Position);
+        Assert.Equal(AspectIds.Volatile, interactions[0].AspectId);
+    }
+
+    // --- ComputeLegendHighlights tests ---
+
+    [Fact]
+    public void Legend_FindsAllHotCellsWithBoundaryEdges()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place two Hot reagents: single cells at (0,0) and (0,1) — vertically adjacent
+        var hot1 = new Reagent(CreateAspectReagentDef("hot1", "Fire1", new bool[,] { { true } }, Aspect.Hot()));
+        var hot2 = new Reagent(CreateAspectReagentDef("hot2", "Fire2", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(hot1, new Vector2I(0, 0));
+        grid.PlaceReagent(hot2, new Vector2I(0, 1));
+
+        var highlights = HighlightEngine.ComputeLegendHighlights(grid, AspectIds.Hot);
+
+        Assert.False(highlights.IsEmpty);
+        var legendHighlights = highlights.GetByLayer(HighlightLayer.Legend);
+        Assert.Equal(2, legendHighlights.Count);
+        Assert.All(legendHighlights, h => Assert.Equal(AspectIds.Hot, h.AspectId));
+        Assert.All(legendHighlights, h => Assert.Equal(HighlightSeverity.Info, h.Severity));
+
+        // Adjacent cells: internal edge eliminated
+        var topCell = legendHighlights.First(h => h.Position == new Vector2I(0, 0));
+        var bottomCell = legendHighlights.First(h => h.Position == new Vector2I(0, 1));
+        Assert.False(topCell.Edges.HasFlag(CellEdge.Bottom));
+        Assert.False(bottomCell.Edges.HasFlag(CellEdge.Top));
+    }
+
+    [Fact]
+    public void Legend_NoMatchingAspect_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var hot = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(hot, new Vector2I(0, 0));
+
+        var highlights = HighlightEngine.ComputeLegendHighlights(grid, AspectIds.Cold);
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void Legend_EmptyGrid_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var highlights = HighlightEngine.ComputeLegendHighlights(grid, AspectIds.Hot);
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void Legend_MultiCellReagent_IncludesAllAspectCells()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Domino with Hot on both cells
+        var hotDomino = new Reagent(CreateAspectReagentDef("hot_d", "Fire Shard",
+            new bool[,] { { true, true } }, Aspect.Hot()));
+        grid.PlaceReagent(hotDomino, new Vector2I(0, 0));
+
+        var highlights = HighlightEngine.ComputeLegendHighlights(grid, AspectIds.Hot);
+        var legendHighlights = highlights.GetByLayer(HighlightLayer.Legend);
+        Assert.Equal(2, legendHighlights.Count);
+        Assert.Contains(legendHighlights, h => h.Position == new Vector2I(0, 0));
+        Assert.Contains(legendHighlights, h => h.Position == new Vector2I(1, 0));
+    }
+
+    // --- ComputeEagleSenseHighlights tests ---
+
+    [Fact]
+    public void EagleSense_ReturnsUnionOfAllInteractions()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Volatile at (0,1), Hot at (1,1) — adjacent, should interact
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        grid.PlaceReagent(volatileReagent, new Vector2I(0, 1));
+        grid.PlaceReagent(hotReagent, new Vector2I(1, 1));
+
+        var highlights = HighlightEngine.ComputeEagleSenseHighlights(grid, MvpRules(), null);
+
+        Assert.False(highlights.IsEmpty);
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+        // Volatile's perspective: Hot neighbor highlighted with "hot"
+        // Hot's perspective: Volatile neighbor highlighted with "volatile"
+        Assert.Contains(interactions, h => h.Position == new Vector2I(1, 1) && h.AspectId == AspectIds.Hot);
+        Assert.Contains(interactions, h => h.Position == new Vector2I(0, 1) && h.AspectId == AspectIds.Volatile);
+    }
+
+    [Fact]
+    public void EagleSense_NoInteractions_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Two non-interacting reagents far apart
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        var coldReagent = new Reagent(CreateAspectReagentDef("cold_r", "Ice", new bool[,] { { true } }, Aspect.Cold()));
+        grid.PlaceReagent(hotReagent, new Vector2I(0, 0));
+        grid.PlaceReagent(coldReagent, new Vector2I(2, 2)); // Not adjacent
+
+        var highlights = HighlightEngine.ComputeEagleSenseHighlights(grid, MvpRules(), null);
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void EagleSense_MultipleInteractions_IncludesAll()
+    {
+        // Use a 5x5 bag so Sharp can be placed in interior cells
+        var grid = CreateGrid();
+        var largeBagDef = new BagDefinition("large", "Large Bag", new bool[,]
+        {
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+        });
+        var bag = new Bag(largeBagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Volatile at (2,2), Hot at (3,2) — Volatile↔Hot interaction
+        // Sharp at (1,2), Fragile at (1,1) — Sharp↔Fragile interaction
+        var volatileReagent = new Reagent(CreateAspectReagentDef("vol_r", "Volatile", new bool[,] { { true } }, Aspect.Volatile()));
+        var hotReagent = new Reagent(CreateAspectReagentDef("hot_r", "Fire", new bool[,] { { true } }, Aspect.Hot()));
+        var sharpReagent = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        var fragileReagent = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+
+        grid.PlaceReagent(volatileReagent, new Vector2I(2, 2));
+        grid.PlaceReagent(hotReagent, new Vector2I(3, 2));
+        grid.PlaceReagent(sharpReagent, new Vector2I(1, 2));
+        grid.PlaceReagent(fragileReagent, new Vector2I(1, 1));
+
+        var highlights = HighlightEngine.ComputeEagleSenseHighlights(grid, MvpRules(), null);
+        var interactions = highlights.GetByLayer(HighlightLayer.Interaction);
+
+        // Should include Volatile↔Hot and Sharp↔Fragile interactions
+        Assert.True(interactions.Count >= 3);
+        Assert.Contains(interactions, h => h.AspectId == AspectIds.Hot);
+        Assert.Contains(interactions, h => h.AspectId == AspectIds.Volatile);
+        Assert.Contains(interactions, h => h.AspectId == AspectIds.Fragile || h.AspectId == AspectIds.Sharp);
+    }
+
+    [Fact]
+    public void EagleSense_EmptyGrid_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var highlights = HighlightEngine.ComputeEagleSenseHighlights(grid, MvpRules(), null);
+        Assert.True(highlights.IsEmpty);
+    }
+
     // --- GetConstraintViolations tests ---
 
     [Fact]
