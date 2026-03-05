@@ -64,6 +64,7 @@ public partial class TestHarness : Control
         await Test_ConfirmAndReset();
         await Test_WinLossEvaluation();
         await Test_GeneratedPuzzle();
+        await Test_TutorialFlow();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -584,6 +585,103 @@ public partial class TestHarness : Control
                  && result == ConfirmResult.Win && resetKeepsLocked;
         EndTest("generated_puzzle", pass, pass ? null
             : $"bags={bagsMatch} reagents={reagentsMatch} locked={lockedMatch} allPlaced={allPlaced} result={result} resetKeepsLocked={resetKeepsLocked}(after={afterReset} expected={lockedCount})");
+    }
+
+    private async Task Test_TutorialFlow()
+    {
+        BeginTest("tutorial_flow");
+
+        // Remove the current PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        // Create a TutorialScreen
+        var tutorial = new TutorialScreen();
+        AddChild(tutorial);
+        await WaitFrames(3);
+
+        // Verify starts at lesson 1 (index 0)
+        int startIndex = tutorial.CurrentLessonIndex;
+        int lessonCount = tutorial.LessonCount;
+        bool startsAtZero = startIndex == 0;
+        Log($"[STATE] tutorial_lesson_index={startIndex} lesson_count={lessonCount} (expected: index=0, count=5)");
+
+        // Verify hint text is from lesson 1
+        var hintText = tutorial.HintText;
+        bool hasHint = !string.IsNullOrEmpty(hintText);
+        Log($"[STATE] tutorial_hint=\"{hintText}\"");
+
+        // Get the PuzzleScreen and verify it loaded
+        var puzzleScreen = tutorial.CurrentPuzzleScreen;
+        bool hasPuzzle = puzzleScreen != null;
+        Log($"[STATE] has_puzzle_screen={hasPuzzle}");
+
+        if (hasPuzzle)
+        {
+            // Generate the same puzzle to get the solution
+            var lessons = TutorialData.GetLessons();
+            var lesson1 = lessons[0];
+            var generator = new PuzzleGenerator();
+            var state = generator.Generate(lesson1.FixedSeed, lesson1.DifficultyParams);
+
+            // Apply the solution to complete lesson 1
+            foreach (var placement in state.Solution)
+            {
+                var reagent = puzzleScreen!.TrayReagents[placement.ReagentIndex];
+                if (reagent.IsPlaced) continue;
+
+                puzzleScreen.SelectReagent(placement.ReagentIndex);
+                for (int r = 0; r < placement.Rotation; r++)
+                    puzzleScreen.RotateSelected();
+                puzzleScreen.PlaceSelectedAt(placement.PositionCol, placement.PositionRow);
+            }
+
+            int placed = puzzleScreen!.Grid.PlacedReagents.Count;
+            int total = puzzleScreen.TrayReagents.Count;
+            Log($"[STATE] lesson1_placed={placed} total={total}");
+
+            // Confirm — should win
+            var result = puzzleScreen.ConfirmPuzzle();
+            Log($"[STATE] lesson1_confirm={result} (expected=Win)");
+
+            await CaptureScreenshot("18_tutorial_lesson1_win.png");
+
+            // Advance to lesson 2
+            tutorial.AdvanceLesson();
+            await WaitFrames(3);
+
+            int afterIndex = tutorial.CurrentLessonIndex;
+            bool advancedToLesson2 = afterIndex == 1;
+            Log($"[STATE] tutorial_lesson_index_after={afterIndex} (expected=1)");
+
+            // Verify lesson 2 loaded with its hint
+            var newHint = tutorial.HintText;
+            bool lesson2Hint = !string.IsNullOrEmpty(newHint) && newHint != hintText;
+            Log($"[STATE] lesson2_hint=\"{newHint}\"");
+
+            var newPuzzle = tutorial.CurrentPuzzleScreen;
+            bool newPuzzleLoaded = newPuzzle != null && newPuzzle != puzzleScreen;
+            Log($"[STATE] new_puzzle_loaded={newPuzzleLoaded}");
+
+            await CaptureScreenshot("19_tutorial_lesson2.png");
+
+            bool pass = startsAtZero && hasHint && hasPuzzle
+                     && placed == total && result == ConfirmResult.Win
+                     && advancedToLesson2 && lesson2Hint && newPuzzleLoaded;
+            EndTest("tutorial_flow", pass, pass ? null
+                : $"startsAtZero={startsAtZero} hasHint={hasHint} placed={placed}/{total} result={result} advanced={advancedToLesson2} lesson2Hint={lesson2Hint} newPuzzle={newPuzzleLoaded}");
+        }
+        else
+        {
+            EndTest("tutorial_flow", false, "No puzzle screen created");
+        }
+
+        // Restore a PuzzleScreen for subsequent tests
+        tutorial.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
     }
 
     private async Task Test_RenderFinal()

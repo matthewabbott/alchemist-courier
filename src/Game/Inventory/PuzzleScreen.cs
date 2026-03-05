@@ -53,6 +53,9 @@ public partial class PuzzleScreen : Control
     public IReadOnlyList<ReactionResult> LastReactions => _lastReactions.AsReadOnly();
     public AspectPrimerPanel PrimerPanel => _primerPanel;
 
+    /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
+    public event System.Action<ConfirmResult>? PuzzleConfirmed;
+
     public override void _Ready()
     {
         // Fill the viewport
@@ -373,6 +376,7 @@ public partial class PuzzleScreen : Control
             _lastReactions.Clear();
             HideResultOverlay();
             UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
+            PuzzleConfirmed?.Invoke(_lastConfirmResult);
             return _lastConfirmResult;
         }
 
@@ -385,12 +389,14 @@ public partial class PuzzleScreen : Control
             _lastConfirmResult = ConfirmResult.HasReactions;
             ShowResultOverlay(false, _lastReactions);
             UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
+            PuzzleConfirmed?.Invoke(_lastConfirmResult);
             return _lastConfirmResult;
         }
 
         _lastConfirmResult = ConfirmResult.Win;
         ShowResultOverlay(true, _lastReactions);
         UpdateStatus("All reagents placed safely! Puzzle complete!");
+        PuzzleConfirmed?.Invoke(_lastConfirmResult);
         return _lastConfirmResult;
     }
 
