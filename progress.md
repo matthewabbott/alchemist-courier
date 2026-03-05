@@ -407,3 +407,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 949e489..18f605c (H.12, H.13, H.14, integration tests)
 - Findings: 2 (P0: 0, P1: 0, P2: 0, P3: 2)
 - Fixed: 0, Tasks created: 0
+
+## HINT.1 — Core hint data types (HintState, HintResult, Reagent.IsHinted)
+- Date: 2026-03-05
+- Commit: a25909b
+- Notes: First task of the hint-system phase. Created HintState class (MaxHints, HintsUsed, HintedReagentIndices HashSet, HasHintsRemaining computed bool, WasHinted method) and HintResult class with HintResultType enum (Success, NoHintsRemaining, ReagentLocked, NoSolutionFound, BlockedByLockedReagent, AlreadyAtSolutionPosition). Added Reagent.IsHinted bool property paralleling existing IsLocked pattern. Added PuzzleState.MaxHints int field for serializable hint budget. 4 new unit tests covering HintState budget tracking and hinted index queries. All 470 tests pass (466 existing + 4 new).

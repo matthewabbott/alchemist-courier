@@ -653,7 +653,7 @@
       "phase": "hint-system",
       "depends_on": [],
       "verification": "dotnet build succeeds, dotnet test passes 4 new HintState tests",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.2",

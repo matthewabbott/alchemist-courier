@@ -177,3 +177,11 @@ levels from clean grid to full eagle sense), eagle sense visual treatment (deep 
 connection lines, silhouetted reagents), layout balance at different viewport sizes, and a
 canonical color palette reference matching the existing GridConstants values.
 Commit: 83cf900
+
+## HINT.1: Core hint data types (HintState, HintResult, Reagent.IsHinted)
+Kicked off the hint-system phase with pure data types. HintState tracks hint budget (max vs used)
+and which reagents have been hinted via a HashSet of indices. HintResult captures the full outcome
+of a hint attempt — success, budget exhausted, locked blockers, etc. — providing all the info
+HINT.2's engine will need. Also threaded IsHinted through Reagent (parallel to IsLocked) and
+MaxHints through PuzzleState for serialization. Clean foundation for the engine logic next.
+Commit: a25909b
