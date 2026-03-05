@@ -40,6 +40,8 @@ public partial class PuzzleScreen : Control
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
     private List<ReactionResult> _lastReactions = new();
+    private bool _eagleSenseActive;
+    private string? _legendSelectedAspect;
 
     /// <summary>
     /// Set before adding to scene tree to load a generated puzzle instead of the demo.
@@ -67,6 +69,8 @@ public partial class PuzzleScreen : Control
     public IReadOnlyList<ReactionResult> LastReactions => _lastReactions.AsReadOnly();
     public AspectLegendPanel LegendPanel => _legendPanel;
     public ItemDetailPanel ItemDetail => _itemDetailPanel;
+    public bool EagleSenseActive => _eagleSenseActive;
+    public string? LegendSelectedAspect => _legendSelectedAspect;
 
     /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
     public event System.Action<ConfirmResult>? PuzzleConfirmed;
@@ -367,6 +371,8 @@ public partial class PuzzleScreen : Control
         _gridView.ReagentPlaced += OnReagentPlaced;
         _gridView.ReagentRemoved += OnReagentRemoved;
         _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
+        _gridView.RejectionFlash += OnRejectionFlash;
+        _legendPanel.AspectSelected += OnLegendAspectSelected;
     }
 
     private void OnReagentSelected(int index)
@@ -389,6 +395,7 @@ public partial class PuzzleScreen : Control
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
         UpdateStatusThresholds();
+        RefreshEagleSense();
 
         int remaining = CountUnplaced();
         if (remaining == 0)
@@ -407,6 +414,7 @@ public partial class PuzzleScreen : Control
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
         UpdateStatusThresholds();
+        RefreshEagleSense();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
     }
 
@@ -423,7 +431,44 @@ public partial class PuzzleScreen : Control
 
     private void OnGridHoveredReagentChanged()
     {
-        _itemDetailPanel.ShowReagent(_gridView.HoveredPlacedReagent);
+        var reagent = _gridView.HoveredPlacedReagent;
+        _itemDetailPanel.ShowReagent(reagent);
+
+        if (reagent != null)
+        {
+            var aspectIds = new HashSet<string>();
+            foreach (var pos in reagent.GetLocalCellPositions())
+            {
+                foreach (var aspect in reagent.GetAspectsAtLocalPosition(pos).Aspects)
+                    aspectIds.Add(aspect.Id);
+            }
+            _legendPanel.HighlightAspects(aspectIds);
+        }
+        else
+        {
+            _legendPanel.ClearHighlight();
+        }
+    }
+
+    private void OnLegendAspectSelected(string aspectId)
+    {
+        if (_legendSelectedAspect == aspectId)
+        {
+            // Click same aspect again: clear
+            _legendSelectedAspect = null;
+            _gridView.SetHighlights(new Core.Highlight.HighlightSet());
+        }
+        else
+        {
+            _legendSelectedAspect = aspectId;
+            var highlights = Core.Highlight.HighlightEngine.ComputeLegendHighlights(_metaGrid, aspectId);
+            _gridView.SetHighlights(highlights);
+        }
+    }
+
+    private void OnRejectionFlash(string aspectId)
+    {
+        _legendPanel.FlashAspect(aspectId);
     }
 
     // --- Programmatic control (for testing, tutorials, AI) ---
@@ -539,6 +584,26 @@ public partial class PuzzleScreen : Control
         _legendPanel.Visible = !_legendPanel.Visible;
     }
 
+    public void ToggleEagleSense()
+    {
+        _eagleSenseActive = !_eagleSenseActive;
+        _gridView.SetEagleSense(_eagleSenseActive);
+
+        if (_eagleSenseActive)
+        {
+            var rules = ReactionRuleDatabase.GetMvpRules();
+            var highlights = Core.Highlight.HighlightEngine.ComputeEagleSenseHighlights(
+                _metaGrid, rules, _gridView.StatusThresholds);
+            _gridView.SetHighlights(highlights);
+            UpdateStatus("Eagle Sense active — all interactions visible. Press Tab to toggle off.");
+        }
+        else
+        {
+            _gridView.SetHighlights(new Core.Highlight.HighlightSet());
+            UpdateStatus("Eagle Sense off.");
+        }
+    }
+
     private void OnResetPressed()
     {
         ResetPuzzle();
@@ -556,10 +621,18 @@ public partial class PuzzleScreen : Control
 
     public override void _UnhandledKeyInput(InputEvent @event)
     {
-        if (@event is InputEventKey { Pressed: true, Keycode: Key.Escape } && _selectedReagent != null)
+        if (@event is InputEventKey { Pressed: true } keyEvent)
         {
-            ClearSelectionState();
-            UpdateStatus("Cancelled. Select a reagent from the tray.");
+            if (keyEvent.Keycode == Key.Escape && _selectedReagent != null)
+            {
+                ClearSelectionState();
+                UpdateStatus("Cancelled. Select a reagent from the tray.");
+            }
+            else if (keyEvent.Keycode == Key.Tab)
+            {
+                ToggleEagleSense();
+                GetViewport().SetInputAsHandled();
+            }
         }
     }
 
@@ -617,6 +690,15 @@ public partial class PuzzleScreen : Control
             if (!r.IsPlaced) count++;
         }
         return count;
+    }
+
+    private void RefreshEagleSense()
+    {
+        if (!_eagleSenseActive) return;
+        var rules = ReactionRuleDatabase.GetMvpRules();
+        var highlights = Core.Highlight.HighlightEngine.ComputeEagleSenseHighlights(
+            _metaGrid, rules, _gridView.StatusThresholds);
+        _gridView.SetHighlights(highlights);
     }
 
     private void UpdateStatusThresholds()

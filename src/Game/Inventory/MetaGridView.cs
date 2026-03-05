@@ -137,6 +137,9 @@ public partial class MetaGridView : Control
         _eagleSenseActive = active;
     }
 
+    /// <summary>Current status thresholds.</summary>
+    public StatusThresholds? StatusThresholds => _statusThresholds;
+
     /// <summary>Set status thresholds for interaction highlight severity.</summary>
     public void SetStatusThresholds(StatusThresholds? thresholds)
     {
