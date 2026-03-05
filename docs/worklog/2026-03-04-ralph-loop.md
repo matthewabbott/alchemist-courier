@@ -278,3 +278,13 @@ wins. AdvanceLesson() tears down the current PuzzleScreen and builds a fresh one
 next lesson's data. Integration test applies lesson 1's solution programmatically, confirms
 win, advances, and verifies lesson 2 loads with different hint text and a new PuzzleScreen.
 Commit: 9a993b6
+
+## 4.5: Add daily puzzle mode
+Built the DailyPuzzleManager — a lightweight static class that converts dates into deterministic
+puzzles. The seed is simply YYYYMMDD as an integer, difficulty rotates on a 3-day cycle using
+day-of-year % 3 (Easy → Medium → Hard), and puzzle type varies by seed % 3 across the three types.
+The critical design constraint: all daily puzzles use Simple mechanical depth regardless of difficulty
+level, per the two-dimensional complexity model. A Hard daily is hard because it has 4 bags and 12
+reagents with tight fit, not because it introduces Sharp+Fragile. GenerateToday() provides the
+runtime convenience method. The whole thing is 77 lines of pure C# with no Godot dependencies.
+Commit: e029128

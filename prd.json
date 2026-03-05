@@ -341,7 +341,7 @@
       "phase": "game-flow",
       "depends_on": ["4.2"],
       "verification": "dotnet test -- daily puzzle determinism test passes",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "4.6",

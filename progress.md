@@ -253,3 +253,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 9a993b6
 - Notes: Created TutorialScreen (src/Game/TutorialScreen.cs) wrapping PuzzleScreen to manage lesson progression. Loads lessons from TutorialData, generates PuzzleState per lesson using PuzzleGenerator, displays lesson name and hint text in a styled panel at the top. On win, shows "Next Lesson" button (or "Tutorial Complete!" for last lesson). AdvanceLesson() loads next lesson's puzzle, replacing the PuzzleScreen. Added PuzzleConfirmed event to PuzzleScreen (fires for all ConfirmResult values) so TutorialScreen detects wins. Integration test in TestHarness verifies: starts at lesson 0, hint text populated, solution applied successfully, confirm returns Win, AdvanceLesson moves to lesson 1 with different hint text and new PuzzleScreen. All 309 unit tests pass.
+
+## 4.5 — Add daily puzzle mode
+- Date: 2026-03-04
+- Commit: e029128
+- Notes: Created DailyPuzzleManager static class in src/Core/Puzzle/. DateToSeed(DateTime) converts to YYYYMMDD integer. GetDailyDifficulty uses day-of-year % 3 to rotate Easy/Medium/Hard. GetDailyPuzzleType uses seed % 3 to vary FitAllSafely/MaximizeValue/MeetRequirement. GenerateDailyPuzzle wires these together through PuzzleGenerator. All daily puzzles use Simple mechanical depth via DifficultyParams.ForLevel(). GenerateToday() convenience method for runtime use. 14 new tests: seed format, determinism (same date = same puzzle), different dates diverge, all difficulties are Simple complexity, 3-day difficulty rotation, puzzle type variation, solvability across 10 dates, correct seed/difficulty/type on generated puzzles. All 323 tests pass (309 existing + 14 new).
