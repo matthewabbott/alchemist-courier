@@ -183,3 +183,12 @@ future roguelite mode just needs to set ComplexityLevel.Intermediate on Difficul
 interesting consequence: Simple tier excludes the Breakage rule (Sharp+Fragile are Intermediate),
 so Simple puzzles have 6 reaction rules instead of 7.
 Commit: 3bcb216
+
+## Code Review (e)
+Reviewed A.6 (ComplexityLevel + ComplexityFilter). Found and fixed two P1 issues:
+circular namespace dependency from ReactionRuleDatabase.GetRulesForComplexity() (Chemistry
+importing Puzzle, creating a cycle) — removed the dead pass-through method; and magic string
+literals "magnetic"/"absorbent" in ComplexityFilter.AdvancedAspects — added AspectIds.Magnetic
+and AspectIds.Absorbent constants. Net result: -25 lines, cleaner dependency graph, all 289
+tests pass.
+Commit: 1b0c26c
