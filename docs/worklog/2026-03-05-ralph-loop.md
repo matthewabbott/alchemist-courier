@@ -157,6 +157,14 @@ two layers visually distinct: Constraint marks the grid, GhostOverlay marks the 
 since the GhostOverlay layer enum value and renderer support were already in place from H.7.
 Commit: fdc1e46
 
+## Code Review (e)
+Reviewed H.12–H.14 and integration tests (949e489..18f605c). Clean — no P0-P2 issues.
+Two P3 notes: ComputeGhostConstraintHighlights duplicates ComputeConstraintHighlights logic
+(only layer differs, Rule of Three not met), and GetMvpRules() called 7 times in PuzzleScreen
+(could cache as field, low impact). Overall code quality is strong — HighlightEngine is well-tested
+(30 unit tests), PuzzleScreen orchestration is cleanly wired through signals, integration tests
+properly isolate with fresh PuzzleScreen instances. 466 tests passing.
+
 ## H.14: Visual polish design document
 The capstone of the highlight-system phase: a 10-section design document (docs/visual-polish-design.md)
 capturing the full visual polish vision for future implementation. Covers per-aspect icon designs

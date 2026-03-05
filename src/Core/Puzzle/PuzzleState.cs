@@ -28,6 +28,9 @@ public class PuzzleState
 
     /// <summary>The known-valid solution (recorded at generation time).</summary>
     public List<Placement> Solution { get; set; } = new();
+
+    /// <summary>Maximum number of hints allowed for this puzzle (0 = no hints).</summary>
+    public int MaxHints { get; set; }
 }
 
 /// <summary>

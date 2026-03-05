@@ -35,6 +35,9 @@ public class Reagent
     /// <summary>Whether this reagent is locked in place and cannot be removed by the player.</summary>
     public bool IsLocked { get; set; }
 
+    /// <summary>Whether this reagent has been placed at its solution position by the hint system.</summary>
+    public bool IsHinted { get; set; }
+
     public Reagent(ReagentDefinition definition)
     {
         Definition = definition;
