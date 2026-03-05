@@ -122,6 +122,12 @@ aspect interactions without memorizing rules. Designed with highlight/flash meth
 upcoming orchestration task (H.12) will wire to grid hover and rejection events.
 Commit: 1f75d7c
 
+## Code Review (d)
+Reviewed H.9–H.11 (354e7af..6e0632c). Very clean batch — no P0-P2 issues. Fixed one unused
+constant (`PreviewCellSize` in ItemDetailPanel, superseded by inner class's own `CellSize`) and
+two stale comments claiming bold/italic styling that wasn't applied. Two similar `_Draw()` methods
+(ShapePreview vs DetailShapePreview) noted but not abstracted per Rule of Three.
+
 ## H.11: Item detail panel (Book of Hours style)
 Built the persistent item inspection panel — a sidebar that always shows info about whatever
 reagent the player is hovering over, whether in the tray or on the grid. Inspired by the Book

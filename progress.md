@@ -373,3 +373,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 6e0632c
 - Notes: Created ItemDetailPanel — persistent sidebar panel showing last-hovered reagent info (Book of Hours pattern: always visible, same location). Shows enlarged shape preview (16px/cell via DetailShapePreview), reagent name, flavor text (if present), and aspect breakdown aggregated across all cells (colored square + name + "x" + magnitude). ShowReagent(null) shows placeholder "Hover over a reagent to inspect". Enhanced ReagentTrayItem with aspect color dots (6x6 colored squares in HBox after name label, unique aspects only) and Hovered/Unhovered signals via MouseEntered/MouseExited. Added ReagentTray signal forwarding for hover events. Wired into PuzzleScreen: tray hover → ShowReagent, tray unhover → ShowReagent(null), grid HoveredReagentChanged → ShowReagent(HoveredPlacedReagent). Integration test verifies show/clear/multi-aspect display. All 461 unit tests pass.
+
+## Code Review (d) — 2026-03-05
+- Reviewed commits: 354e7af..6e0632c (H.9, H.10, H.11)
+- Findings: 3 (P0: 0, P1: 0, P2: 0, P3: 1, P4: 2)
+- Fixed: 3, Tasks created: 0
