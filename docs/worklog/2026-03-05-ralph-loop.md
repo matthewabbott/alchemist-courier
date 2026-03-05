@@ -147,3 +147,12 @@ adjacency at once — and it auto-refreshes when reagents are placed or removed.
 from invalid placements now visually pulses the relevant legend entry. Small but important: exposed
 the StatusThresholds property on MetaGridView for the eagle sense computation.
 Commit: b1ec43e
+
+## H.13: Ghost preview constraint composition
+Added a second constraint highlight pass that renders directly on ghost cells via the GhostOverlay
+layer. Previously, constraint violations only showed on the Constraint layer (rendered behind ghost
+cells) — now the ghost cells themselves get edge markers when hovering over invalid positions. The
+implementation mirrors ComputeConstraintHighlights exactly but targets GhostOverlay, keeping the
+two layers visually distinct: Constraint marks the grid, GhostOverlay marks the ghost. Clean task
+since the GhostOverlay layer enum value and renderer support were already in place from H.7.
+Commit: fdc1e46

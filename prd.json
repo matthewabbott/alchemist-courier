@@ -633,7 +633,7 @@
         "H.8"
       ],
       "verification": "dotnet build + test harness screenshot shows ghost constraint highlights",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.14",
