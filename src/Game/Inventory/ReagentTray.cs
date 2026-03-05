@@ -12,6 +12,12 @@ public partial class ReagentTray : VBoxContainer
     [Signal]
     public delegate void ReagentSelectedEventHandler(int reagentIndex);
 
+    [Signal]
+    public delegate void ReagentHoveredEventHandler(int reagentIndex);
+
+    [Signal]
+    public delegate void ReagentUnhoveredEventHandler(int reagentIndex);
+
     public void Initialize(List<Reagent> reagents)
     {
         _allReagents = reagents;
@@ -36,6 +42,8 @@ public partial class ReagentTray : VBoxContainer
         foreach (var item in _items)
         {
             item.Clicked -= OnItemClicked;
+            item.Hovered -= OnItemHovered;
+            item.Unhovered -= OnItemUnhovered;
             item.QueueFree();
         }
         _items.Clear();
@@ -69,6 +77,8 @@ public partial class ReagentTray : VBoxContainer
             AddChild(item);
             item.Initialize(reagent, i);
             item.Clicked += OnItemClicked;
+            item.Hovered += OnItemHovered;
+            item.Unhovered += OnItemUnhovered;
             _items.Add(item);
         }
     }
@@ -77,5 +87,15 @@ public partial class ReagentTray : VBoxContainer
     {
         HighlightIndex(index);
         EmitSignal(SignalName.ReagentSelected, index);
+    }
+
+    private void OnItemHovered(int index)
+    {
+        EmitSignal(SignalName.ReagentHovered, index);
+    }
+
+    private void OnItemUnhovered(int index)
+    {
+        EmitSignal(SignalName.ReagentUnhovered, index);
     }
 }

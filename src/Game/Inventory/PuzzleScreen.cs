@@ -32,6 +32,7 @@ public partial class PuzzleScreen : Control
     private Button _resetButton = null!;
     private Button _primerButton = null!;
     private AspectLegendPanel _legendPanel = null!;
+    private ItemDetailPanel _itemDetailPanel = null!;
     private PanelContainer _resultOverlay = null!;
     private Label _resultLabel = null!;
     private Label _dayLabel = null!;
@@ -65,6 +66,7 @@ public partial class PuzzleScreen : Control
     public ConfirmResult LastConfirmResult => _lastConfirmResult;
     public IReadOnlyList<ReactionResult> LastReactions => _lastReactions.AsReadOnly();
     public AspectLegendPanel LegendPanel => _legendPanel;
+    public ItemDetailPanel ItemDetail => _itemDetailPanel;
 
     /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
     public event System.Action<ConfirmResult>? PuzzleConfirmed;
@@ -232,6 +234,10 @@ public partial class PuzzleScreen : Control
         _objectivePanel.Initialize(_puzzleType);
         rightColumn.AddChild(_objectivePanel);
 
+        // Item detail panel (Book of Hours style — always visible, shows hovered reagent info)
+        _itemDetailPanel = new ItemDetailPanel();
+        rightColumn.AddChild(_itemDetailPanel);
+
         // Aspect legend panel (collapsible entries)
         _legendPanel = new AspectLegendPanel();
         _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
@@ -356,8 +362,11 @@ public partial class PuzzleScreen : Control
     private void WireSignals()
     {
         _reagentTray.ReagentSelected += OnReagentSelected;
+        _reagentTray.ReagentHovered += OnTrayReagentHovered;
+        _reagentTray.ReagentUnhovered += OnTrayReagentUnhovered;
         _gridView.ReagentPlaced += OnReagentPlaced;
         _gridView.ReagentRemoved += OnReagentRemoved;
+        _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
     }
 
     private void OnReagentSelected(int index)
@@ -399,6 +408,22 @@ public partial class PuzzleScreen : Control
         _statusBar.Refresh();
         UpdateStatusThresholds();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
+    }
+
+    private void OnTrayReagentHovered(int index)
+    {
+        if (index >= 0 && index < _trayReagents.Count)
+            _itemDetailPanel.ShowReagent(_trayReagents[index]);
+    }
+
+    private void OnTrayReagentUnhovered(int index)
+    {
+        _itemDetailPanel.ShowReagent(null);
+    }
+
+    private void OnGridHoveredReagentChanged()
+    {
+        _itemDetailPanel.ShowReagent(_gridView.HoveredPlacedReagent);
     }
 
     // --- Programmatic control (for testing, tutorials, AI) ---

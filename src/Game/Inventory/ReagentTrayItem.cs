@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Godot;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Core.Grid;
 
@@ -11,6 +13,7 @@ public partial class ReagentTrayItem : PanelContainer
     private bool _isSelected;
 
     public int ReagentIndex => _index;
+    public Reagent Reagent => _reagent;
     private ShapePreview _preview = null!;
     private Label _label = null!;
     private StyleBoxFlat _normalStyle = null!;
@@ -18,6 +21,12 @@ public partial class ReagentTrayItem : PanelContainer
 
     [Signal]
     public delegate void ClickedEventHandler(int index);
+
+    [Signal]
+    public delegate void HoveredEventHandler(int index);
+
+    [Signal]
+    public delegate void UnhoveredEventHandler(int index);
 
     public void Initialize(Reagent reagent, int index)
     {
@@ -78,7 +87,17 @@ public partial class ReagentTrayItem : PanelContainer
         _label.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.85f));
         hbox.AddChild(_label);
 
+        // Aspect color dots — small colored squares showing which aspects the reagent has
+        var aspectDots = BuildAspectDots(reagent);
+        if (aspectDots != null)
+        {
+            hbox.AddChild(new Control { CustomMinimumSize = new Vector2(4, 0) });
+            hbox.AddChild(aspectDots);
+        }
+
         MouseDefaultCursorShape = CursorShape.PointingHand;
+        MouseEntered += () => EmitSignal(SignalName.Hovered, _index);
+        MouseExited += () => EmitSignal(SignalName.Unhovered, _index);
     }
 
     public void SetSelected(bool selected)
@@ -94,6 +113,45 @@ public partial class ReagentTrayItem : PanelContainer
             EmitSignal(SignalName.Clicked, _index);
             AcceptEvent();
         }
+    }
+
+    private static HBoxContainer? BuildAspectDots(Reagent reagent)
+    {
+        // Collect unique aspect IDs across all cells
+        var seen = new HashSet<string>();
+        var uniqueIds = new List<string>();
+        var cellPositions = reagent.GetLocalCellPositions();
+        foreach (var pos in cellPositions)
+        {
+            var aspects = reagent.GetAspectsAtLocalPosition(pos);
+            foreach (var aspect in aspects.Aspects)
+            {
+                if (seen.Add(aspect.Id))
+                    uniqueIds.Add(aspect.Id);
+            }
+        }
+
+        if (uniqueIds.Count == 0) return null;
+
+        var hbox = new HBoxContainer
+        {
+            SizeFlagsVertical = SizeFlags.ShrinkCenter,
+        };
+        hbox.AddThemeConstantOverride("separation", 2);
+
+        foreach (var id in uniqueIds)
+        {
+            var dot = new ColorRect
+            {
+                CustomMinimumSize = new Vector2(6, 6),
+                Color = GridConstants.GetAspectColor(id),
+            };
+            var center = new CenterContainer { CustomMinimumSize = new Vector2(6, 8) };
+            center.AddChild(dot);
+            hbox.AddChild(center);
+        }
+
+        return hbox;
     }
 }
 
