@@ -432,7 +432,7 @@ public static class ChemistryEngine
     /// <summary>
     /// Check if a cell's aspects are suppressed by being in a Null bag.
     /// </summary>
-    private static bool IsAspectSuppressed(MetaGrid grid, Vector2I pos)
+    public static bool IsAspectSuppressed(MetaGrid grid, Vector2I pos)
     {
         var bag = grid.GetBagAtCell(pos);
         return bag != null && bag.HasProperty(BagPropertyType.Null);

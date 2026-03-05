@@ -72,6 +72,8 @@ public partial class StatusBarPanel : HBoxContainer
             {
                 foreach (var pos in reagent.GetCurrentMetaGridPositions())
                 {
+                    if (ChemistryEngine.IsAspectSuppressed(_grid, pos))
+                        continue;
                     total += reagent.GetAspectsAtMetaGridPosition(pos).GetMagnitude(aspectId);
                 }
             }
@@ -82,6 +84,8 @@ public partial class StatusBarPanel : HBoxContainer
             {
                 foreach (var pos in reagent.GetCurrentMetaGridPositions())
                 {
+                    if (ChemistryEngine.IsAspectSuppressed(_grid, pos))
+                        continue;
                     if (reagent.GetAspectsAtMetaGridPosition(pos).Has(aspectId))
                     {
                         total++;

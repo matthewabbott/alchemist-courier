@@ -1805,4 +1805,48 @@ public class ChemistryEngineTests
         Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
         Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Poisoning);
     }
+
+    // --- IsAspectSuppressed (public API) ---
+
+    [Fact]
+    public void IsAspectSuppressed_NullBagCell_ReturnsTrue()
+    {
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 3),
+            new[] { BagPropertyType.Null });
+        var grid = new MetaGrid(3, 1);
+        grid.PlaceBag(new Bag(nullBagDef), new Vector2I(0, 0));
+
+        Assert.True(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(0, 0)));
+        Assert.True(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(1, 0)));
+        Assert.True(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(2, 0)));
+    }
+
+    [Fact]
+    public void IsAspectSuppressed_NormalBagCell_ReturnsFalse()
+    {
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 3));
+        var grid = new MetaGrid(3, 1);
+        grid.PlaceBag(new Bag(normalBagDef), new Vector2I(0, 0));
+
+        Assert.False(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(0, 0)));
+        Assert.False(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(1, 0)));
+    }
+
+    [Fact]
+    public void IsAspectSuppressed_SpanningGrid_NullAndNormalBags()
+    {
+        var nullBagDef = new BagDefinition("null1", "Null", CreateFilledShape(1, 2),
+            new[] { BagPropertyType.Null });
+        var normalBagDef = new BagDefinition("norm1", "Normal", CreateFilledShape(1, 2));
+        var grid = new MetaGrid(4, 1);
+        grid.PlaceBag(new Bag(nullBagDef), new Vector2I(0, 0));
+        grid.PlaceBag(new Bag(normalBagDef), new Vector2I(2, 0));
+
+        // Null bag cells
+        Assert.True(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(0, 0)));
+        Assert.True(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(1, 0)));
+        // Normal bag cells
+        Assert.False(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(2, 0)));
+        Assert.False(ChemistryEngine.IsAspectSuppressed(grid, new Vector2I(3, 0)));
+    }
 }
