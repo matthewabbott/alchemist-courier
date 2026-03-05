@@ -534,6 +534,106 @@
       "depends_on": [],
       "verification": "File exists with all 10 sections",
       "status": "pending"
+    },
+    {
+      "id": "HINT.1",
+      "title": "Core hint data types (HintState, HintResult, Reagent.IsHinted)",
+      "description": "Create src/Core/Puzzle/HintState.cs: class with MaxHints (int), HintsUsed (int), HintedReagentIndices (HashSet<int>), HasHintsRemaining (computed bool: HintsUsed < MaxHints), WasHinted(int reagentIndex) method. Create src/Core/Puzzle/HintResult.cs: HintResultType enum (Success, NoHintsRemaining, ReagentLocked, NoSolutionFound, BlockedByLockedReagent, AlreadyAtSolutionPosition), HintResult class with Type, ReagentIndex (int), SolutionPlacement (Placement?), DislodgedReagentIndices (List<int>), IsSuccess (computed bool). Add IsHinted (bool, default false) property to src/Core/Reagents/Reagent.cs paralleling existing IsLocked pattern. Add MaxHints (int, default 0) field to src/Core/Puzzle/PuzzleState.cs. Write 4 unit tests for HintState: HasHintsRemaining when fresh, HasHintsRemaining when exhausted, WasHinted returns true after adding, WasHinted returns false if not added.",
+      "priority": 58,
+      "phase": "hint-system",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes 4 new HintState tests",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.2",
+      "title": "HintEngine core logic (auto-pick, dislodge, execute)",
+      "description": "Create src/Core/Puzzle/HintEngine.cs as a static class. Methods: (1) GetSolutionPlacement(PuzzleState state, int reagentIndex) -> Placement? -- looks up state.Solution for matching ReagentIndex, returns null if not found. (2) ComputeDislodgeList(MetaGrid grid, List<Reagent> reagents, Reagent targetReagent, Placement solutionPlacement) -> List<int> -- compute target positions from solution placement (set target rotation, call GetMetaGridPositions), for each position check grid cell occupancy, collect unique occupying reagent indices excluding the target itself. If any occupying reagent IsLocked, include a flag or return special value indicating blocked. (3) PickNextHintTarget(PuzzleState state, HintState hintState, List<Reagent> reagents) -> int? -- auto-pick: first scan for unplaced reagents whose index is in HintedReagentIndices (snap-back candidates, free), return first found. If none, scan for first unplaced reagent whose index is NOT in HintedReagentIndices (new hint, costs budget). Return null if all placed. (4) ExecuteHint(MetaGrid grid, List<Reagent> reagents, int reagentIndex, Placement solutionPlacement) -> HintResult -- if target is currently placed, call grid.RemoveReagent(target). For each reagent in dislodge list: grid.RemoveReagent(), reset Rotation=0, set IsHinted=false. Set target Rotation to solution rotation. Call grid.PlaceReagent(target, solutionPosition). Set target.IsHinted=true. Return success with dislodge list. Does NOT mutate HintState (caller handles budget). Write 14 unit tests: solution lookup valid/invalid, dislodge empty/occupied/locked-blocker/self-exclusion, auto-pick snap-back-priority/new-hint/all-placed, execute placement/dislodge/IsHinted-flag/rotation-set.",
+      "priority": 59,
+      "phase": "hint-system",
+      "depends_on": ["HINT.1"],
+      "verification": "dotnet build succeeds, dotnet test passes 14 new HintEngine tests",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.3",
+      "title": "DifficultyParams MaxHints + generator integration",
+      "description": "Add MaxHints (int) field to src/Core/Puzzle/DifficultyParams.cs. Set values by difficulty level: Tutorial1-5 = 3, Easy = 3, Medium = 2, Hard = 1. In src/Core/Puzzle/PuzzleGenerator.cs, after generating the PuzzleState, set puzzle.MaxHints = difficultyParams.MaxHints (one-line addition in the Generate or TryGenerate method). Add unit tests: verify generated puzzles at each difficulty level have correct MaxHints value. Verify existing puzzle generation tests still pass (MaxHints is additive, doesn't change generation logic).",
+      "priority": 60,
+      "phase": "hint-system",
+      "depends_on": ["HINT.1"],
+      "verification": "dotnet build succeeds, dotnet test passes new MaxHints tests + all existing generation tests",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.4",
+      "title": "PuzzleScreen hint orchestration",
+      "description": "Add hint system orchestration to src/Game/Inventory/PuzzleScreen.cs. New fields: HintState _hintState, Button _hintButton, Label _hintCountLabel. In InitializeFromPuzzleState(): create _hintState with MaxHints from state. New OnHintPressed() handler: (1) Call HintEngine.PickNextHintTarget() to get reagentIndex. If null, return (no targets). (2) Look up solution placement via HintEngine.GetSolutionPlacement(). (3) Check if this is a snap-back (hintState.WasHinted(reagentIndex)). (4) If NOT snap-back AND !_hintState.HasHintsRemaining, show 'No hints remaining' status text, return. (5) Call HintEngine.ExecuteHint() on the grid. If blocked by locked reagent, show error status. (6) If not snap-back: increment _hintState.HintsUsed, add to HintedReagentIndices. (7) Call ClearSelectionState(), _tray.RefreshDisplay(), _gridView.RefreshDisplay(), _statusBar.Refresh(). (8) Update _hintCountLabel text. In ResetPuzzle(): clear IsHinted on all reagents, preserve _hintState budget (no refund). Button enable/disable: enabled when _hintState.HasHintsRemaining OR any unplaced reagent has WasHinted(). Wire _hintButton.Pressed += OnHintPressed.",
+      "priority": 61,
+      "phase": "hint-system",
+      "depends_on": ["HINT.2", "HINT.3"],
+      "verification": "dotnet build succeeds, hint orchestration testable via integration test (HINT.8)",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.5",
+      "title": "Hint visual indicators (grid + tray)",
+      "description": "Add visual indicators for hinted reagents. In src/Game/Inventory/GridConstants.cs: add HintedBorderColor = new Color(0.55f, 0.45f, 0.75f) (soft purple). In src/Game/Inventory/MetaGridView.cs RefreshDisplay(): after coloring occupied cells, check if the occupying reagent's IsHinted flag is true. If so, draw a 2px purple border around the cell (same pattern as bag borders but with HintedBorderColor). In src/Game/Inventory/ReagentTrayItem.cs: add SetHintIndicator(bool wasHinted) method. When wasHinted is true, show a small purple dot (6x6 ColorRect) next to the reagent name, indicating snap-back is available. In ReagentTray.BuildItems(): check PuzzleScreen's HintState (pass as parameter or expose via interface) and call SetHintIndicator for previously-hinted items now back in tray.",
+      "priority": 62,
+      "phase": "hint-system",
+      "depends_on": ["HINT.4"],
+      "verification": "dotnet build succeeds, visual indicators visible in integration test screenshots",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.6",
+      "title": "SaveData hint tracking",
+      "description": "Add hint usage persistence to src/Core/Save/SaveData.cs. New field: Dictionary<int, int> DailyHintsUsed (maps dateSeed int to hints used count). New methods: RecordDailyHints(int dateSeed, int hintsUsed) stores the count, GetDailyHintsUsed(int dateSeed) returns count or -1 if not recorded. This follows the existing CompletedDailies pattern. The PuzzleScreen (or app-level orchestrator) should call RecordDailyHints when the puzzle is confirmed/won. Add 2 unit tests: round-trip storage (record then retrieve returns correct count), unknown seed returns -1.",
+      "priority": 63,
+      "phase": "hint-system",
+      "depends_on": ["HINT.1"],
+      "verification": "dotnet build succeeds, dotnet test passes 2 new SaveData hint tests",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.7",
+      "title": "Hint button UI in PuzzleScreen",
+      "description": "Add the hint button to PuzzleScreen's UI layout. In the BuildUI() method (around line 248 where Confirm/Reset buttons are created): create _hintButton as a styled Button with purple tint (Color(0.4f, 0.35f, 0.55f)), 'Hint' text, same sizing pattern as Confirm/Reset. Add _hintCountLabel as a Label next to the button showing 'N/M' format (e.g., '0/3'). Position in the button bar (HBoxContainer) — place Hint button before or after Reset. When hints exhausted and no snap-backs available, set _hintButton.Disabled = true and apply dimmed styling. When MaxHints == 0 (old puzzles with no hint support), hide the button entirely.",
+      "priority": 64,
+      "phase": "hint-system",
+      "depends_on": ["HINT.4"],
+      "verification": "dotnet build succeeds, hint button visible in integration test screenshots",
+      "status": "pending"
+    },
+    {
+      "id": "HINT.8",
+      "title": "Integration test: full hint system",
+      "description": "Add Test_HintSystem to src/Game/Testing/TestHarness.cs. Test sequence: (1) Generate a puzzle with MaxHints=2 using PuzzleGenerator (Easy difficulty). (2) Verify _hintState starts at 0/2. (3) Call UseHint via PuzzleScreen (or simulate OnHintPressed). Verify: first reagent placed at its solution position, IsHinted=true, hint counter shows 1/2, reagent removed from tray. (4) Remove the hinted reagent. Verify: returns to tray, IsHinted cleared on the reagent. (5) Press hint again. Verify: snap-back places same reagent at solution position, counter still 1/2 (no budget cost). (6) Press hint. Verify: second unplaced reagent hinted, counter shows 2/2. (7) If possible, test dislodge scenario: manually place a reagent where the next hint target needs to go, then press hint, verify the manually-placed reagent returns to tray. (8) Screenshot at key states. Output [PASS]/[FAIL] markers.",
+      "priority": 65,
+      "phase": "hint-system",
+      "depends_on": ["HINT.5", "HINT.7"],
+      "verification": "Test harness reports Test_HintSystem PASS, screenshots show hint progression",
+      "status": "pending"
+    },
+    {
+      "id": "DOC.1",
+      "title": "Create docs/puzzle-design.md",
+      "description": "Create docs/puzzle-design.md as a comprehensive puzzle type reference across all tiers. Sections: (1) Design Philosophy: binary pass/fail is the Sudoku model for Simple complexity; optimization adds depth for higher tiers; secondary scoring (time + hints, NEVER move count) adds replayability; never punish placement/removal experimentation. (2) Tier Definitions: MVP (currently shipping), Post-MVP (concrete designs as PuzzleType variants), Aspirational (same tier as item protrusion, requires new infrastructure), DLC/Expansion (pie-in-the-sky). (3) Current Puzzle Types (MVP): FitAllSafely (implemented), MaximizeValue (enum exists, not evaluated), MeetRequirement (enum exists, not evaluated). (4) Post-MVP Optimization Puzzle Types: BalanceToNeutral (target net-zero for aspect pair, score=abs distance, par provided), MinimizeSeverity (all reagents placed, unavoidable reactions, minimize total severity, par=minimum achievable), MaximizeWithConstraints (oversized reagent set, limited space, score=total value placed), TimedChallenge (FitAllSafely with visible timer, star thresholds). (5) Scoring & Stars: 3-star system per puzzle, Star1=completion, Star2=efficiency (0 hints), Star3=speed (under par time). Par times: Easy=90s, Medium=150s, Hard=240s. Timer starts on first selection, pauses on help/primer, stops on confirm. (6) Aspirational - Destruction & Transmutation: destruction (reactions remove reagents, deliberate explosions), transmutation (combine reagents into new ones), forced explosion (win condition IS triggering reaction). Tier marker: same as protrusion, needs new infrastructure. (7) DLC/Expansion - Actual Alchemy: alembic container, brewing (multi-step process), potion output. Tier marker: 'Errands for an Alchemist, not Actual Alchemist Simulator.' Requires new game mode on top of puzzle engine.",
+      "priority": 66,
+      "phase": "documentation",
+      "depends_on": [],
+      "verification": "File exists at docs/puzzle-design.md with all 7 sections covering all 4 tiers",
+      "status": "pending"
+    },
+    {
+      "id": "DOC.2",
+      "title": "Update existing docs with puzzle-design cross-references",
+      "description": "Update three existing docs to cross-reference the new puzzle-design.md. (1) docs/mvp-specification.md: add 'Hint System' entry to the Nice-to-Have section with brief description. Add cross-reference to docs/puzzle-design.md for future puzzle types. (2) docs/game-overview.md: add cross-reference to docs/puzzle-design.md after the 7-stage roadmap (around line 84), noting that detailed puzzle type designs across all tiers are in that doc. (3) docs/chemistry-system.md: replace the brief 'Future: Brewing and Mixing (Aspirational)' section (around line 307) with a cross-reference to puzzle-design.md sections 6 and 7 where destruction, transmutation, and actual alchemy are documented in detail.",
+      "priority": 67,
+      "phase": "documentation",
+      "depends_on": ["DOC.1"],
+      "verification": "All three docs contain accurate cross-references to puzzle-design.md",
+      "status": "pending"
     }
   ]
 }
