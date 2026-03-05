@@ -25,9 +25,35 @@ information overload. Also added FlavorText to ReagentDefinition for thematic it
 — DemoPuzzle reagents now have short lore blurbs while generated puzzles keep FlavorText null.
 Commit: 2c80550
 
+## H.3: Contiguous boundary utility
+Pure geometry utility for computing which edges of a cell group form the outer boundary — the
+key primitive for non-obstructive highlight rendering. Given a set of cell positions, it checks
+each cell's four cardinal neighbors: absent neighbors mean boundary edges. This will be consumed
+by HighlightOverlay (H.7) to draw highlight regions as outlined borders rather than filled
+rectangles, keeping placed reagents visible beneath highlights.
+Commit: 2da34f1
+
 ## Code Review
 Reviewed 3 commits (1a11d94..2c80550): R-8 StatusBarPanel suppression fix, H.1 highlight data
 types, H.2 aspect metadata database. All clean — no P0-P2 issues. Code follows conventions:
 no Godot deps in Core, proper dependency direction (Game→Core), minimal data types without
 over-engineering. 405 tests passing. Minor P3 notes: GetAll() allocates on each call (low
 impact), immutable data classes could be records (style preference only).
+
+## H.4: Constraint violation detail extraction
+Refactored MetaGrid's four constraint validation methods from simple bool returns to rich
+ConstraintViolation objects with type, affected cells, reason text, and aspect ID. The original
+bool methods now delegate to the new Get*Violations methods, keeping backward compatibility
+while unlocking the detail H.5's HighlightEngine needs to render constraint highlights with
+per-cell granularity. Clean refactor — no logic changes, just information surfacing.
+Commit: 3f4e36f
+
+## H.5: HighlightEngine foundation with constraint highlights
+The first real computation layer of the highlight system. HighlightEngine reads constraint
+violations from MetaGrid (Sharp-on-edge, Fragile-in-Gravity, Heavy-above-non-Heavy, Gravity-
+unsupported) and converts them into CellHighlight entries with appropriate severity and boundary
+edges via ContiguousBoundary. Sharp violations get Danger severity (hard block); the others get
+Warning (softer guidance). StatusThresholds tracks cumulative aspect levels for status bar
+integration — mapping current/threshold pairs to Safe/Warning/Danger severity. Both are pure Core
+classes ready for H.6 (interaction highlights) and H.7 (rendering overlay) to consume.
+Commit: ed2b4b1

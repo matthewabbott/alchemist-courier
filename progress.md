@@ -302,3 +302,26 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 1a11d94..2c80550 (R-8, H.1, H.2)
 - Findings: 0 (P0: 0, P1: 0, P2: 0)
 - Fixed: 0, Tasks created: 0
+
+## H.3 — Contiguous boundary utility
+- Date: 2026-03-05
+- Commit: 2da34f1
+- Notes: Static ContiguousBoundary.Compute() takes IReadOnlyCollection<Vector2I> cell positions, returns Dictionary<Vector2I, CellEdge> mapping each cell to its boundary edges. Algorithm: builds HashSet from input, then for each cell checks 4 cardinal neighbors — absent neighbor means boundary edge in that direction. Handles duplicates via HashSet deduplication. 8 new tests: empty set, single cell (All edges), 2x2 block (no internal edges), L-shape, disjoint cells, horizontal strip, vertical strip, duplicate positions. All 413 tests pass (405 existing + 8 new).
+
+## H.4 — Constraint violation detail extraction
+- Date: 2026-03-05
+- Commit: 3f4e36f
+- Notes: Refactored MetaGrid's four private bool constraint methods (IsGravityValid, IsHeavyConstraintValid, IsSharpConstraintValid, IsFragileConstraintValid) into public Get*Violations methods returning List<ConstraintViolation>. Each violation includes ConstraintType enum, affected cells, human-readable reason string, and optional AspectId. Original bool methods now delegate to violations.Count == 0. New files: ConstraintType.cs (4 enum values), ConstraintViolation.cs (data class). 13 new tests covering all four constraint types: Sharp on edge returns correct details, interior returns empty, multi-cell two edges, non-Sharp empty; Fragile in Gravity vs normal bag; Heavy above non-Heavy both directions; Gravity floating vs bottom vs normal bag; consistency check. All 426 tests pass (413 existing + 13 new).
+
+## Integration Review — 2026-03-05
+- Reviewed commits: 1a11d94..3f4e36f (R-8, H.1, H.2, H.3, H.4)
+- Build: PASS (426/426 unit tests)
+- Harness: 16/16 tests pass, 0 failures
+- Visual: All 22 screenshots verified, no regressions
+- Issues: 0
+- Notes: H.1-H.4 are pure Core data types with no UI yet — integration tests will become relevant at H.5+ (HighlightEngine) and H.7+ (HighlightOverlay). Pre-existing cosmetic issues unchanged: tutorial win overlay vertical text, wide grid left-edge clipping, status bar base thresholds.
+
+## H.5 — HighlightEngine foundation with constraint highlights
+- Date: 2026-03-05
+- Commit: ed2b4b1
+- Notes: Created HighlightEngine static class with ComputeConstraintHighlights() and GetConstraintViolations(). Aggregates all four violation types from MetaGrid (Sharp, Fragile, Heavy, Gravity) and converts to CellHighlight entries on the Constraint layer with appropriate severity: SharpOnEdge=Danger, FragileInGravity/HeavyAboveNonHeavy/GravityUnsupported=Warning. Uses ContiguousBoundary.Compute() for edge rendering on multi-cell violation groups. Also created StatusThresholds class for tracking cumulative aspect current/threshold values with severity levels: Danger (at/above threshold), Warning (threshold-1), Safe (below), Info (unknown). 19 new tests: 10 HighlightEngine (Sharp edge single/multi-cell with boundary edges, Sharp interior=empty, Fragile in Gravity/normal, Heavy above non-Heavy, Gravity unsupported, no violations, aggregation of multiple types) + 9 StatusThresholds (Info for unknown, Safe/Warning/Danger boundaries, overwrite, multi-aspect independence, edge cases). All 445 tests pass (426 existing + 19 new).

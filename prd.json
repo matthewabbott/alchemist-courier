@@ -393,7 +393,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet test -- Null suppression in status bar tests pass, existing tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.1",
@@ -403,7 +403,7 @@
       "phase": "highlight-system",
       "depends_on": [],
       "verification": "dotnet test -- highlight data type tests pass, no Godot imports in src/Core/Highlight/",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.2",
@@ -413,7 +413,7 @@
       "phase": "highlight-system",
       "depends_on": [],
       "verification": "dotnet test -- metadata tests pass, FlavorText property works",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.3",
@@ -423,7 +423,7 @@
       "phase": "highlight-system",
       "depends_on": ["H.1"],
       "verification": "dotnet test -- contiguous boundary tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.4",
@@ -433,7 +433,7 @@
       "phase": "highlight-system",
       "depends_on": ["H.1"],
       "verification": "dotnet test -- violation detail tests pass, all existing constraint tests still pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.5",
@@ -443,7 +443,7 @@
       "phase": "highlight-system",
       "depends_on": ["H.1", "H.4"],
       "verification": "dotnet test -- constraint highlight computation tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.6",
