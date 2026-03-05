@@ -281,7 +281,7 @@
       "phase": "aspect-rework",
       "depends_on": ["2.2"],
       "verification": "dotnet test -- complexity level filtering tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "3.5",

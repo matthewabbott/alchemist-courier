@@ -169,3 +169,17 @@ space for safety margin. Added a GetTotalAspectMagnitude helper that sums across
 inventory (respecting Null bag suppression). Importantly, Medicinal only affects WholeInventory
 rules — it does NOT suppress Adjacent or SameBag reactions like explosions or neutralizations.
 Commit: 5734bb9
+
+## A.6: Add ComplexityLevel enum and wire to PuzzleGenerator
+Implemented the two-dimensional complexity model from docs/chemistry-system.md. The key insight:
+puzzle difficulty has two independent axes — scale (how many bags/reagents) and mechanical depth
+(how many unique aspect interactions). Daily/standalone puzzles should always use Simple mechanical
+depth, varying only scale. ComplexityLevel enum (Simple/Intermediate/Advanced) controls which
+aspects, bag types, and reaction rules are available. ComplexityFilter centralizes the filtering
+logic — Simple gets 6 aspects and 4 bag types, Intermediate adds Sharp/Fragile/Catalytic/Medicinal
+plus Reinforced/Insulated/Fragile bags, Advanced adds Magnetic/Absorbent and Levitating bags.
+PuzzleGenerator now draws from ComplexityFilter instead of a hardcoded MvpAspects array, meaning
+future roguelite mode just needs to set ComplexityLevel.Intermediate on DifficultyParams. An
+interesting consequence: Simple tier excludes the Breakage rule (Sharp+Fragile are Intermediate),
+so Simple puzzles have 6 reaction rules instead of 7.
+Commit: 3bcb216
