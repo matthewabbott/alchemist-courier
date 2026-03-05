@@ -69,6 +69,7 @@ public partial class TestHarness : Control
         await Test_DailyPuzzle();
         await Test_HighlightOverlay();
         await Test_HighlightIntegration();
+        await Test_RejectionTooltip();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -888,6 +889,55 @@ public partial class TestHarness : Control
                  && safeCount == 0;
         EndTest("highlight_integration", pass, pass ? null
             : $"constraintCount={constraintCount} interactionCount={interactionCount} safeCount={safeCount}");
+    }
+
+    private async Task Test_RejectionTooltip()
+    {
+        BeginTest("rejection_tooltip");
+
+        // Restore a DemoPuzzle PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+        _puzzleScreen.ResetPuzzle();
+
+        // Verify tooltip starts hidden
+        bool startsHidden = !_puzzleScreen.GridView.IsTooltipVisible;
+        Log($"[STATE] tooltip_starts_hidden={startsHidden} (expected=true)");
+
+        // Select Poison Fang (index 2, has Sharp aspect)
+        // SmallPouch at (1,1) is NOT Reinforced — Sharp blocked on edge cells
+        _puzzleScreen.SelectReagent(2);
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(1, 1));
+        await WaitFrames(2);
+
+        // Verify placement is invalid (Sharp on non-Reinforced edge)
+        var warningLevel = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] warning_level={warningLevel} (expected=Invalid)");
+
+        // Simulate left-click to trigger rejection tooltip
+        _puzzleScreen.GridView.SimulateLeftClick();
+        await WaitFrames(2);
+
+        bool tooltipVisible = _puzzleScreen.GridView.IsTooltipVisible;
+        var rejectionReason = _puzzleScreen.GridView.LastRejectionReason;
+        Log($"[STATE] tooltip_visible={tooltipVisible} reason=\"{rejectionReason}\"");
+
+        await CaptureScreenshot("25_rejection_tooltip.png");
+
+        // Verify tooltip has constraint-related reason text
+        bool hasReason = !string.IsNullOrEmpty(rejectionReason);
+
+        _puzzleScreen.CancelSelection();
+
+        bool pass = startsHidden
+                 && warningLevel == PlacementWarningLevel.Invalid
+                 && tooltipVisible
+                 && hasReason;
+        EndTest("rejection_tooltip", pass, pass ? null
+            : $"startsHidden={startsHidden} warning={warningLevel} tooltipVisible={tooltipVisible} hasReason={hasReason} reason=\"{rejectionReason}\"");
     }
 
     private async Task Test_RenderFinal()

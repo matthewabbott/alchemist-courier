@@ -60,6 +60,17 @@ public partial class MetaGridView : Control
     // Hover tracking for placed reagents
     private Reagent? _hoveredPlacedReagent;
 
+    // Rejection tooltip state
+    private PanelContainer? _rejectionTooltip;
+    private Label? _rejectionLabel;
+    private float _tooltipTimer;
+    private float _flashTimer;
+    private string? _lastRejectionReason;
+    private string? _lastRejectionAspectId;
+
+    private const float TooltipDuration = 2.0f;
+    private const float FlashDuration = 0.3f;
+
     [Signal]
     public delegate void ReagentPlacedEventHandler();
 
@@ -68,6 +79,9 @@ public partial class MetaGridView : Control
 
     [Signal]
     public delegate void HoveredReagentChangedEventHandler();
+
+    [Signal]
+    public delegate void RejectionFlashEventHandler(string aspectId);
 
     public void Initialize(MetaGrid metaGrid)
     {
@@ -89,6 +103,7 @@ public partial class MetaGridView : Control
         };
         AddChild(_highlightOverlay);
 
+        CreateRejectionTooltip();
         RefreshDisplay();
     }
 
@@ -128,12 +143,25 @@ public partial class MetaGridView : Control
         _statusThresholds = thresholds;
     }
 
+    /// <summary>Last rejection tooltip reason text (for testing).</summary>
+    public string? LastRejectionReason => _lastRejectionReason;
+
+    /// <summary>Whether the rejection tooltip is currently visible.</summary>
+    public bool IsTooltipVisible => _rejectionTooltip?.Visible ?? false;
+
     /// <summary>Programmatically set hover position (for testing).</summary>
     public void SetHoverPosition(CoreVec position)
     {
         _hoverGridPos = position;
         _mouseInsideGrid = true;
         UpdateGhostPreview();
+    }
+
+    /// <summary>Simulate a left-click at the current hover position (for testing).</summary>
+    public void SimulateLeftClick()
+    {
+        if (!_mouseInsideGrid || _hoverGridPos == null) return;
+        HandleLeftClick();
     }
 
     private void CreateCellNodes()
@@ -340,6 +368,8 @@ public partial class MetaGridView : Control
 
     private void HandleMouseMotion(InputEventMouseMotion motion)
     {
+        HideRejectionTooltip();
+
         var localPos = GetLocalMousePosition();
         var gridPos = GridCoordinates.PixelToGrid(localPos);
 
@@ -384,14 +414,7 @@ public partial class MetaGridView : Control
 
         if (mouseBtn.ButtonIndex == MouseButton.Left)
         {
-            if (_selectedReagent != null && _isPlacementValid)
-            {
-                _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
-                _selectedReagent = null;
-                ClearGhost();
-                RefreshDisplay();
-                EmitSignal(SignalName.ReagentPlaced);
-            }
+            HandleLeftClick();
         }
         else if (mouseBtn.ButtonIndex == MouseButton.Right)
         {
@@ -532,6 +555,126 @@ public partial class MetaGridView : Control
             }
         }
         return false;
+    }
+
+    private void HandleLeftClick()
+    {
+        if (_selectedReagent == null || _hoverGridPos == null) return;
+
+        if (_isPlacementValid)
+        {
+            _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
+            _selectedReagent = null;
+            ClearGhost();
+            HideRejectionTooltip();
+            RefreshDisplay();
+            EmitSignal(SignalName.ReagentPlaced);
+        }
+        else
+        {
+            ShowRejectionForCurrentPosition();
+        }
+    }
+
+    private void ShowRejectionForCurrentPosition()
+    {
+        if (_selectedReagent == null || _hoverGridPos == null) return;
+
+        var violations = HighlightEngine.GetConstraintViolations(
+            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+
+        if (violations.Count == 0) return;
+
+        var firstViolation = violations[0];
+        _lastRejectionAspectId = firstViolation.AspectId;
+        ShowRejectionTooltip(firstViolation.Reason, _hoverGridPos.Value, firstViolation.AspectId);
+
+        // Flash the highlight overlay
+        _flashTimer = FlashDuration;
+        _highlightOverlay.Modulate = new Color(1.5f, 1.5f, 1.5f);
+
+        // Emit signal for legend panel linking
+        if (firstViolation.AspectId != null)
+        {
+            EmitSignal(SignalName.RejectionFlash, firstViolation.AspectId);
+        }
+    }
+
+    private void CreateRejectionTooltip()
+    {
+        _rejectionTooltip = new PanelContainer
+        {
+            Visible = false,
+            ZIndex = 10,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.1f, 0.1f, 0.15f, 0.9f),
+            ContentMarginLeft = 8,
+            ContentMarginRight = 8,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+        };
+        _rejectionTooltip.AddThemeStyleboxOverride("panel", style);
+
+        _rejectionLabel = new Label();
+        _rejectionLabel.AddThemeFontSizeOverride("font_size", 11);
+        _rejectionTooltip.AddChild(_rejectionLabel);
+
+        AddChild(_rejectionTooltip);
+    }
+
+    private void ShowRejectionTooltip(string reason, CoreVec gridPos, string? aspectId = null)
+    {
+        if (_rejectionTooltip == null || _rejectionLabel == null) return;
+
+        _lastRejectionReason = reason;
+        _rejectionLabel.Text = reason;
+
+        // Color text by the constraint's aspect (or default warm red)
+        var textColor = aspectId != null
+            ? GridConstants.GetAspectColor(aspectId)
+            : new Color(0.95f, 0.6f, 0.5f);
+        _rejectionLabel.AddThemeColorOverride("font_color", textColor);
+
+        // Position below and to the right of the click cell
+        var pixelPos = GridCoordinates.GridToPixel(gridPos);
+        _rejectionTooltip.Position = pixelPos + new Vector2(GridConstants.CellSize + 4, GridConstants.CellSize + 4);
+
+        _rejectionTooltip.Visible = true;
+        _tooltipTimer = TooltipDuration;
+    }
+
+    private void HideRejectionTooltip()
+    {
+        if (_rejectionTooltip != null)
+            _rejectionTooltip.Visible = false;
+    }
+
+    public override void _Process(double delta)
+    {
+        if (_tooltipTimer > 0)
+        {
+            _tooltipTimer -= (float)delta;
+            if (_tooltipTimer <= 0)
+            {
+                HideRejectionTooltip();
+            }
+        }
+
+        if (_flashTimer > 0)
+        {
+            _flashTimer -= (float)delta;
+            if (_flashTimer <= 0)
+            {
+                _highlightOverlay.Modulate = Colors.White;
+            }
+        }
     }
 
     private void ClearGhost()
