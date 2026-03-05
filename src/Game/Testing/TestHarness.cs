@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using AlchemistCourier.Game.Inventory;
+using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
@@ -66,6 +67,7 @@ public partial class TestHarness : Control
         await Test_GeneratedPuzzle();
         await Test_TutorialFlow();
         await Test_DailyPuzzle();
+        await Test_HighlightOverlay();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -742,6 +744,84 @@ public partial class TestHarness : Control
         bool pass = bagsMatch && reagentsMatch && allPlaced && result == ConfirmResult.Win;
         EndTest("daily_puzzle", pass, pass ? null
             : $"bags={bagsMatch} reagents={reagentsMatch} allPlaced={allPlaced}(placed={placedCount}/{totalReagents}) result={result}");
+    }
+
+    private async Task Test_HighlightOverlay()
+    {
+        BeginTest("highlight_overlay");
+
+        // Create a HighlightOverlay and add it to the scene
+        var overlay = new HighlightOverlay();
+        overlay.MouseFilter = MouseFilterEnum.Ignore;
+        AddChild(overlay);
+        await WaitFrames(2);
+
+        // Build a test HighlightSet with various edge and fill highlights
+        var highlights = new HighlightSet();
+
+        // Red danger edges on cell (2,2) — top and right edges, aspect=hot
+        highlights.Add(new CellHighlight(
+            new CoreVec(2, 2),
+            CellEdge.Top | CellEdge.Right,
+            HighlightLayer.Constraint,
+            HighlightSeverity.Danger,
+            aspectId: "hot"));
+
+        // Orange warning edge on cell (3,2) — left edge, aspect=volatile
+        highlights.Add(new CellHighlight(
+            new CoreVec(3, 2),
+            CellEdge.Left,
+            HighlightLayer.Interaction,
+            HighlightSeverity.Warning,
+            aspectId: "volatile"));
+
+        // Blue safe fill on cell (5,1) — no edges, aspect=cold
+        highlights.Add(new CellHighlight(
+            new CoreVec(5, 1),
+            CellEdge.None,
+            HighlightLayer.Legend,
+            HighlightSeverity.Safe,
+            aspectId: "cold"));
+
+        // Render without eagle sense
+        overlay.Render(highlights, false, _puzzleScreen.Grid.Width, _puzzleScreen.Grid.Height);
+        await WaitFrames(2);
+
+        int countWithoutDim = overlay.RenderedCount;
+        bool noDim = !overlay.IsDimmed;
+        Log($"[STATE] highlight_rendered={countWithoutDim} dimmed={overlay.IsDimmed} (expected: >0, false)");
+
+        await CaptureScreenshot("21_highlight_overlay.png");
+
+        // Re-render with eagle sense
+        overlay.Render(highlights, true, _puzzleScreen.Grid.Width, _puzzleScreen.Grid.Height);
+        await WaitFrames(2);
+
+        int countWithDim = overlay.RenderedCount;
+        bool hasDim = overlay.IsDimmed;
+        Log($"[STATE] highlight_rendered_eagle={countWithDim} dimmed={overlay.IsDimmed} (expected: >0, true)");
+
+        await CaptureScreenshot("22_highlight_overlay_eagle.png");
+
+        // Clear and verify
+        overlay.Clear();
+        int afterClear = overlay.RenderedCount;
+        bool clearedDim = !overlay.IsDimmed;
+        Log($"[STATE] highlight_after_clear={afterClear} dimmed={overlay.IsDimmed} (expected: 0, false)");
+
+        // Clean up
+        overlay.QueueFree();
+        await WaitFrames(2);
+
+        // 3 edge rects (2 for cell(2,2) top+right, 1 for cell(3,2) left) + 1 fill rect = 4
+        bool pass = countWithoutDim == 4
+                 && noDim
+                 && countWithDim == 4
+                 && hasDim
+                 && afterClear == 0
+                 && clearedDim;
+        EndTest("highlight_overlay", pass, pass ? null
+            : $"countWithoutDim={countWithoutDim} noDim={noDim} countWithDim={countWithDim} hasDim={hasDim} afterClear={afterClear} clearedDim={clearedDim}");
     }
 
     private async Task Test_RenderFinal()
