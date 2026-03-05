@@ -11,6 +11,7 @@ public enum ConfirmResult
 {
     None,
     NotAllPlaced,
+    HasReactions,
     Win,
 }
 
@@ -30,8 +31,11 @@ public partial class PuzzleScreen : Control
     private Button _resetButton = null!;
     private Button _primerButton = null!;
     private AspectPrimerPanel _primerPanel = null!;
+    private PanelContainer _resultOverlay = null!;
+    private Label _resultLabel = null!;
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
+    private List<ReactionResult> _lastReactions = new();
 
     // --- Public state inspection ---
     public MetaGrid Grid => _metaGrid;
@@ -41,6 +45,7 @@ public partial class PuzzleScreen : Control
     public StatusBarPanel StatusBar => _statusBar;
     public ObjectivePanel Objective => _objectivePanel;
     public ConfirmResult LastConfirmResult => _lastConfirmResult;
+    public IReadOnlyList<ReactionResult> LastReactions => _lastReactions.AsReadOnly();
     public AspectPrimerPanel PrimerPanel => _primerPanel;
 
     public override void _Ready()
@@ -172,6 +177,36 @@ public partial class PuzzleScreen : Control
         };
         _statusLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.65f));
         vbox.AddChild(_statusLabel);
+
+        // Result overlay (hidden until confirm)
+        _resultOverlay = new PanelContainer();
+        _resultOverlay.Visible = false;
+        var overlayStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.08f, 0.08f, 0.1f, 0.92f),
+            ContentMarginLeft = 24,
+            ContentMarginRight = 24,
+            ContentMarginTop = 16,
+            ContentMarginBottom = 16,
+            CornerRadiusTopLeft = 8,
+            CornerRadiusTopRight = 8,
+            CornerRadiusBottomLeft = 8,
+            CornerRadiusBottomRight = 8,
+            BorderColor = new Color(0.4f, 0.4f, 0.35f),
+            BorderWidthBottom = 2,
+            BorderWidthTop = 2,
+            BorderWidthLeft = 2,
+            BorderWidthRight = 2,
+        };
+        _resultOverlay.AddThemeStyleboxOverride("panel", overlayStyle);
+        _resultLabel = new Label
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        _resultLabel.AddThemeFontSizeOverride("font_size", 16);
+        _resultOverlay.AddChild(_resultLabel);
+        vbox.AddChild(_resultOverlay);
     }
 
     private void WireSignals()
@@ -290,6 +325,8 @@ public partial class PuzzleScreen : Control
         }
 
         _lastConfirmResult = ConfirmResult.None;
+        _lastReactions.Clear();
+        HideResultOverlay();
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
@@ -310,12 +347,27 @@ public partial class PuzzleScreen : Control
         if (CountUnplaced() > 0)
         {
             _lastConfirmResult = ConfirmResult.NotAllPlaced;
+            _lastReactions.Clear();
+            HideResultOverlay();
             UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
             return _lastConfirmResult;
         }
 
+        // Evaluate chemistry
+        var rules = ReactionRuleDatabase.GetMvpRules();
+        _lastReactions = ChemistryEngine.Evaluate(_metaGrid, rules);
+
+        if (_lastReactions.Count > 0)
+        {
+            _lastConfirmResult = ConfirmResult.HasReactions;
+            ShowResultOverlay(false, _lastReactions);
+            UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
+            return _lastConfirmResult;
+        }
+
         _lastConfirmResult = ConfirmResult.Win;
-        UpdateStatus("All reagents placed! Puzzle complete!");
+        ShowResultOverlay(true, _lastReactions);
+        UpdateStatus("All reagents placed safely! Puzzle complete!");
         return _lastConfirmResult;
     }
 
@@ -349,6 +401,47 @@ public partial class PuzzleScreen : Control
             _reagentTray.ClearSelection();
             UpdateStatus("Cancelled. Select a reagent from the tray.");
         }
+    }
+
+    private void ShowResultOverlay(bool isWin, List<ReactionResult> reactions)
+    {
+        if (isWin)
+        {
+            _resultLabel.Text = "SUCCESS — All reagents placed safely!";
+            _resultLabel.AddThemeColorOverride("font_color", new Color(0.3f, 0.9f, 0.3f));
+        }
+        else
+        {
+            var lines = new System.Text.StringBuilder();
+            lines.AppendLine("FAILED — Reactions triggered:");
+            foreach (var r in reactions)
+            {
+                lines.AppendLine($"  - {FormatReactionType(r.Type)}");
+            }
+            _resultLabel.Text = lines.ToString().TrimEnd();
+            _resultLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.3f, 0.3f));
+        }
+        _resultOverlay.Visible = true;
+    }
+
+    private void HideResultOverlay()
+    {
+        _resultOverlay.Visible = false;
+    }
+
+    private static string FormatReactionType(ReactionResultType type)
+    {
+        return type switch
+        {
+            ReactionResultType.Explosion => "Explosion!",
+            ReactionResultType.Neutralization => "Neutralization",
+            ReactionResultType.Breakage => "Breakage",
+            ReactionResultType.Overheating => "Overheating",
+            ReactionResultType.Hypothermia => "Hypothermia",
+            ReactionResultType.Poisoning => "Poisoning",
+            ReactionResultType.ToxicCloud => "Toxic Cloud",
+            _ => type.ToString(),
+        };
     }
 
     private void UpdateStatus(string text)

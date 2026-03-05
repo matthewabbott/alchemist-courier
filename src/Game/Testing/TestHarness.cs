@@ -61,6 +61,7 @@ public partial class TestHarness : Control
         await Test_PlacementWarnings();
         await Test_StatusBar();
         await Test_ConfirmAndReset();
+        await Test_WinLossEvaluation();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -406,6 +407,105 @@ public partial class TestHarness : Control
                      : confirmResult == ConfirmResult.NotAllPlaced);
         EndTest("confirm_and_reset", pass, pass ? null
             : $"placedBefore={placedBefore} earlyResult={earlyResult} placedAfterReset={placedAfterReset} unplaced={unplacedAfterReset} resetResult={resetResult} placedAll={placedAll} confirmResult={confirmResult}");
+    }
+
+    private async Task Test_WinLossEvaluation()
+    {
+        BeginTest("win_loss_evaluation");
+
+        // Clean up via ResetPuzzle (handles rotated shapes whose anchor cell may be empty)
+        _puzzleScreen.ResetPuzzle();
+
+        // Reagent index reference:
+        // 0=Fire Pebble (1x1, Hot=2)
+        // 1=Ice Shard (1x2 horiz, Cold×2)
+        // 2=Poison Fang (L-shape 3×2, Toxic×3+Sharp, needs Reinforced bag)
+        // 3=Blast Jelly (T-shape 2×3, Volatile×3+Hot×1)
+        // 4=Inert Crystal (1x2 horiz, Stable×2)
+        // 5=Cinnabar Block (2x2, Heavy×2+Medicinal+Catalytic)
+        //
+        // Layout constraints for WIN (zero reactions):
+        // - Hot+Cold must be in DIFFERENT bags (avoid Neutralization)
+        // - Fire Pebble must NOT be adjacent to Volatile cells (avoid Explosion)
+        // - Poison Fang (Sharp) must go in Reinforced Satchel
+        //
+        // SmallPouch (3×3 at (1,1)): Cinnabar(1,1), Inert Crystal vertical(3,1), Ice Shard horiz(1,3)
+        // Satchel (4×3 Reinforced at (4,1)): Blast Jelly unrotated(4,1), Poison Fang 270°(5,2),
+        //   Fire Pebble at (4,3) [WIN] or (4,2) [LOSS — adjacent to Volatile at (4,1) and (5,2)]
+
+        // --- LOSS PATH: Fire Pebble at (4,2) adjacent to Blast Jelly Volatile cells ---
+        // Blast Jelly unrotated at (4,1): Volatile@(4,1), Hot@(5,1), Volatile@(6,1), Volatile@(5,2)
+        // Fire Pebble(Hot=2) at (4,2) is adjacent to Volatile@(4,1) and Volatile@(5,2) → Explosion
+        TestActions.SelectAndPlace(_puzzleScreen, 5, 1, 1);                // Cinnabar Block at (1,1)
+        TestActions.SelectRotateAndPlace(_puzzleScreen, 4, 1, 3, 1);       // Inert Crystal vertical at (3,1)
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 3);                // Ice Shard at (1,3)
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);                // Blast Jelly unrotated at (4,1)
+        TestActions.SelectRotateAndPlace(_puzzleScreen, 2, 3, 5, 2);       // Poison Fang 270° at (5,2)
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 4, 2);                // Fire Pebble at (4,2) ← DANGEROUS
+
+        int placedForLoss = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_for_loss={placedForLoss}");
+
+        ConfirmResult lossResult = ConfirmResult.None;
+        int reactionCount = 0;
+        bool hasExplosion = false;
+
+        if (placedForLoss == _puzzleScreen.TrayReagents.Count)
+        {
+            lossResult = _puzzleScreen.ConfirmPuzzle();
+            reactionCount = _puzzleScreen.LastReactions.Count;
+            foreach (var reaction in _puzzleScreen.LastReactions)
+            {
+                Log($"[STATE] reaction_type={reaction.Type}");
+                if (reaction.Type == AlchemistCourier.Core.Chemistry.ReactionResultType.Explosion)
+                    hasExplosion = true;
+            }
+        }
+        Log($"[STATE] loss_result={lossResult} reaction_count={reactionCount} has_explosion={hasExplosion}");
+
+        await CaptureScreenshot("15_loss_confirm.png");
+
+        // --- WIN PATH: Same layout but Fire Pebble at (4,3) — not adjacent to any Volatile ---
+        _puzzleScreen.ResetPuzzle();
+
+        TestActions.SelectAndPlace(_puzzleScreen, 5, 1, 1);                // Cinnabar Block at (1,1)
+        TestActions.SelectRotateAndPlace(_puzzleScreen, 4, 1, 3, 1);       // Inert Crystal vertical at (3,1)
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 3);                // Ice Shard at (1,3)
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);                // Blast Jelly unrotated at (4,1)
+        TestActions.SelectRotateAndPlace(_puzzleScreen, 2, 3, 5, 2);       // Poison Fang 270° at (5,2)
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 4, 3);                // Fire Pebble at (4,3) ← SAFE
+
+        int placedForWin = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_for_win={placedForWin}");
+
+        ConfirmResult winResult = ConfirmResult.None;
+        int winReactionCount = -1;
+
+        if (placedForWin == _puzzleScreen.TrayReagents.Count)
+        {
+            winResult = _puzzleScreen.ConfirmPuzzle();
+            winReactionCount = _puzzleScreen.LastReactions.Count;
+            foreach (var reaction in _puzzleScreen.LastReactions)
+            {
+                Log($"[STATE] win_reaction_type={reaction.Type}");
+            }
+        }
+        Log($"[STATE] win_result={winResult} win_reaction_count={winReactionCount}");
+
+        await CaptureScreenshot("16_win_confirm.png");
+
+        // Verify both paths
+        bool lossPass = placedForLoss == _puzzleScreen.TrayReagents.Count
+                     && lossResult == ConfirmResult.HasReactions
+                     && reactionCount > 0
+                     && hasExplosion;
+        bool winPass = placedForWin == _puzzleScreen.TrayReagents.Count
+                    && winResult == ConfirmResult.Win
+                    && winReactionCount == 0;
+
+        bool pass = lossPass && winPass;
+        EndTest("win_loss_evaluation", pass, pass ? null
+            : $"lossPass={lossPass}(placed={placedForLoss} result={lossResult} reactions={reactionCount} explosion={hasExplosion}) winPass={winPass}(placed={placedForWin} result={winResult} reactions={winReactionCount})");
     }
 
     private async Task Test_RenderFinal()
