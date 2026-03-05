@@ -136,3 +136,14 @@ cursor. The panel shows an enlarged shape preview (16px vs the tray's 8px), the 
 flavor text if available, and a full aspect breakdown with colored squares and magnitudes. Also
 added small colored aspect dots to each tray item for at-a-glance reagent identification.
 Commit: 6e0632c
+
+## H.12: PuzzleScreen orchestration and eagle sense
+This is the "wiring" task that connects all the new highlight-system UI components together into
+a cohesive interactive experience. Clicking an aspect in the legend now highlights all placed cells
+with that aspect on the grid (toggle behavior — click again to clear). Hovering a placed reagent
+on the grid highlights its aspects in the legend sidebar. The eagle sense toggle (Tab key) renders
+ALL interaction highlights simultaneously with a dim overlay, letting the player see every dangerous
+adjacency at once — and it auto-refreshes when reagents are placed or removed. The rejection flash
+from invalid placements now visually pulses the relevant legend entry. Small but important: exposed
+the StatusThresholds property on MetaGridView for the eagle sense computation.
+Commit: b1ec43e

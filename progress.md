@@ -378,3 +378,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 354e7af..6e0632c (H.9, H.10, H.11)
 - Findings: 3 (P0: 0, P1: 0, P2: 0, P3: 1, P4: 2)
 - Fixed: 3, Tasks created: 0
+
+## H.12 — PuzzleScreen orchestration and eagle sense
+- Date: 2026-03-05
+- Commit: b1ec43e
+- Notes: Wired all remaining PuzzleScreen orchestration signals. (1) AspectLegendPanel.AspectSelected → computes ComputeLegendHighlights for clicked aspect, renders on grid via SetHighlights; clicking same aspect again clears. Tracked via _legendSelectedAspect state. (2) HoveredReagentChanged now also calls _legendPanel.HighlightAspects() with the hovered reagent's aspect set, and ClearHighlight() on unhover. (3) Eagle sense toggle on Tab key: ToggleEagleSense() flips _eagleSenseActive, computes ComputeEagleSenseHighlights for all placed reagents with status thresholds, renders highlights with eagle sense dim overlay. Refreshes automatically after placement/removal via RefreshEagleSense(). SetInputAsHandled prevents Tab from cycling focus. (4) RejectionFlash signal from MetaGridView wired to _legendPanel.FlashAspect() for constraint-violation visual feedback. Exposed StatusThresholds property on MetaGridView for public read access. All 461 unit tests pass.

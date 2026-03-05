@@ -620,7 +620,7 @@
         "H.11"
       ],
       "verification": "dotnet build + test harness verifies full orchestration and eagle sense toggle",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.13",
