@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AlchemistCourier.Core.Bags;
@@ -127,9 +128,11 @@ public static class ChemistryEngine
                         {
                             var affectedCells = new List<Vector2I> { pos, adjCell.Position };
 
-                            // Stable buffering: adjacent Stable cells can suppress pair reactions
-                            int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                            if (stableBuffer > rule.Threshold)
+                            // Stable buffering and Catalytic reduction
+                            int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
+                            int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
+                            int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
+                            if (effectiveThreshold > 0)
                                 continue;
 
                             results.Add(new ReactionResult(
@@ -197,9 +200,10 @@ public static class ChemistryEngine
                 var affectedCells = new List<Vector2I> { pos };
                 affectedCells.AddRange(hotCells);
 
-                // Stable buffering raises the effective threshold
-                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                int effectiveThreshold = rule.Threshold + stableBuffer;
+                // Stable buffering raises the effective threshold, Catalytic lowers it
+                int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
+                int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
+                int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
 
                 if (netHot > effectiveThreshold)
                 {
@@ -247,8 +251,9 @@ public static class ChemistryEngine
                 // Count reagents that have this aspect (for threshold check)
                 var withAspect = reagentList.Where(r => ReagentHasUnsuppressedAspect(grid, r, aspect1)).ToList();
                 var affectedCells = GetAllCellsForReagents(withAspect);
-                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                int effectiveThreshold = rule.Threshold + stableBuffer;
+                int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
+                int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
+                int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
                 if (withAspect.Count >= effectiveThreshold && withAspect.Count >= 2)
                 {
                     results.Add(new ReactionResult(
@@ -280,9 +285,11 @@ public static class ChemistryEngine
                             {
                                 var affectedCells = GetAllCellsForReagents(new List<Reagent> { a, b });
 
-                                // Stable buffering: adjacent Stable cells can suppress pair reactions
-                                int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-                                if (stableBuffer > rule.Threshold)
+                                // Stable buffering and Catalytic reduction
+                                int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
+                                int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
+                                int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
+                                if (effectiveThreshold > 0)
                                     continue;
 
                                 results.Add(new ReactionResult(
@@ -342,9 +349,10 @@ public static class ChemistryEngine
             }
         }
 
-        // Stable buffering: adjacent Stable cells raise the effective threshold
-        int stableBuffer = GetAdjacentStableMagnitude(grid, affectedCells);
-        int effectiveThreshold = rule.Threshold + stableBuffer;
+        // Stable buffering raises, Catalytic lowers the effective threshold
+        int stableBuffer = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Stable);
+        int catalyticReduction = GetAdjacentAspectMagnitude(grid, affectedCells, AspectIds.Catalytic);
+        int effectiveThreshold = Math.Max(0, rule.Threshold + stableBuffer - catalyticReduction);
 
         if (totalMagnitude >= effectiveThreshold)
         {
@@ -357,13 +365,13 @@ public static class ChemistryEngine
     }
 
     /// <summary>
-    /// Compute the total Stable aspect magnitude on cells adjacent to the given set of cells.
-    /// Each unique Stable cell is counted only once (by position).
+    /// Compute the total magnitude of a given aspect on cells adjacent to the given set of cells.
+    /// Each unique cell is counted only once (by position).
     /// </summary>
-    private static int GetAdjacentStableMagnitude(MetaGrid grid, List<Vector2I> involvedCells)
+    private static int GetAdjacentAspectMagnitude(MetaGrid grid, List<Vector2I> involvedCells, string aspectId)
     {
         var countedPositions = new HashSet<Vector2I>();
-        int totalStable = 0;
+        int total = 0;
 
         foreach (var cell in involvedCells)
         {
@@ -383,16 +391,16 @@ public static class ChemistryEngine
                 if (reagent == null)
                     continue;
 
-                int mag = reagent.GetAspectsAtMetaGridPosition(adjCell.Position).GetMagnitude(AspectIds.Stable);
+                int mag = reagent.GetAspectsAtMetaGridPosition(adjCell.Position).GetMagnitude(aspectId);
                 if (mag > 0)
                 {
-                    totalStable += mag;
+                    total += mag;
                     countedPositions.Add(adjCell.Position);
                 }
             }
         }
 
-        return totalStable;
+        return total;
     }
 
     /// <summary>

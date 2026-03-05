@@ -1428,4 +1428,207 @@ public class ChemistryEngineTests
             r.Type == ReactionResultType.Breakage &&
             r.AffectedCells.Contains(new Vector2I(0, 1)));
     }
+
+    // --- Catalytic threshold reduction tests ---
+
+    [Fact]
+    public void Evaluate_CatalyticLowersCumulativeThreshold_CausesOverheating()
+    {
+        // 3 Hot reagents (magnitude=3) normally below overheating threshold (4).
+        // Catalytic(1) adjacent lowers effective threshold to 3: 3 >= 3 → fires
+        var hot1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var hot3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Catalytic adjacent to h1
+        var grid = SetupGrid(5, 5,
+            (hot1, new Vector2I(0, 0)),
+            (hot2, new Vector2I(2, 0)),
+            (hot3, new Vector2I(4, 0)),
+            (catalytic, new Vector2I(0, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = max(0, 4 + 0 - 1) = 3, totalMagnitude = 3, 3 >= 3 → fires
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticAndStableCancelOut()
+    {
+        // 3 Hot reagents (magnitude=3), Stable(1) + Catalytic(1) adjacent
+        // effectiveThreshold = max(0, 4 + 1 - 1) = 4 → same as base, no overheating
+        var hot1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var hot3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Stable and Catalytic both adjacent to h1
+        var grid = SetupGrid(5, 5,
+            (hot1, new Vector2I(1, 1)),
+            (hot2, new Vector2I(3, 0)),
+            (hot3, new Vector2I(4, 0)),
+            (stable, new Vector2I(0, 1)),
+            (catalytic, new Vector2I(1, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_MultipleCatalyticCellsStack()
+    {
+        // 2 Hot reagents (magnitude=2) below overheating threshold (4).
+        // Two Catalytic(1) reagents adjacent → catalytic reduction = 2
+        // effectiveThreshold = max(0, 4 + 0 - 2) = 2, magnitude = 2, 2 >= 2 → fires
+        var hot1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var cat1 = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+        var cat2 = MakeSingleCellReagent("cat2", Aspect.Catalytic());
+
+        // Both catalytic adjacent to hot cells
+        var grid = SetupGrid(5, 5,
+            (hot1, new Vector2I(0, 0)),
+            (hot2, new Vector2I(2, 0)),
+            (cat1, new Vector2I(0, 1)),
+            (cat2, new Vector2I(2, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticAloneNearNonThresholdReaction_NoEffect()
+    {
+        // Sharp + Fragile adjacent (threshold=0) with Catalytic adjacent.
+        // Catalytic can't reduce threshold below 0, so breakage still fires normally.
+        // Sharp must be on interior cell (not edge) due to Sharp edge constraint.
+        var sharp = MakeSingleCellReagent("sh1", Aspect.Sharp());
+        var fragile = MakeSingleCellReagent("fr1", Aspect.Fragile());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Layout row 1: [Catalytic] [Sharp] [Fragile]
+        var grid = SetupGrid(5, 5,
+            (catalytic, new Vector2I(0, 1)),
+            (sharp, new Vector2I(1, 1)),
+            (fragile, new Vector2I(2, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Breakage);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticCannotReduceThresholdBelowZero()
+    {
+        // Catalytic adjacent to a pair rule (threshold=0) — threshold stays 0
+        // Breakage rule has threshold=0; catalytic can't lower it further
+        var sharp = MakeSingleCellReagent("sh1", Aspect.Sharp());
+        var fragile = MakeSingleCellReagent("fr1", Aspect.Fragile());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic(3));
+
+        // Layout row 1: [Catalytic(3)] [Sharp] [Fragile]
+        var grid = SetupGrid(5, 5,
+            (catalytic, new Vector2I(0, 1)),
+            (sharp, new Vector2I(1, 1)),
+            (fragile, new Vector2I(2, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // effectiveThreshold = max(0, 0 + 0 - 3) = 0 — still fires
+        Assert.Contains(results, r => r.Type == ReactionResultType.Breakage);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticCountersStableSuppression_Adjacent()
+    {
+        // Sharp + Fragile adjacent, Stable(1) suppresses. Catalytic(1) counters Stable.
+        // effectiveThreshold = max(0, 0 + 1 - 1) = 0 → breakage fires again
+        var sharp = MakeSingleCellReagent("sh1", Aspect.Sharp());
+        var fragile = MakeSingleCellReagent("fr1", Aspect.Fragile());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Layout row 1: [Stable] [Sharp] [Fragile] [Catalytic]
+        var grid = SetupGrid(5, 5,
+            (stable, new Vector2I(0, 1)),
+            (sharp, new Vector2I(1, 1)),
+            (fragile, new Vector2I(2, 1)),
+            (catalytic, new Vector2I(3, 1)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Without catalytic, Stable would suppress. With catalytic, it fires.
+        Assert.Contains(results, r => r.Type == ReactionResultType.Breakage);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticCountersStableSuppression_SameBag()
+    {
+        // Hot + Cold in same bag (Neutralization, threshold=0), Stable(1) suppresses.
+        // Catalytic(1) adjacent counters Stable → neutralization fires again.
+        var hot = MakeSingleCellReagent("h1", Aspect.Hot());
+        var cold = MakeSingleCellReagent("c1", Aspect.Cold());
+        var stable = MakeSingleCellReagent("stb1", Aspect.Stable());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Layout: [Stable] [Hot] [Cold] [Catalytic]
+        var grid = SetupGrid(5, 5,
+            (stable, new Vector2I(0, 0)),
+            (hot, new Vector2I(1, 0)),
+            (cold, new Vector2I(2, 0)),
+            (catalytic, new Vector2I(3, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.Neutralization);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticNotAdjacentToReaction_NoEffect()
+    {
+        // 3 Hot reagents (magnitude=3) below threshold (4).
+        // Catalytic placed far away — not adjacent to any affected cell.
+        var hot1 = MakeSingleCellReagent("h1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("h2", Aspect.Hot());
+        var hot3 = MakeSingleCellReagent("h3", Aspect.Hot());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        var grid = SetupGrid(6, 6,
+            (hot1, new Vector2I(0, 0)),
+            (hot2, new Vector2I(2, 0)),
+            (hot3, new Vector2I(4, 0)),
+            (catalytic, new Vector2I(5, 5)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        // Catalytic is too far away — no reduction
+        Assert.DoesNotContain(results, r => r.Type == ReactionResultType.Overheating);
+    }
+
+    [Fact]
+    public void Evaluate_CatalyticLowersToxicCloudThreshold_SameBagSameAspect()
+    {
+        // Toxic Cloud requires 2 Toxic in same bag (threshold=2). Catalytic(1) adjacent
+        // lowers effectiveThreshold to max(0, 2 - 1) = 1. But withAspect.Count >= 2 guard
+        // still requires 2 Toxic reagents, so this doesn't change behavior for 1 Toxic.
+        // With 2 Toxic: effectiveThreshold = 1, count = 2, 2 >= 1 && 2 >= 2 → fires (same as baseline)
+        var toxic1 = MakeSingleCellReagent("t1", Aspect.Toxic());
+        var toxic2 = MakeSingleCellReagent("t2", Aspect.Toxic());
+        var catalytic = MakeSingleCellReagent("cat1", Aspect.Catalytic());
+
+        // Layout: [Toxic] [Catalytic] [Toxic]
+        var grid = SetupGrid(5, 5,
+            (toxic1, new Vector2I(0, 0)),
+            (catalytic, new Vector2I(1, 0)),
+            (toxic2, new Vector2I(2, 0)));
+
+        var results = ChemistryEngine.Evaluate(grid, AllRules);
+
+        Assert.Contains(results, r => r.Type == ReactionResultType.ToxicCloud);
+    }
 }
