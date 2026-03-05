@@ -68,6 +68,7 @@ public partial class TestHarness : Control
         await Test_TutorialFlow();
         await Test_DailyPuzzle();
         await Test_HighlightOverlay();
+        await Test_HighlightIntegration();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -822,6 +823,71 @@ public partial class TestHarness : Control
                  && clearedDim;
         EndTest("highlight_overlay", pass, pass ? null
             : $"countWithoutDim={countWithoutDim} noDim={noDim} countWithDim={countWithDim} hasDim={hasDim} afterClear={afterClear} clearedDim={clearedDim}");
+    }
+
+    private async Task Test_HighlightIntegration()
+    {
+        BeginTest("highlight_integration");
+
+        // Restore a DemoPuzzle PuzzleScreen for this test
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Clean state
+        _puzzleScreen.ResetPuzzle();
+
+        // --- Test 1: Constraint highlights (Sharp on SmallPouch edge) ---
+        // Poison Fang (index 2) has Sharp aspect.
+        // SmallPouch is at (1,1), which is NOT Reinforced.
+        // Hovering Sharp reagent at cell (1,1) — a SmallPouch edge cell — should produce constraint highlights.
+        _puzzleScreen.SelectReagent(2);
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(1, 1));
+        await WaitFrames(2);
+
+        int constraintCount = _puzzleScreen.GridView.Highlights.RenderedCount;
+        var constraintWarning = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] constraint_highlight_count={constraintCount} warning_level={constraintWarning} (expected: >0, Invalid)");
+
+        await CaptureScreenshot("23_highlight_constraint.png");
+        _puzzleScreen.CancelSelection();
+
+        // --- Test 2: Interaction highlights (Hot near Volatile) ---
+        // Place Blast Jelly (index 3, Volatile+Hot) in the Satchel
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);
+
+        // Select Fire Pebble (index 0, Hot), hover adjacent to Blast Jelly's Volatile cell
+        // Blast Jelly at (4,1) occupies: (4,1)=Volatile, (5,1)=Hot, (6,1)=Volatile, (5,2)=Volatile
+        // Hover Fire Pebble at (3,1) — cell (3,1) is in SmallPouch, adjacent to (4,1)=Volatile
+        _puzzleScreen.SelectReagent(0);
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(3, 1));
+        await WaitFrames(2);
+
+        int interactionCount = _puzzleScreen.GridView.Highlights.RenderedCount;
+        var interactionWarning = _puzzleScreen.GridView.CurrentWarningLevel;
+        Log($"[STATE] interaction_highlight_count={interactionCount} warning_level={interactionWarning} (expected: >0, Danger)");
+
+        await CaptureScreenshot("24_highlight_interaction.png");
+        _puzzleScreen.CancelSelection();
+
+        // --- Test 3: No highlights when safe reagent hovers far from danger ---
+        _puzzleScreen.ResetPuzzle();
+        _puzzleScreen.SelectReagent(4); // Inert Crystal (Stable only)
+        _puzzleScreen.GridView.SetHoverPosition(new CoreVec(1, 1));
+        await WaitFrames(2);
+
+        int safeCount = _puzzleScreen.GridView.Highlights.RenderedCount;
+        Log($"[STATE] safe_highlight_count={safeCount} (expected: 0)");
+
+        _puzzleScreen.CancelSelection();
+
+        bool pass = constraintCount > 0
+                 && interactionCount > 0
+                 && safeCount == 0;
+        EndTest("highlight_integration", pass, pass ? null
+            : $"constraintCount={constraintCount} interactionCount={interactionCount} safeCount={safeCount}");
     }
 
     private async Task Test_RenderFinal()

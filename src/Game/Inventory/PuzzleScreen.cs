@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 
@@ -87,6 +88,7 @@ public partial class PuzzleScreen : Control
 
         BuildUI();
         WireSignals();
+        UpdateStatusThresholds();
         UpdateStatus("Select a reagent from the tray, then click the grid to place it.");
     }
 
@@ -377,6 +379,7 @@ public partial class PuzzleScreen : Control
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
+        UpdateStatusThresholds();
 
         int remaining = CountUnplaced();
         if (remaining == 0)
@@ -394,6 +397,7 @@ public partial class PuzzleScreen : Control
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
+        UpdateStatusThresholds();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
     }
 
@@ -588,5 +592,20 @@ public partial class PuzzleScreen : Control
             if (!r.IsPlaced) count++;
         }
         return count;
+    }
+
+    private void UpdateStatusThresholds()
+    {
+        var thresholds = new StatusThresholds();
+        var rules = ReactionRuleDatabase.GetMvpRules();
+        foreach (var rule in rules)
+        {
+            if (rule.Sensitivity != SensitivityTier.WholeInventory || rule.TriggerAspects.Count != 1)
+                continue;
+            var aspectId = rule.TriggerAspects[0];
+            int current = _statusBar.GetAspectTotal(aspectId);
+            thresholds.Set(aspectId, current, rule.Threshold);
+        }
+        _gridView.SetStatusThresholds(thresholds);
     }
 }

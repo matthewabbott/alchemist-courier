@@ -4,6 +4,7 @@ using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Reagents;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
@@ -40,6 +41,11 @@ public partial class MetaGridView : Control
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
 
+    // Highlight overlay
+    private HighlightOverlay _highlightOverlay = null!;
+    private bool _eagleSenseActive;
+    private StatusThresholds? _statusThresholds;
+
     // Chemistry warning state
     private List<ReactionRule>? _reactionRules;
     private HashSet<string>? _reactiveAspectIds;
@@ -51,11 +57,17 @@ public partial class MetaGridView : Control
     private bool _isPlacementValid;
     private bool _mouseInsideGrid;
 
+    // Hover tracking for placed reagents
+    private Reagent? _hoveredPlacedReagent;
+
     [Signal]
     public delegate void ReagentPlacedEventHandler();
 
     [Signal]
     public delegate void ReagentRemovedEventHandler();
+
+    [Signal]
+    public delegate void HoveredReagentChangedEventHandler();
 
     public void Initialize(MetaGrid metaGrid)
     {
@@ -69,6 +81,14 @@ public partial class MetaGridView : Control
 
         CreateCellNodes();
         CreateGridLines();
+
+        _highlightOverlay = new HighlightOverlay
+        {
+            ZIndex = 4,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_highlightOverlay);
+
         RefreshDisplay();
     }
 
@@ -83,6 +103,30 @@ public partial class MetaGridView : Control
 
     /// <summary>Current warning level of the ghost preview.</summary>
     public PlacementWarningLevel CurrentWarningLevel => _currentWarningLevel;
+
+    /// <summary>The placed reagent currently being hovered over (if any).</summary>
+    public Reagent? HoveredPlacedReagent => _hoveredPlacedReagent;
+
+    /// <summary>The highlight overlay (for testing).</summary>
+    public HighlightOverlay Highlights => _highlightOverlay;
+
+    /// <summary>Set the highlight overlay content directly.</summary>
+    public void SetHighlights(HighlightSet highlights)
+    {
+        _highlightOverlay.Render(highlights, _eagleSenseActive, _metaGrid.Width, _metaGrid.Height);
+    }
+
+    /// <summary>Enable or disable eagle sense mode (dim overlay behind highlights).</summary>
+    public void SetEagleSense(bool active)
+    {
+        _eagleSenseActive = active;
+    }
+
+    /// <summary>Set status thresholds for interaction highlight severity.</summary>
+    public void SetStatusThresholds(StatusThresholds? thresholds)
+    {
+        _statusThresholds = thresholds;
+    }
 
     /// <summary>Programmatically set hover position (for testing).</summary>
     public void SetHoverPosition(CoreVec position)
@@ -267,6 +311,7 @@ public partial class MetaGridView : Control
         if (reagent == null)
         {
             ClearGhost();
+            _highlightOverlay.Clear();
             _hoverGridPos = null;
         }
         else
@@ -308,12 +353,30 @@ public partial class MetaGridView : Control
             _mouseInsideGrid = true;
             _hoverGridPos = gridPos;
             UpdateGhostPreview();
+            UpdateHoveredReagent(gridPos);
         }
         else if (_mouseInsideGrid)
         {
             _mouseInsideGrid = false;
             _hoverGridPos = null;
             ClearGhost();
+            _highlightOverlay.Clear();
+            UpdateHoveredReagent(null);
+        }
+    }
+
+    private void UpdateHoveredReagent(CoreVec? gridPos)
+    {
+        Reagent? hoveredReagent = null;
+        if (gridPos.HasValue && _selectedReagent == null)
+        {
+            hoveredReagent = _metaGrid.GetReagentAtCell(gridPos.Value);
+        }
+
+        if (hoveredReagent != _hoveredPlacedReagent)
+        {
+            _hoveredPlacedReagent = hoveredReagent;
+            EmitSignal(SignalName.HoveredReagentChanged);
         }
     }
 
@@ -328,6 +391,7 @@ public partial class MetaGridView : Control
                 _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
                 _selectedReagent = null;
                 ClearGhost();
+                _highlightOverlay.Clear();
                 RefreshDisplay();
                 EmitSignal(SignalName.ReagentPlaced);
             }
@@ -367,12 +431,14 @@ public partial class MetaGridView : Control
         {
             _selectedReagent = null;
             ClearGhost();
+            _highlightOverlay.Clear();
         }
     }
 
     private void UpdateGhostPreview()
     {
         ClearGhost();
+        _highlightOverlay.Clear();
         _currentWarningLevel = PlacementWarningLevel.Invalid;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
@@ -425,6 +491,35 @@ public partial class MetaGridView : Control
             };
             AddChild(ghost);
             _ghostCells.Add(ghost);
+        }
+
+        // Compute and render highlight overlays
+        ComputeAndRenderHighlights();
+    }
+
+    private void ComputeAndRenderHighlights()
+    {
+        if (_selectedReagent == null || _hoverGridPos == null || _reactionRules == null)
+            return;
+
+        var highlights = new HighlightSet();
+
+        // Constraint highlights (Sharp on edge, Fragile in gravity, etc.)
+        var constraintHighlights = HighlightEngine.ComputeConstraintHighlights(
+            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+        highlights.AddRange(constraintHighlights.GetByLayer(HighlightLayer.Constraint));
+
+        // Interaction highlights (adjacent reactive aspects)
+        if (_isPlacementValid)
+        {
+            var interactionHighlights = HighlightEngine.ComputeInteractionHighlights(
+                _metaGrid, _selectedReagent, _hoverGridPos.Value, _reactionRules, _statusThresholds);
+            highlights.AddRange(interactionHighlights.GetByLayer(HighlightLayer.Interaction));
+        }
+
+        if (!highlights.IsEmpty)
+        {
+            _highlightOverlay.Render(highlights, _eagleSenseActive, _metaGrid.Width, _metaGrid.Height);
         }
     }
 
