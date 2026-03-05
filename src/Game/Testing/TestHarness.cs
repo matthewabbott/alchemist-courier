@@ -52,6 +52,7 @@ public partial class TestHarness : Control
 
         await Test_RenderInitial();
         await Test_ObjectivePanel();
+        await Test_AspectPrimer();
         await Test_PlaceFirePebble();
         await Test_PlaceIceShardRotated();
         await Test_InvalidPlacement();
@@ -111,6 +112,36 @@ public partial class TestHarness : Control
         bool pass = hasText && updatedCorrectly;
         EndTest("objective_panel", pass, pass ? null
             : $"text=\"{text}\" expected=\"{expectedText}\" updated=\"{updatedText}\" expectedUpdated=\"{expectedUpdated}\"");
+    }
+
+    private async Task Test_AspectPrimer()
+    {
+        BeginTest("aspect_primer");
+
+        // Verify primer panel starts hidden
+        var primer = _puzzleScreen.PrimerPanel;
+        bool startsHidden = !primer.Visible;
+        Log($"[STATE] primer_visible={primer.Visible} (expected=False)");
+
+        // Toggle open
+        _puzzleScreen.TogglePrimer();
+        bool nowVisible = primer.Visible;
+        Log($"[STATE] primer_visible_after_toggle={primer.Visible} (expected=True)");
+
+        // Verify rule count matches MVP rules (7 rules)
+        int ruleCount = primer.RuleCount;
+        Log($"[STATE] primer_rule_count={ruleCount} (expected=7)");
+
+        await CaptureScreenshot("02b_primer_open.png");
+
+        // Toggle closed
+        _puzzleScreen.TogglePrimer();
+        bool hiddenAgain = !primer.Visible;
+        Log($"[STATE] primer_visible_after_second_toggle={primer.Visible} (expected=False)");
+
+        bool pass = startsHidden && nowVisible && ruleCount == 7 && hiddenAgain;
+        EndTest("aspect_primer", pass, pass ? null
+            : $"startsHidden={startsHidden} nowVisible={nowVisible} ruleCount={ruleCount} hiddenAgain={hiddenAgain}");
     }
 
     private async Task Test_PlaceFirePebble()

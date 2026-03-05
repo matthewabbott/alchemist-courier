@@ -28,6 +28,8 @@ public partial class PuzzleScreen : Control
     private Label _statusLabel = null!;
     private Button _confirmButton = null!;
     private Button _resetButton = null!;
+    private Button _primerButton = null!;
+    private AspectPrimerPanel _primerPanel = null!;
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
 
@@ -39,6 +41,7 @@ public partial class PuzzleScreen : Control
     public StatusBarPanel StatusBar => _statusBar;
     public ObjectivePanel Objective => _objectivePanel;
     public ConfirmResult LastConfirmResult => _lastConfirmResult;
+    public AspectPrimerPanel PrimerPanel => _primerPanel;
 
     public override void _Ready()
     {
@@ -130,6 +133,11 @@ public partial class PuzzleScreen : Control
         _objectivePanel.Initialize(_puzzleType);
         rightColumn.AddChild(_objectivePanel);
 
+        // Aspect interaction primer (toggleable)
+        _primerPanel = new AspectPrimerPanel();
+        _primerPanel.Initialize(ReactionRuleDatabase.GetMvpRules());
+        rightColumn.AddChild(_primerPanel);
+
         // Status bar (cumulative aspect thresholds)
         vbox.AddChild(new HSeparator());
         _statusBar = new StatusBarPanel();
@@ -151,6 +159,11 @@ public partial class PuzzleScreen : Control
         _confirmButton.CustomMinimumSize = new Vector2(100, 32);
         _confirmButton.Pressed += OnConfirmPressed;
         buttonBar.AddChild(_confirmButton);
+
+        _primerButton = new Button { Text = "Reactions" };
+        _primerButton.CustomMinimumSize = new Vector2(100, 32);
+        _primerButton.Pressed += OnPrimerPressed;
+        buttonBar.AddChild(_primerButton);
 
         // Status label
         _statusLabel = new Label
@@ -306,6 +319,11 @@ public partial class PuzzleScreen : Control
         return _lastConfirmResult;
     }
 
+    public void TogglePrimer()
+    {
+        _primerPanel.Toggle();
+    }
+
     private void OnResetPressed()
     {
         ResetPuzzle();
@@ -314,6 +332,11 @@ public partial class PuzzleScreen : Control
     private void OnConfirmPressed()
     {
         ConfirmPuzzle();
+    }
+
+    private void OnPrimerPressed()
+    {
+        TogglePrimer();
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)
