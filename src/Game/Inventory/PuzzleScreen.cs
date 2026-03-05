@@ -33,6 +33,8 @@ public partial class PuzzleScreen : Control
     private AspectPrimerPanel _primerPanel = null!;
     private PanelContainer _resultOverlay = null!;
     private Label _resultLabel = null!;
+    private Label _dayLabel = null!;
+    private Label _streakLabel = null!;
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
     private List<ReactionResult> _lastReactions = new();
@@ -41,6 +43,16 @@ public partial class PuzzleScreen : Control
     /// Set before adding to scene tree to load a generated puzzle instead of the demo.
     /// </summary>
     public PuzzleState? PuzzleData { get; set; }
+
+    /// <summary>
+    /// Optional header text for the day indicator (e.g., "Day 42"). Set before _Ready().
+    /// </summary>
+    public string? HeaderDayText { get; set; }
+
+    /// <summary>
+    /// Optional header text for streak display (e.g., "Streak: 7"). Set before _Ready().
+    /// </summary>
+    public string? HeaderStreakText { get; set; }
 
     // --- Public state inspection ---
     public MetaGrid Grid => _metaGrid;
@@ -115,28 +127,71 @@ public partial class PuzzleScreen : Control
         // Main layout
         var margin = new MarginContainer();
         margin.SetAnchorsPreset(LayoutPreset.FullRect);
-        margin.AddThemeConstantOverride("margin_left", 20);
-        margin.AddThemeConstantOverride("margin_right", 20);
-        margin.AddThemeConstantOverride("margin_top", 20);
-        margin.AddThemeConstantOverride("margin_bottom", 20);
+        margin.AddThemeConstantOverride("margin_left", 16);
+        margin.AddThemeConstantOverride("margin_right", 16);
+        margin.AddThemeConstantOverride("margin_top", 8);
+        margin.AddThemeConstantOverride("margin_bottom", 8);
         AddChild(margin);
 
         var vbox = new VBoxContainer();
+        vbox.AddThemeConstantOverride("separation", 6);
         margin.AddChild(vbox);
 
-        // Title
+        // ---- Header bar ----
+        var headerPanel = new PanelContainer();
+        var headerStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.12f, 0.12f, 0.15f),
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 6,
+            ContentMarginBottom = 6,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+            BorderColor = new Color(0.25f, 0.25f, 0.3f),
+            BorderWidthBottom = 1,
+        };
+        headerPanel.AddThemeStyleboxOverride("panel", headerStyle);
+        vbox.AddChild(headerPanel);
+
+        var headerHBox = new HBoxContainer();
+        headerPanel.AddChild(headerHBox);
+
         var title = new Label
         {
-            Text = "Alchemist Courier — Grid Prototype",
-            HorizontalAlignment = HorizontalAlignment.Center,
+            Text = "Alchemist Courier",
         };
         title.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
-        title.AddThemeFontSizeOverride("font_size", 20);
-        vbox.AddChild(title);
+        title.AddThemeFontSizeOverride("font_size", 18);
+        headerHBox.AddChild(title);
 
-        vbox.AddChild(new HSeparator());
+        // Spacer pushes day/streak to the right
+        headerHBox.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
 
-        // Grid + tray side by side
+        _dayLabel = new Label
+        {
+            Text = HeaderDayText ?? "",
+        };
+        _dayLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.65f));
+        _dayLabel.AddThemeFontSizeOverride("font_size", 14);
+        headerHBox.AddChild(_dayLabel);
+
+        if (!string.IsNullOrEmpty(HeaderDayText) && !string.IsNullOrEmpty(HeaderStreakText))
+        {
+            headerHBox.AddChild(new Control { CustomMinimumSize = new Vector2(16, 0) });
+        }
+
+        _streakLabel = new Label
+        {
+            Text = HeaderStreakText ?? "",
+        };
+        _streakLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.75f, 0.4f));
+        _streakLabel.AddThemeFontSizeOverride("font_size", 14);
+        headerHBox.AddChild(_streakLabel);
+
+        // ---- Grid + tray side by side ----
         var hbox = new HBoxContainer();
         hbox.SizeFlagsVertical = SizeFlags.ExpandFill;
         vbox.AddChild(hbox);
@@ -150,12 +205,12 @@ public partial class PuzzleScreen : Control
         hbox.AddChild(gridCenter);
 
         // Spacer
-        hbox.AddChild(new Control { CustomMinimumSize = new Vector2(24, 0) });
+        hbox.AddChild(new Control { CustomMinimumSize = new Vector2(20, 0) });
 
         // Right column: tray + objective
         var rightColumn = new VBoxContainer();
         rightColumn.SizeFlagsVertical = SizeFlags.ExpandFill;
-        rightColumn.AddThemeConstantOverride("separation", 12);
+        rightColumn.AddThemeConstantOverride("separation", 10);
         hbox.AddChild(rightColumn);
 
         // Tray
@@ -180,8 +235,11 @@ public partial class PuzzleScreen : Control
         _primerPanel.Initialize(ReactionRuleDatabase.GetMvpRules());
         rightColumn.AddChild(_primerPanel);
 
+        // ---- Bottom section ----
+        var bottomSeparator = new HSeparator();
+        vbox.AddChild(bottomSeparator);
+
         // Status bar (cumulative aspect thresholds)
-        vbox.AddChild(new HSeparator());
         _statusBar = new StatusBarPanel();
         _statusBar.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
         vbox.AddChild(_statusBar);
@@ -189,42 +247,43 @@ public partial class PuzzleScreen : Control
         // Button bar
         var buttonBar = new HBoxContainer();
         buttonBar.Alignment = BoxContainer.AlignmentMode.Center;
-        buttonBar.AddThemeConstantOverride("separation", 16);
+        buttonBar.AddThemeConstantOverride("separation", 12);
         vbox.AddChild(buttonBar);
 
-        _resetButton = new Button { Text = "Reset" };
-        _resetButton.CustomMinimumSize = new Vector2(100, 32);
-        _resetButton.Pressed += OnResetPressed;
-        buttonBar.AddChild(_resetButton);
-
-        _confirmButton = new Button { Text = "Confirm" };
-        _confirmButton.CustomMinimumSize = new Vector2(100, 32);
+        _confirmButton = CreateStyledButton("Confirm", new Color(0.25f, 0.5f, 0.3f));
         _confirmButton.Pressed += OnConfirmPressed;
         buttonBar.AddChild(_confirmButton);
 
-        _primerButton = new Button { Text = "Reactions" };
-        _primerButton.CustomMinimumSize = new Vector2(100, 32);
+        _resetButton = CreateStyledButton("Reset", new Color(0.35f, 0.3f, 0.28f));
+        _resetButton.Pressed += OnResetPressed;
+        buttonBar.AddChild(_resetButton);
+
+        _primerButton = CreateStyledButton("Reactions", new Color(0.3f, 0.3f, 0.4f));
         _primerButton.Pressed += OnPrimerPressed;
         buttonBar.AddChild(_primerButton);
 
-        // Status label
+        // Status label (subtle hint text)
         _statusLabel = new Label
         {
             HorizontalAlignment = HorizontalAlignment.Center,
         };
-        _statusLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.65f));
+        _statusLabel.AddThemeColorOverride("font_color", new Color(0.55f, 0.55f, 0.5f));
+        _statusLabel.AddThemeFontSizeOverride("font_size", 12);
         vbox.AddChild(_statusLabel);
 
-        // Result overlay (hidden until confirm)
+        // Result overlay — positioned as a centered overlay on the main area
         _resultOverlay = new PanelContainer();
         _resultOverlay.Visible = false;
+        _resultOverlay.SetAnchorsPreset(LayoutPreset.Center);
+        _resultOverlay.GrowHorizontal = GrowDirection.Both;
+        _resultOverlay.GrowVertical = GrowDirection.Both;
         var overlayStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.08f, 0.08f, 0.1f, 0.92f),
-            ContentMarginLeft = 24,
-            ContentMarginRight = 24,
-            ContentMarginTop = 16,
-            ContentMarginBottom = 16,
+            BgColor = new Color(0.06f, 0.06f, 0.08f, 0.94f),
+            ContentMarginLeft = 32,
+            ContentMarginRight = 32,
+            ContentMarginTop = 20,
+            ContentMarginBottom = 20,
             CornerRadiusTopLeft = 8,
             CornerRadiusTopRight = 8,
             CornerRadiusBottomLeft = 8,
@@ -241,9 +300,55 @@ public partial class PuzzleScreen : Control
             HorizontalAlignment = HorizontalAlignment.Center,
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
         };
-        _resultLabel.AddThemeFontSizeOverride("font_size", 16);
+        _resultLabel.AddThemeFontSizeOverride("font_size", 18);
         _resultOverlay.AddChild(_resultLabel);
-        vbox.AddChild(_resultOverlay);
+        AddChild(_resultOverlay);
+    }
+
+    private static Button CreateStyledButton(string text, Color bgColor)
+    {
+        var button = new Button { Text = text };
+        button.CustomMinimumSize = new Vector2(100, 34);
+        var normal = new StyleBoxFlat
+        {
+            BgColor = bgColor,
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        };
+        button.AddThemeStyleboxOverride("normal", normal);
+        var hover = new StyleBoxFlat
+        {
+            BgColor = bgColor.Lightened(0.15f),
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        };
+        button.AddThemeStyleboxOverride("hover", hover);
+        var pressed = new StyleBoxFlat
+        {
+            BgColor = bgColor.Darkened(0.15f),
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        };
+        button.AddThemeStyleboxOverride("pressed", pressed);
+        return button;
     }
 
     private void WireSignals()
