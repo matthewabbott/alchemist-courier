@@ -45,12 +45,18 @@ public class ReagentDefinition
     /// </summary>
     public IReadOnlyList<AspectSet> AspectsPerCell { get; }
 
+    /// <summary>
+    /// Optional short thematic description (e.g., "A smoldering pebble that radiates intense heat").
+    /// Used by tooltips and the item detail panel. Null for generated reagents.
+    /// </summary>
+    public string? FlavorText { get; }
+
     /// <summary>Number of cells this reagent occupies.</summary>
     public int CellCount => ShapeUtil.CellCount(Shape);
 
     public ReagentDefinition(string id, string name, bool[,] shape,
         float weight = 1f, int value = 1, Rarity rarity = Rarity.Common,
-        IList<AspectSet>? aspectsPerCell = null)
+        IList<AspectSet>? aspectsPerCell = null, string? flavorText = null)
     {
         Id = id;
         Name = name;
@@ -58,6 +64,7 @@ public class ReagentDefinition
         Weight = weight;
         Value = value;
         Rarity = rarity;
+        FlavorText = flavorText;
 
         // If aspects provided, use them. Otherwise, create empty sets for each cell.
         int cellCount = ShapeUtil.CellCount(shape);

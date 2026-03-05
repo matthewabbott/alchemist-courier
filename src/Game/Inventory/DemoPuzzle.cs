@@ -30,13 +30,15 @@ public static class DemoPuzzle
         var firePebble = new Reagent(new ReagentDefinition(
             "fire_pebble", "Fire Pebble",
             new bool[,] { { true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Hot(2)) }
+            aspectsPerCell: new[] { new AspectSet(Aspect.Hot(2)) },
+            flavorText: "A smoldering pebble that radiates intense heat."
         ));
 
         var iceShard = new Reagent(new ReagentDefinition(
             "ice_shard", "Ice Shard",
             new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Cold()), new AspectSet(Aspect.Cold()) }
+            aspectsPerCell: new[] { new AspectSet(Aspect.Cold()), new AspectSet(Aspect.Cold()) },
+            flavorText: "A sliver of permafrost that never melts."
         ));
 
         var poisonFang = new Reagent(new ReagentDefinition(
@@ -53,7 +55,8 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Toxic()),
                 new AspectSet(Aspect.Toxic()),
                 new AspectSet(Aspect.Sharp()),
-            }
+            },
+            flavorText: "A venomous serpent's fang, still dripping with toxin."
         ));
 
         var blastJelly = new Reagent(new ReagentDefinition(
@@ -69,13 +72,15 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Hot()),
                 new AspectSet(Aspect.Volatile()),
                 new AspectSet(Aspect.Volatile()),
-            }
+            },
+            flavorText: "Unstable gelatinous compound that detonates near heat."
         ));
 
         var inertCrystal = new Reagent(new ReagentDefinition(
             "inert_crystal", "Inert Crystal",
             new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Stable()), new AspectSet(Aspect.Stable()) }
+            aspectsPerCell: new[] { new AspectSet(Aspect.Stable()), new AspectSet(Aspect.Stable()) },
+            flavorText: "A perfectly balanced crystal that dampens nearby reactions."
         ));
 
         var cinnabarBlock = new Reagent(new ReagentDefinition(
@@ -92,7 +97,8 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Medicinal()),
                 new AspectSet(Aspect.Catalytic()),
                 new AspectSet(Aspect.Heavy()),
-            }
+            },
+            flavorText: "A dense block of mercuric ore prized by alchemists."
         ));
 
         return (grid, new List<Reagent>
