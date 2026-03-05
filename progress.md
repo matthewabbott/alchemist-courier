@@ -355,3 +355,16 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 354e7af
 - Notes: Added contextual rejection tooltip to MetaGridView that appears when a player clicks to place a reagent at an invalid position. When CanPlaceReagent fails and HighlightEngine.GetConstraintViolations returns violations, shows the first violation's Reason text in a dark-background PanelContainer positioned near the click cell. Text colored by the constraint's aspect color (e.g., Sharp violations in gray). Tooltip auto-hides after 2 seconds via _Process countdown or immediately on mouse move. Constraint highlights flash briefly (0.3s) by setting HighlightOverlay.Modulate to 1.5x brightness. Added RejectionFlash signal for future AspectLegendPanel linking. Refactored left-click handling into HandleLeftClick() for both real clicks and test access via SimulateLeftClick(). Added LastRejectionReason and IsTooltipVisible properties for testing. Integration test verifies: Sharp reagent on non-Reinforced bag edge → tooltip visible with non-empty reason text. All 461 unit tests pass.
+
+## Integration Review — 2026-03-05 (b)
+- Reviewed commits: 3f4e36f..354e7af (H.5, H.6, H.7, H.8, code-review-c DRY fix, H.9)
+- Build: PASS (461/461 unit tests)
+- Harness: 19/19 tests pass, 0 failures
+- Visual: All 25 screenshots verified, no regressions
+- Issues: 0
+- Notes: Full highlight system working end-to-end. Constraint highlights (Sharp/Fragile/Heavy/Gravity violations) render on hover. Interaction highlights (Hot↔Volatile, Sharp↔Fragile) show reactive adjacencies. Eagle sense dim overlay toggles correctly. Rejection tooltip displays constraint reason text on invalid click. Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
+
+## H.10 — Aspect legend panel
+- Date: 2026-03-05
+- Commit: 1f75d7c
+- Notes: Created AspectLegendPanel replacing AspectPrimerPanel. Each puzzle-relevant aspect gets a collapsible VBoxContainer entry with 16x16 colored icon + name. Expanding shows description from AspectMetadataDatabase, constraint text (if present), and relevant reaction rules with color-coded labels. Panel filters to puzzle-relevant aspects via GetForPuzzle(). Supports HighlightAspects(HashSet) for grid-to-legend linking (green-tinted background + slightly larger icon), ClearHighlight(), FlashAspect() for rejection tooltip linking (amber flash with 0.4s timer), and [Signal] AspectSelected for legend-to-grid clicking. FormatRule logic moved from AspectPrimerPanel to AspectLegendEntry to remove cross-dependency. Updated PuzzleScreen to use new panel and renamed TogglePrimer→ToggleLegend. Updated test harness with aspect_legend test covering entry count, expand/collapse, highlight, and toggle visibility. All 461 unit tests pass.

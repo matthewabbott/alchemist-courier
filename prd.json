@@ -592,7 +592,7 @@
         "H.2"
       ],
       "verification": "dotnet build + test harness screenshot shows legend panel with expandable entries",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.11",

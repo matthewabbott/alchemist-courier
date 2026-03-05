@@ -113,3 +113,11 @@ seconds or on mouse move, and constraint highlights flash briefly to draw attent
 HandleMouseClick to extract HandleLeftClick for both real input and programmatic test access via
 SimulateLeftClick(). Added RejectionFlash signal as infrastructure for H.10's legend panel linking.
 Commit: 354e7af
+
+## H.10: Aspect legend panel
+Replaced the static AspectPrimerPanel with a richer AspectLegendPanel — a collapsible sidebar
+showing each puzzle-relevant aspect with a colored icon, name, description, constraint text, and
+associated reaction rules. This is the informational backbone the player needs to reason about
+aspect interactions without memorizing rules. Designed with highlight/flash methods that the
+upcoming orchestration task (H.12) will wire to grid hover and rejection events.
+Commit: 1f75d7c
