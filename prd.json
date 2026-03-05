@@ -605,7 +605,7 @@
         "H.8"
       ],
       "verification": "dotnet build + test harness screenshot shows item detail panel and tray aspect icons",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "H.12",

@@ -121,3 +121,12 @@ associated reaction rules. This is the informational backbone the player needs t
 aspect interactions without memorizing rules. Designed with highlight/flash methods that the
 upcoming orchestration task (H.12) will wire to grid hover and rejection events.
 Commit: 1f75d7c
+
+## H.11: Item detail panel (Book of Hours style)
+Built the persistent item inspection panel — a sidebar that always shows info about whatever
+reagent the player is hovering over, whether in the tray or on the grid. Inspired by the Book
+of Hours UI pattern where inspection info lives in a fixed location rather than following the
+cursor. The panel shows an enlarged shape preview (16px vs the tray's 8px), the reagent name,
+flavor text if available, and a full aspect breakdown with colored squares and magnitudes. Also
+added small colored aspect dots to each tray item for at-a-glance reagent identification.
+Commit: 6e0632c
