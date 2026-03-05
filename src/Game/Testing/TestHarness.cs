@@ -71,6 +71,8 @@ public partial class TestHarness : Control
         await Test_HighlightIntegration();
         await Test_RejectionTooltip();
         await Test_ItemDetailPanel();
+        await Test_EagleSenseOrchestration();
+        await Test_LegendGridLinking();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1032,6 +1034,104 @@ public partial class TestHarness : Control
         bool pass = startsNull && showsReagent && clearedToNull && showsPlacedReagent && showsMultiAspect;
         EndTest("item_detail_panel", pass, pass ? null
             : $"startsNull={startsNull} showsReagent={showsReagent} cleared={clearedToNull} placed={showsPlacedReagent} multiAspect={showsMultiAspect}");
+    }
+
+    private async Task Test_EagleSenseOrchestration()
+    {
+        BeginTest("eagle_sense_orchestration");
+
+        // Restore a fresh DemoPuzzle PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+        _puzzleScreen.ResetPuzzle();
+
+        // Verify eagle sense starts off
+        bool startsOff = !_puzzleScreen.EagleSenseActive;
+        bool startsDimOff = !_puzzleScreen.GridView.Highlights.IsDimmed;
+        Log($"[STATE] eagle_starts_off={startsOff} dim_off={startsDimOff} (expected=true, true)");
+
+        // Place reagents adjacent so eagle sense has interactions to highlight
+        // Blast Jelly (index 3, Volatile+Hot) first, then Fire Pebble (index 0, Hot) adjacent
+        // Blast Jelly at (4,1) occupies (4,1)=Volatile, (5,1)=Hot, (6,1)=Volatile, (5,2)=Volatile
+        // Fire Pebble at (3,1) is adjacent to (4,1)=Volatile → Hot+Volatile interaction
+        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1); // Blast Jelly
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 3, 1); // Fire Pebble adjacent
+        await WaitFrames(2);
+
+        // Toggle eagle sense ON
+        _puzzleScreen.ToggleEagleSense();
+        await WaitFrames(2);
+
+        bool eagleOn = _puzzleScreen.EagleSenseActive;
+        int eagleHighlights = _puzzleScreen.GridView.Highlights.RenderedCount;
+        bool eagleDim = _puzzleScreen.GridView.Highlights.IsDimmed;
+        Log($"[STATE] eagle_on={eagleOn} highlights={eagleHighlights} dim={eagleDim} (expected=true, >0, true)");
+
+        await CaptureScreenshot("29_eagle_sense_on.png");
+
+        // Toggle eagle sense OFF
+        _puzzleScreen.ToggleEagleSense();
+        await WaitFrames(2);
+
+        bool eagleOff = !_puzzleScreen.EagleSenseActive;
+        int afterOffHighlights = _puzzleScreen.GridView.Highlights.RenderedCount;
+        bool afterOffDim = !_puzzleScreen.GridView.Highlights.IsDimmed;
+        Log($"[STATE] eagle_off={eagleOff} highlights_after={afterOffHighlights} dim_off={afterOffDim} (expected=true, 0, true)");
+
+        bool pass = startsOff && startsDimOff
+                 && eagleOn && eagleHighlights > 0 && eagleDim
+                 && eagleOff && afterOffHighlights == 0 && afterOffDim;
+        EndTest("eagle_sense_orchestration", pass, pass ? null
+            : $"startsOff={startsOff} startsDimOff={startsDimOff} eagleOn={eagleOn} highlights={eagleHighlights} eagleDim={eagleDim} eagleOff={eagleOff} afterOff={afterOffHighlights} afterDim={afterOffDim}");
+    }
+
+    private async Task Test_LegendGridLinking()
+    {
+        BeginTest("legend_grid_linking");
+
+        // Restore a fresh DemoPuzzle PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+        _puzzleScreen.ResetPuzzle();
+
+        // Place Fire Pebble (Hot) so there are Hot cells on the grid
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 2, 2);
+        await WaitFrames(2);
+
+        // Verify no legend selection initially
+        bool noSelection = _puzzleScreen.LegendSelectedAspect == null;
+        int beforeHighlights = _puzzleScreen.GridView.Highlights.RenderedCount;
+        Log($"[STATE] no_selection={noSelection} highlights_before={beforeHighlights} (expected=true, 0)");
+
+        // Simulate clicking "hot" aspect in the legend panel
+        _puzzleScreen.LegendPanel.EmitSignal(AspectLegendPanel.SignalName.AspectSelected, "hot");
+        await WaitFrames(2);
+
+        bool hotSelected = _puzzleScreen.LegendSelectedAspect == "hot";
+        int legendHighlights = _puzzleScreen.GridView.Highlights.RenderedCount;
+        Log($"[STATE] hot_selected={hotSelected} legend_highlights={legendHighlights} (expected=true, >0)");
+
+        await CaptureScreenshot("30_legend_grid_link.png");
+
+        // Click same aspect again — should toggle off
+        _puzzleScreen.LegendPanel.EmitSignal(AspectLegendPanel.SignalName.AspectSelected, "hot");
+        await WaitFrames(2);
+
+        bool clearedSelection = _puzzleScreen.LegendSelectedAspect == null;
+        int afterClearHighlights = _puzzleScreen.GridView.Highlights.RenderedCount;
+        Log($"[STATE] cleared_selection={clearedSelection} highlights_after_clear={afterClearHighlights} (expected=true, 0)");
+
+        bool pass = noSelection && beforeHighlights == 0
+                 && hotSelected && legendHighlights > 0
+                 && clearedSelection && afterClearHighlights == 0;
+        EndTest("legend_grid_linking", pass, pass ? null
+            : $"noSel={noSelection} before={beforeHighlights} hotSel={hotSelected} legendHL={legendHighlights} cleared={clearedSelection} afterClear={afterClearHighlights}");
     }
 
     private async Task Test_RenderFinal()
