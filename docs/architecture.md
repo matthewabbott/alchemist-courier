@@ -550,6 +550,7 @@ Design and test with web export in mind from day one. Don't use features that br
 
 ## Related Documents
 
+- `docs/architecture-diagram.md` — **Visual architecture diagram** (Mermaid + ASCII data flow)
 - `docs/game-overview.md` — Project overview and tech stack rationale
 - `docs/core-mechanics.md` — Game design that the architecture must implement
 - `docs/chemistry-system.md` — The chemistry engine specification
