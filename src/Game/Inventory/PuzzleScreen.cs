@@ -265,10 +265,7 @@ public partial class PuzzleScreen : Control
     private void OnReagentPlaced()
     {
         var name = _selectedReagent?.Definition.Name ?? "Reagent";
-        _selectedReagent = null;
-        _selectedIndex = -1;
-        _gridView.SetSelectedReagent(null);
-        _reagentTray.ClearSelection();
+        ClearSelectionState();
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
@@ -294,6 +291,14 @@ public partial class PuzzleScreen : Control
 
     // --- Programmatic control (for testing, tutorials, AI) ---
 
+    private void ClearSelectionState()
+    {
+        _selectedReagent = null;
+        _selectedIndex = -1;
+        _gridView.SetSelectedReagent(null);
+        _reagentTray.ClearSelection();
+    }
+
     public void SelectReagent(int index)
     {
         OnReagentSelected(index);
@@ -318,10 +323,7 @@ public partial class PuzzleScreen : Control
 
     public void CancelSelection()
     {
-        _selectedReagent = null;
-        _selectedIndex = -1;
-        _gridView.SetSelectedReagent(null);
-        _reagentTray.ClearSelection();
+        ClearSelectionState();
         UpdateStatus("Cancelled.");
     }
 
@@ -341,14 +343,7 @@ public partial class PuzzleScreen : Control
 
     public void ResetPuzzle()
     {
-        // Cancel any active selection
-        if (_selectedReagent != null)
-        {
-            _selectedReagent = null;
-            _selectedIndex = -1;
-            _gridView.SetSelectedReagent(null);
-            _reagentTray.ClearSelection();
-        }
+        ClearSelectionState();
 
         // Remove all non-locked placed reagents
         for (int i = _metaGrid.PlacedReagents.Count - 1; i >= 0; i--)
@@ -370,14 +365,7 @@ public partial class PuzzleScreen : Control
 
     public ConfirmResult ConfirmPuzzle()
     {
-        // Cancel any active selection
-        if (_selectedReagent != null)
-        {
-            _selectedReagent = null;
-            _selectedIndex = -1;
-            _gridView.SetSelectedReagent(null);
-            _reagentTray.ClearSelection();
-        }
+        ClearSelectionState();
 
         if (CountUnplaced() > 0)
         {
@@ -430,10 +418,7 @@ public partial class PuzzleScreen : Control
     {
         if (@event is InputEventKey { Pressed: true, Keycode: Key.Escape } && _selectedReagent != null)
         {
-            _selectedReagent = null;
-            _selectedIndex = -1;
-            _gridView.SetSelectedReagent(null);
-            _reagentTray.ClearSelection();
+            ClearSelectionState();
             UpdateStatus("Cancelled. Select a reagent from the tray.");
         }
     }
