@@ -214,3 +214,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 26dc655..a8f9fdd (A.5 docs, A.6 implementation, A.6 docs)
 - Findings: 2 (P0: 0, P1: 2, P2: 0)
 - Fixed: 2, Tasks created: 0
+
+## 3.5 — Add aspect interaction primer
+- Date: 2026-03-04
+- Commit: 29a0bc4
+- Notes: Created AspectPrimerPanel (PanelContainer) as a toggleable overlay in the right column of PuzzleScreen, below the ObjectivePanel. Displays all 7 MVP reaction rules from ReactionRuleDatabase with color-coded labels (red for explosions, blue for neutralization, green for toxic, orange for breakage/overheating). Each rule shows formatted trigger aspects, sensitivity tier, threshold, and result name. Toggle via "Reactions" button in the button bar or programmatic TogglePrimer(). Panel starts hidden. Integration test verifies: starts hidden, toggle shows with 7 rules, second toggle hides. Build succeeds, all 289 unit tests pass.

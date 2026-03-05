@@ -192,3 +192,13 @@ literals "magnetic"/"absorbent" in ComplexityFilter.AdvancedAspects — added As
 and AspectIds.Absorbent constants. Net result: -25 lines, cleaner dependency graph, all 289
 tests pass.
 Commit: 1b0c26c
+
+## 3.5: Add aspect interaction primer
+Added a toggleable AspectPrimerPanel overlay that lists all reaction rules from the
+ReactionRuleDatabase. Each rule displays as a color-coded one-liner showing trigger aspects,
+sensitivity tier (adjacent/same bag/cumulative), optional threshold, and result name — making
+the chemistry system discoverable without memorization. Implemented as a PanelContainer in the
+right column, toggled via a "Reactions" button alongside Reset/Confirm. The panel is the final
+UI-chemistry piece needed before the layout polish pass (5.1). Integration test verifies
+visibility toggle and correct rule count (7 MVP rules).
+Commit: 29a0bc4
