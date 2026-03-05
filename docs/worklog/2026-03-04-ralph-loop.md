@@ -254,3 +254,16 @@ net -15 lines. Remaining findings (P3-P4: hardcoded UI values, repeated GetMvpRu
 patterns) are acceptable for current stage. Code quality is solid — the game-flow additions follow
 existing patterns cleanly.
 Commit: 494309a
+
+## 4.3: Add tutorial lesson data model and first 5 lessons
+Created the data layer for the tutorial system. TutorialLesson is a simple data model
+capturing everything needed to generate and present a tutorial puzzle: lesson number,
+concept name, player-facing hint text, a fixed seed for deterministic generation,
+difficulty parameters, and puzzle type. TutorialData.GetLessons() returns the first 5
+lessons from the MVP spec, following a pedagogical progression: three pure spatial lessons
+(Basic Placement, Shapes & Rotation, Tight Fit) that teach grid mechanics without chemistry,
+then two aspect-introduction lessons (Hot and Volatile) that layer in chemistry one concept
+at a time. Lesson 4 intentionally steps back to fewer reagents (3 vs 4) so the player can
+focus on the new concept without spatial overwhelm. All seeds validated as producing solvable
+puzzles via PuzzleGenerator + PuzzleSolver.IsSolvable.
+Commit: 9e6a035

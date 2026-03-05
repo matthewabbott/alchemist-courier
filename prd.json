@@ -301,7 +301,7 @@
       "phase": "game-flow",
       "depends_on": ["1.4", "3.4"],
       "verification": "dotnet build + test harness verifies win and loss paths",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "4.2",
@@ -311,7 +311,7 @@
       "phase": "game-flow",
       "depends_on": ["2.3"],
       "verification": "dotnet build + test harness runs with both demo and generated puzzles",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "4.3",
@@ -321,7 +321,7 @@
       "phase": "game-flow",
       "depends_on": ["2.2"],
       "verification": "dotnet test -- tutorial lesson tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "4.4",
