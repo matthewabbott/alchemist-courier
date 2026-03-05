@@ -218,4 +218,28 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 ## 3.5 — Add aspect interaction primer
 - Date: 2026-03-04
 - Commit: 29a0bc4
+
+## 4.1 — Add win/loss evaluation to PuzzleScreen
+- Date: 2026-03-04
+- Commit: ded67ea
+
+## Code Review — 2026-03-04 (f)
+- Reviewed commits: 29a6911..a28eed1
+- Findings: 4 (P0: 0, P1: 1, P2: 0, P3: 2, P4: 1)
+- Fixed: 1 (DRY: 5x duplicated selection-clearing block → ClearSelectionState), Tasks created: 0
+- Notes: Wired Confirm button to full ChemistryEngine evaluation. When all reagents are placed, runs ChemistryEngine.Evaluate on the MetaGrid with MVP rules. Zero reactions = Win (green "SUCCESS" overlay), any reactions = HasReactions/loss (red "FAILED" overlay with reaction list). Added HasReactions to ConfirmResult enum. Result overlay is a styled PanelContainer with semi-transparent dark background, built in BuildUI(). ShowResultOverlay/HideResultOverlay manage visibility. ResetPuzzle clears reactions and hides overlay. Integration test verifies both paths: LOSS (Fire Pebble Hot=2 adjacent to Blast Jelly Volatile → Explosion) and WIN (Fire Pebble at safe position → zero reactions). All 289 unit tests pass, 13/13 integration tests pass.
 - Notes: Created AspectPrimerPanel (PanelContainer) as a toggleable overlay in the right column of PuzzleScreen, below the ObjectivePanel. Displays all 7 MVP reaction rules from ReactionRuleDatabase with color-coded labels (red for explosions, blue for neutralization, green for toxic, orange for breakage/overheating). Each rule shows formatted trigger aspects, sensitivity tier, threshold, and result name. Toggle via "Reactions" button in the button bar or programmatic TogglePrimer(). Panel starts hidden. Integration test verifies: starts hidden, toggle shows with 7 rules, second toggle hides. Build succeeds, all 289 unit tests pass.
+
+## Integration Review — 2026-03-04 (d)
+- Reviewed commits: 8bcf6ce..ded67ea (B.3, B.4, R-6, R-7, A.1 fix, A.2, A.3, A.4, A.5, A.6, review-fix, 3.5, 4.1)
+- Build: PASS (289/289 unit tests)
+- Harness: 13/13 tests pass, 0 failures
+- Visual: All 18 screenshots verified, no regressions
+- Issues: 0
+- UX observation: Status bar shows base threshold (3/3 Toxicity red) even when Medicinal raises effective threshold — consider showing effective thresholds in 5.1 polish.
+- Notes: Full puzzle loop working end-to-end (place, warnings, status bar, confirm win/loss, reset). Aspect primer shows all 7 rules. Integration gaps for Gravity/Locked/NonRect/Fragile/Null bags remain deferred to 4.2 (PuzzleGenerator integration).
+
+## 4.2 — Replace DemoPuzzle with PuzzleGenerator
+- Date: 2026-03-04
+- Commit: a28eed1
+- Notes: Added PuzzleData property to PuzzleScreen — set before adding to scene tree to load a generated puzzle instead of DemoPuzzle. Uses PuzzleSolver.ReconstructGrid/ReconstructReagents (already internal and in the same assembly) to build runtime MetaGrid and Reagent objects from serialized PuzzleState. Locked reagents are automatically pre-placed at their solution positions via InitializeFromPuzzleState. Fixed ResetPuzzle to skip locked reagents (was using a while-loop that would infinite-loop since MetaGrid.RemoveReagent rejects locked reagents). DemoPuzzle remains as fallback when PuzzleData is null. Integration test generates Easy puzzle from seed 42, loads into PuzzleScreen, applies full solution, confirms Win, resets, verifies locked reagent preservation. 14/14 integration tests pass, 289 unit tests pass.

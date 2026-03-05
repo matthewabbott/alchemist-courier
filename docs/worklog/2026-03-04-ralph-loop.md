@@ -202,3 +202,55 @@ right column, toggled via a "Reactions" button alongside Reset/Confirm. The pane
 UI-chemistry piece needed before the layout polish pass (5.1). Integration test verifies
 visibility toggle and correct rule count (7 MVP rules).
 Commit: 29a0bc4
+
+## 4.2: Replace DemoPuzzle with PuzzleGenerator
+The bridge between the Core puzzle infrastructure and the UI is finally in place.
+PuzzleScreen now accepts a PuzzleState via a property set before _Ready, using the
+existing PuzzleSolver reconstruction methods to hydrate runtime objects from the
+serialized format. The interesting part was handling locked reagents: they need to be
+pre-placed on the grid during initialization, but ResetPuzzle was using a while-loop
+that assumed all reagents could be removed — locked reagents caused an infinite loop
+since MetaGrid.RemoveReagent silently rejects them. Switched to reverse iteration
+with a skip check. The integration test creates a second PuzzleScreen mid-harness
+(QueueFree the old one, create new with PuzzleData), applies the generator's known
+solution, and confirms it wins — proving the full pipeline works end-to-end.
+Commit: a28eed1
+
+## Architecture Review (d)
+Full architecture review at the phase boundary (all pre-game-flow phases complete). Verdict:
+GREEN — proceed to game-flow. Key findings: StatusBarPanel doesn't apply Null-bag suppression
+(functional bug, fix before/during 4.1), MEMORY.md has stale metadata (Godot 4.3/net6.0/.csproj
+gitignored — all wrong), Grid→Chemistry dependency in MetaGrid for placement constraints
+(workable for MVP, refactor before Intermediate tier), and several pieces of dead code from
+iterative development. No priority-0 tasks created — all issues are low/medium severity.
+Report: docs/reviews/architecture-review-2026-03-04d.md
+
+## 4.1: Add win/loss evaluation to PuzzleScreen
+First game-flow phase task. Wired the Confirm button to ChemistryEngine.Evaluate — when all
+reagents are placed, the engine runs all MVP reaction rules against the grid. Zero reactions
+means the player wins (green "SUCCESS" overlay); any reactions means loss (red "FAILED" overlay
+listing each reaction type and affected cells). The result overlay is a styled PanelContainer
+with semi-transparent dark background and colored header, built procedurally in BuildUI().
+
+The integration test was the tricky part — needed to find two complete 6-reagent arrangements
+for the DemoPuzzle that (a) fit all reagents within bag bounds, (b) respect all placement
+constraints (Sharp needs Reinforced bag, Gravity, etc.), (c) LOSS path triggers exactly one
+Explosion via Hot adjacent to Volatile, and (d) WIN path avoids ALL reactions including
+cumulative thresholds. The winning arrangement carefully positions Fire Pebble (Hot=2) at
+(4,2) for loss (adjacent to Blast Jelly's Volatile cells) vs (4,3) for win (safe distance).
+Manual chemistry verification confirmed cumulative totals stay under effective thresholds
+(Hot 3 < 5, Cold 2 < 4, Toxic 3 < 4 with Medicinal buffering).
+
+Learned: PlacedPosition on Reagent is the anchor (top-left of bounding box), which for rotated
+shapes may be a `false` cell in the shape matrix. Using GetReagentAtCell on the anchor can
+return null, causing infinite loops in cleanup code. Use ResetPuzzle() instead of manual removal.
+Commit: ded67ea
+
+## Code Review (f)
+Reviewed last 3 commits (3.5 aspect primer, 4.1 win/loss evaluation, 4.2 PuzzleGenerator wiring).
+Found and fixed one P1 DRY violation: selection-clearing logic (set null, reset index, clear grid/tray)
+was copy-pasted in 5 locations across PuzzleScreen. Extracted `ClearSelectionState()` private method,
+net -15 lines. Remaining findings (P3-P4: hardcoded UI values, repeated GetMvpRules calls, test cleanup
+patterns) are acceptable for current stage. Code quality is solid — the game-flow additions follow
+existing patterns cleanly.
+Commit: 494309a
