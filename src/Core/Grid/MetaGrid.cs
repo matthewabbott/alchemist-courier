@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Core.Grid;
@@ -250,13 +251,13 @@ public class MetaGrid
     }
 
     /// <summary>
-    /// Check if all positions in Gravity bags are supported from below.
-    /// A cell is supported if: (a) it is at the bottom of the bag for its column, or
-    /// (b) another reagent cell exists at (col, row+1) — either already placed or part of
-    /// the positions being checked (self-support within a multi-cell reagent).
+    /// Get detailed gravity constraint violations for the given positions.
+    /// A cell in a Gravity bag must be supported from below: at the bag bottom,
+    /// resting on an occupied cell, or self-supported by another position in the set.
     /// </summary>
-    private bool IsGravityValid(List<Vector2I> positions)
+    public List<ConstraintViolation> GetGravityViolations(List<Vector2I> positions)
     {
+        var violations = new List<ConstraintViolation>();
         HashSet<Vector2I>? positionSet = null;
 
         foreach (var pos in positions)
@@ -275,28 +276,32 @@ public class MetaGrid
             // The cell below is in the same bag — check for support
             var belowCell = GetCell(below);
             if (belowCell != null && belowCell.IsOccupied)
-                continue; // Supported by an already-placed reagent
+                continue;
 
             // Check if another cell of the reagent being placed provides support
             positionSet ??= new HashSet<Vector2I>(positions);
             if (positionSet.Contains(below))
-                continue; // Self-supported by another cell of this reagent
+                continue;
 
-            return false; // Unsupported — floating in a Gravity bag
+            violations.Add(new ConstraintViolation(
+                ConstraintType.GravityUnsupported,
+                new List<Vector2I> { pos },
+                "Cell is unsupported in Gravity bag"));
         }
 
-        return true;
+        return violations;
     }
 
+    private bool IsGravityValid(List<Vector2I> positions) =>
+        GetGravityViolations(positions).Count == 0;
+
     /// <summary>
-    /// Check that Heavy reagents are at the bottom of Gravity bags.
-    /// In a Gravity bag column, Heavy reagent cells must be at or below all non-Heavy cells.
-    /// When placing a Heavy reagent: no non-Heavy reagent may be below any of its cells.
-    /// When placing a non-Heavy reagent: no Heavy reagent may be above any of its cells.
-    /// In non-Gravity bags, Heavy has no special placement effect.
+    /// Get detailed Heavy constraint violations for the given reagent and positions.
+    /// In Gravity bags, Heavy reagent cells must be at or below all non-Heavy cells.
     /// </summary>
-    private bool IsHeavyConstraintValid(Reagent reagent, List<Vector2I> positions)
+    public List<ConstraintViolation> GetHeavyViolations(Reagent reagent, List<Vector2I> positions)
     {
+        var violations = new List<ConstraintViolation>();
         bool isHeavy = reagent.HasAspect(AspectIds.Heavy);
 
         foreach (var pos in positions)
@@ -307,49 +312,64 @@ public class MetaGrid
 
             if (isHeavy)
             {
-                // Heavy reagent: no non-Heavy reagent may be below (higher row index)
                 for (int row = pos.Row + 1; row < Height; row++)
                 {
                     var checkPos = new Vector2I(pos.Col, row);
                     var checkBag = GetBagAtCell(checkPos);
                     if (checkBag != bag)
-                        break; // Left the bag
+                        break;
 
                     var occupant = GetReagentAtCell(checkPos);
                     if (occupant != null && !occupant.HasAspect(AspectIds.Heavy))
-                        return false; // Non-Heavy reagent below a Heavy one
+                    {
+                        violations.Add(new ConstraintViolation(
+                            ConstraintType.HeavyAboveNonHeavy,
+                            new List<Vector2I> { pos },
+                            "Heavy reagent must be below non-Heavy reagents in Gravity bag",
+                            AspectIds.Heavy));
+                        break; // One violation per cell is enough
+                    }
                 }
             }
             else
             {
-                // Non-Heavy reagent: no Heavy reagent may be above (lower row index)
                 for (int row = pos.Row - 1; row >= 0; row--)
                 {
                     var checkPos = new Vector2I(pos.Col, row);
                     var checkBag = GetBagAtCell(checkPos);
                     if (checkBag != bag)
-                        break; // Left the bag
+                        break;
 
                     var occupant = GetReagentAtCell(checkPos);
                     if (occupant != null && occupant.HasAspect(AspectIds.Heavy))
-                        return false; // Heavy reagent above a non-Heavy one
+                    {
+                        violations.Add(new ConstraintViolation(
+                            ConstraintType.HeavyAboveNonHeavy,
+                            new List<Vector2I> { pos },
+                            "Non-Heavy reagent cannot be placed above Heavy reagent in Gravity bag",
+                            AspectIds.Heavy));
+                        break;
+                    }
                 }
             }
         }
 
-        return true;
+        return violations;
     }
 
+    private bool IsHeavyConstraintValid(Reagent reagent, List<Vector2I> positions) =>
+        GetHeavyViolations(reagent, positions).Count == 0;
+
     /// <summary>
-    /// Check that Sharp reagents are not placed on edge cells of non-Reinforced bags.
-    /// An edge cell is any bag cell with at least one cardinal neighbor outside the bag.
-    /// In Reinforced bags, Sharp reagents are allowed on edge cells.
-    /// Non-Sharp reagents are unaffected by this constraint.
+    /// Get detailed Sharp constraint violations for the given reagent and positions.
+    /// Sharp reagents can't be on edge cells of non-Reinforced bags.
     /// </summary>
-    private bool IsSharpConstraintValid(Reagent reagent, List<Vector2I> positions)
+    public List<ConstraintViolation> GetSharpViolations(Reagent reagent, List<Vector2I> positions)
     {
+        var violations = new List<ConstraintViolation>();
+
         if (!reagent.HasAspect(AspectIds.Sharp))
-            return true;
+            return violations;
 
         foreach (var pos in positions)
         {
@@ -361,30 +381,50 @@ public class MetaGrid
                 continue;
 
             if (bag.IsEdgeCell(pos))
-                return false;
+            {
+                violations.Add(new ConstraintViolation(
+                    ConstraintType.SharpOnEdge,
+                    new List<Vector2I> { pos },
+                    "Sharp reagent on edge cell of non-Reinforced bag",
+                    AspectIds.Sharp));
+            }
         }
 
-        return true;
+        return violations;
     }
 
+    private bool IsSharpConstraintValid(Reagent reagent, List<Vector2I> positions) =>
+        GetSharpViolations(reagent, positions).Count == 0;
+
     /// <summary>
-    /// Check that Fragile reagents are not placed in Gravity bags.
-    /// Non-Fragile reagents are unaffected by this constraint.
+    /// Get detailed Fragile constraint violations for the given reagent and positions.
+    /// Fragile reagents can't be placed in Gravity bags.
     /// </summary>
-    private bool IsFragileConstraintValid(Reagent reagent, List<Vector2I> positions)
+    public List<ConstraintViolation> GetFragileViolations(Reagent reagent, List<Vector2I> positions)
     {
+        var violations = new List<ConstraintViolation>();
+
         if (!reagent.HasAspect(AspectIds.Fragile))
-            return true;
+            return violations;
 
         foreach (var pos in positions)
         {
             var bag = GetBagAtCell(pos);
             if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
-                return false;
+            {
+                violations.Add(new ConstraintViolation(
+                    ConstraintType.FragileInGravity,
+                    new List<Vector2I> { pos },
+                    "Fragile reagent cannot be placed in Gravity bag",
+                    AspectIds.Fragile));
+            }
         }
 
-        return true;
+        return violations;
     }
+
+    private bool IsFragileConstraintValid(Reagent reagent, List<Vector2I> positions) =>
+        GetFragileViolations(reagent, positions).Count == 0;
 
     /// <summary>
     /// Place a reagent on the meta-grid at the given position.
