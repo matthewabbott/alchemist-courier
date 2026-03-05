@@ -384,6 +384,156 @@
       "depends_on": ["3.2", "3.3", "3.4", "3.5"],
       "verification": "Test harness screenshot matches MVP mockup layout",
       "status": "done"
+    },
+    {
+      "id": "R-8",
+      "title": "Fix StatusBarPanel Null bag suppression bug",
+      "description": "StatusBarPanel.ComputeTotal() sums aspect magnitudes without checking Null bag suppression -- reagents in Null bags inflate displayed totals, contradicting ChemistryEngine which correctly suppresses them. Fix: In ComputeTotal(), before counting a cell's magnitude, check grid.GetBagAtCell(pos)?.HasProperty(BagPropertyType.Null) and skip if true. ChemistryEngine already has a private IsAspectSuppressed(MetaGrid, Vector2I) helper -- make it public static so StatusBarPanel (and future consumers) can reuse it. Apply the same fix to both PerCell and PerItem granularity paths. Add unit tests: reagent in Null bag, ComputeTotal returns 0 for suppressed aspect; reagent in normal bag still counted; reagent spanning Null+Normal bag has partial suppression.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet test -- Null suppression in status bar tests pass, existing tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "H.1",
+      "title": "Core highlight data types",
+      "description": "Create src/Core/Highlight/ directory with the foundational types for the interactive highlight system. Files: (1) CellEdge.cs -- [Flags] enum with None=0, Top=1, Bottom=2, Left=4, Right=8, All=Top|Bottom|Left|Right. Used for contiguous boundary rendering (only outer edges drawn). (2) HighlightLayer.cs -- enum: Constraint (bag edge violations), Interaction (adjacency risks), Legend (aspect selection), GhostOverlay (on ghost preview cells). (3) HighlightSeverity.cs -- enum: Info (neutral), Safe (far from threshold), Warning (near threshold), Danger (at/above threshold). (4) CellHighlight.cs -- class with Position (Vector2I), Edges (CellEdge flags), Layer (HighlightLayer), Severity (HighlightSeverity), AspectId (string?, which aspect caused it), Reason (string?, human-readable for tooltips). (5) HighlightSet.cs -- collection class with Add, AddRange, Clear, GetAtPosition(Vector2I), GetByLayer(HighlightLayer), GetReferencedAspects(), IsEmpty. MUST have zero Godot dependencies. Add unit tests: HighlightSet add/query, CellEdge flag composition, GetAtPosition filters correctly, GetByLayer filters correctly.",
+      "priority": 32,
+      "phase": "highlight-system",
+      "depends_on": [],
+      "verification": "dotnet test -- highlight data type tests pass, no Godot imports in src/Core/Highlight/",
+      "status": "pending"
+    },
+    {
+      "id": "H.2",
+      "title": "Aspect metadata database",
+      "description": "Create extended metadata for aspects used by the legend panel and tooltips. Files: (1) src/Core/Chemistry/AspectMetadata.cs -- class with Id, Name, Description (one sentence, e.g. 'Generates heat that can trigger explosions'), ConstraintText (placement rules, e.g. 'Cannot place on bag edges' for Sharp; null for unconstrained aspects), School (SchoolType). (2) src/Core/Chemistry/AspectMetadataDatabase.cs -- static class with Get(string aspectId), GetAll(), GetForPuzzle(List<ReactionRule> rules, List<Reagent> reagents) that returns only aspects present in the given reagents or referenced by the given rules. Provide metadata for all 10 MVP aspects: hot, cold, volatile, stable, heavy, toxic, sharp, fragile, catalytic, medicinal. Also add FlavorText property (string?, default null) to ReagentDefinition.cs -- populate in DemoPuzzle with short thematic descriptions (e.g. 'A smoldering pebble that radiates intense heat'). PuzzleGenerator should set FlavorText to null for now. Add unit tests: all 10 aspects have metadata, GetForPuzzle filters to only relevant aspects, FlavorText round-trips through ReagentDefinition.",
+      "priority": 33,
+      "phase": "highlight-system",
+      "depends_on": [],
+      "verification": "dotnet test -- metadata tests pass, FlavorText property works",
+      "status": "pending"
+    },
+    {
+      "id": "H.3",
+      "title": "Contiguous boundary utility",
+      "description": "Create src/Core/Highlight/ContiguousBoundary.cs -- a static utility that computes which edges of each cell in a group form the outer boundary (for non-obstructive highlight rendering). Method: Compute(IReadOnlyCollection<Vector2I> cellPositions) returns Dictionary<Vector2I, CellEdge>. Algorithm: for each cell in the set, check 4 cardinal neighbors. If a neighbor is NOT in the set, that direction's edge is a boundary edge. Single cell = all 4 edges. 2x2 block = only outer 8 edges (no internal cross). L-shape = outer boundary only. Empty set = empty result. This is reusable for bag border rendering and highlight regions. MUST have zero Godot dependencies. Add unit tests: single cell (All edges), 2x2 block (no internal edges), L-shape boundary correct, empty set returns empty, disjoint cells each get All edges, horizontal strip gets top+bottom on middle cells.",
+      "priority": 34,
+      "phase": "highlight-system",
+      "depends_on": ["H.1"],
+      "verification": "dotnet test -- contiguous boundary tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "H.4",
+      "title": "Constraint violation detail extraction",
+      "description": "Refactor MetaGrid constraint methods from bool returns to detailed violation info. New files: (1) src/Core/Highlight/ConstraintViolation.cs -- class with Type (ConstraintType), AffectedCells (List<Vector2I>), Reason (string, human-readable), AspectId (string). (2) src/Core/Highlight/ConstraintType.cs -- enum: SharpOnEdge, FragileInGravity, HeavyAboveNonHeavy, GravityUnsupported. Modify src/Core/Grid/MetaGrid.cs: add GetSharpViolations(Reagent, List<Vector2I>), GetFragileViolations(Reagent, List<Vector2I>), GetHeavyViolations(Reagent, List<Vector2I>), GetGravityViolations(List<Vector2I>). Each returns List<ConstraintViolation> with per-cell detail and human-readable reason text (e.g. 'Sharp reagent on edge cell of non-Reinforced bag'). Refactor existing bool methods (IsSharpConstraintValid etc.) to call the new methods and return .Count == 0. Add unit tests: Sharp on edge returns violation with correct cells and reason, Fragile in Gravity returns violation, Heavy above non-Heavy returns violation, all existing constraint tests still pass unchanged.",
+      "priority": 35,
+      "phase": "highlight-system",
+      "depends_on": ["H.1"],
+      "verification": "dotnet test -- violation detail tests pass, all existing constraint tests still pass",
+      "status": "pending"
+    },
+    {
+      "id": "H.5",
+      "title": "HighlightEngine foundation with constraint highlights",
+      "description": "Create the core highlight computation engine. Files: (1) src/Core/Highlight/HighlightEngine.cs -- static class. Implement ComputeConstraintHighlights(MetaGrid grid, Reagent reagent, Vector2I position) that reads violations from MetaGrid's new Get*Violations methods (H.4) and converts them to CellHighlight entries on the Constraint layer. Sharp violations produce Danger severity highlights on edge cells with the Sharp aspect color. Fragile-in-Gravity produces Warning. Also implement GetConstraintViolations(MetaGrid, Reagent, Vector2I) as pass-through aggregating all violation types. (2) src/Core/Highlight/StatusThresholds.cs -- class with Set(string aspectId, int current, int threshold) and GetSeverity(string aspectId) returning HighlightSeverity (Danger if current >= threshold, Warning if current >= threshold-1, Safe otherwise, Info if aspect unknown). MUST have zero Godot dependencies. Add unit tests: Sharp-on-edge produces correct CellHighlights with Danger severity and proper edges, Fragile-in-Gravity produces Warning, StatusThresholds severity boundaries correct.",
+      "priority": 36,
+      "phase": "highlight-system",
+      "depends_on": ["H.1", "H.4"],
+      "verification": "dotnet test -- constraint highlight computation tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "H.6",
+      "title": "HighlightEngine interaction, legend, and eagle sense methods",
+      "description": "Extend HighlightEngine with the remaining computation methods. (1) ComputeInteractionHighlights(MetaGrid grid, Reagent reagent, Vector2I position, List<ReactionRule> rules, StatusThresholds? thresholds): for each cell of the reagent, check cardinal neighbors for reactive aspects. Volatile cell adjacent to Hot cell: produce an edge-only highlight on the Hot cell's edge facing the Volatile cell, colored by Hot aspect, severity from StatusThresholds. Cold near Volatile: blue edge highlight. Sharp near Fragile: warning. Use ContiguousBoundary.Compute() for groups of same-aspect cells to avoid internal edges. (2) ComputeLegendHighlights(MetaGrid grid, string aspectId): find all placed reagent cells with the given aspect, compute contiguous boundary, return Legend layer highlights. (3) ComputeEagleSenseHighlights(MetaGrid grid, List<ReactionRule> rules, StatusThresholds? thresholds): for every placed reagent, compute interaction highlights, merge all into one HighlightSet. MUST have zero Godot dependencies. Add unit tests: Volatile adjacent to Hot = orange edge on correct side, Cold adjacent = blue edge, legend 'hot' finds all hot cells with boundary edges, eagle sense returns union, contiguous boundary eliminates internal edges.",
+      "priority": 37,
+      "phase": "highlight-system",
+      "depends_on": ["H.1", "H.3", "H.5"],
+      "verification": "dotnet test -- interaction, legend, and eagle sense highlight tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "H.7",
+      "title": "HighlightOverlay Godot renderer",
+      "description": "Create src/Game/Inventory/HighlightOverlay.cs -- a Godot Control node that renders a HighlightSet visually. Uses a pool of ColorRect children for edge segments (3px wide lines along cell edges) and cell fills (semi-transparent rectangles). Method: Render(HighlightSet highlights, bool eagleSenseActive) clears existing visuals and redraws. For each CellHighlight: if Edges != None, draw colored edge rectangles on the specified edges; if Edges == None, draw a semi-transparent cell fill. Colors: base from GridConstants.GetAspectColor(aspectId), modulated by severity alpha (Danger=0.9, Warning=0.65, Safe=0.4, Info=0.5). For eagle sense: render a full-size semi-transparent black overlay (0,0,0,0.6) behind all highlights. Add constants to GridConstants.cs: HighlightEdgeWidth=3, DimOverlayColor. Add integration test to test harness: manually create a HighlightSet, render it, screenshot verify colored edges appear.",
+      "priority": 38,
+      "phase": "highlight-system",
+      "depends_on": ["H.1", "H.6"],
+      "verification": "dotnet build + test harness screenshot shows highlight overlay rendering",
+      "status": "pending"
+    },
+    {
+      "id": "H.8",
+      "title": "MetaGridView highlight integration",
+      "description": "Wire HighlightOverlay into MetaGridView. (1) Add HighlightOverlay as child node at ZIndex 4 (above ghost preview at Z3). Create in Initialize(). (2) Add SetHighlights(HighlightSet) method that forwards to overlay. (3) Add SetEagleSense(bool) method. (4) In UpdateGhostPreview(): when a selected reagent hovers over the grid, compute constraint highlights via HighlightEngine.ComputeConstraintHighlights() and interaction highlights via HighlightEngine.ComputeInteractionHighlights(). Merge into one HighlightSet and render. Clear highlights when selection is cancelled or mouse leaves grid. (5) Add [Signal] HoveredReagentChanged(Reagent? reagent) -- emitted when mouse hovers over a cell occupied by a placed reagent (for item detail panel and legend linking). Detect by checking if hover cell has a placed reagent. (6) Pass reaction rules and StatusThresholds from PuzzleScreen via new setter methods. Add integration test: select Sharp reagent, hover over bag edge, screenshot shows red edge highlights.",
+      "priority": 39,
+      "phase": "highlight-system",
+      "depends_on": ["H.5", "H.6", "H.7"],
+      "verification": "dotnet build + test harness screenshot shows constraint highlights on hover",
+      "status": "pending"
+    },
+    {
+      "id": "H.9",
+      "title": "Rejection tooltip display",
+      "description": "Add contextual rejection tooltips when placement fails. In MetaGridView's click handler, when CanPlaceReagent returns false: (1) Call HighlightEngine.GetConstraintViolations() to get structured reasons. (2) Create a small dark-background Label (PanelContainer with Label child) positioned near the click location showing the first violation's Reason text (e.g. 'Sharp: can't place on bag edges'). (3) Auto-hide after 2 seconds via a Timer or _Process countdown. Also hide on next mouse move. (4) Briefly intensify constraint highlights (increase alpha for 0.3s then fade back) to draw attention to the problem cells. (5) Emit a signal RejectionFlash(string aspectId) that PuzzleScreen can forward to the legend panel to flash the relevant aspect entry. Style: dark background (0.1,0.1,0.15,0.9), colored text matching the constraint aspect color, small font. Add integration test: attempt Sharp placement on edge, verify tooltip text appears in screenshot.",
+      "priority": 40,
+      "phase": "highlight-system",
+      "depends_on": ["H.4", "H.5", "H.8"],
+      "verification": "dotnet build + test harness screenshot shows rejection tooltip",
+      "status": "pending"
+    },
+    {
+      "id": "H.10",
+      "title": "Aspect legend panel",
+      "description": "Create src/Game/Inventory/AspectLegendPanel.cs replacing AspectPrimerPanel. A VBoxContainer sidebar showing puzzle-relevant aspects. (1) Header: 'Aspects' in golden text. (2) Per-aspect entry (initially collapsed): colored square (16x16 dev art icon) + aspect name label. On click: expand to show Description from AspectMetadataDatabase + ConstraintText if present + relevant reaction rules (filtered from ReactionRuleDatabase). Entries are collapsible VBoxContainers. (3) SetPuzzleContext(List<ReactionRule> rules, List<Reagent> reagents): filters to only aspects relevant to this puzzle using AspectMetadataDatabase.GetForPuzzle(). (4) Emit [Signal] AspectSelected(string aspectId) when an entry is clicked (for legend-to-grid highlighting). (5) HighlightAspects(HashSet<string> aspectIds) method: visually marks specified aspect entries (green tinted background, slightly larger) when grid reagent is hovered (for grid-to-legend linking). ClearHighlight() resets. (6) FlashAspect(string aspectId) method: briefly brightens an entry (for rejection tooltip linking). Replace _primerPanel with this in PuzzleScreen.BuildUI(). Add integration test: panel shows correct aspects for puzzle, click expands entry.",
+      "priority": 41,
+      "phase": "highlight-system",
+      "depends_on": ["H.2"],
+      "verification": "dotnet build + test harness screenshot shows legend panel with expandable entries",
+      "status": "pending"
+    },
+    {
+      "id": "H.11",
+      "title": "Item detail panel (Book of Hours style)",
+      "description": "Create src/Game/Inventory/ItemDetailPanel.cs -- a persistent PanelContainer positioned above the legend in the right column. Shows info about the last-hovered item (Book of Hours pattern: always visible, always in the same place). Contents: (1) Enlarged shape preview (16px per cell, vs tray's 8px) with aspect coloring. (2) Reagent name in bold white text. (3) Flavor text in italic gray (from ReagentDefinition.FlavorText, or blank if null). (4) Aspect breakdown: for each unique aspect in the reagent, show colored square + aspect name + 'x' + magnitude. (5) ShowReagent(Reagent?) method: updates display; null shows empty/placeholder state ('Hover over a reagent to inspect'). Wire to: ReagentTrayItem hover (add MouseEntered/MouseExited signals or input events), MetaGridView.HoveredReagentChanged signal (from H.8). Also enhance ReagentTrayItem: add small aspect icon squares (colored 6x6 dots) in an HBox after the name label -- always visible, no text, just color indicators of which aspects the reagent has. Add to PuzzleScreen right column above the legend. Add integration test: hover tray item shows detail, hover grid reagent shows detail, aspect dots visible on tray items.",
+      "priority": 42,
+      "phase": "highlight-system",
+      "depends_on": ["H.2", "H.8"],
+      "verification": "dotnet build + test harness screenshot shows item detail panel and tray aspect icons",
+      "status": "pending"
+    },
+    {
+      "id": "H.12",
+      "title": "PuzzleScreen orchestration and eagle sense",
+      "description": "Wire all new UI components together in PuzzleScreen. (1) Replace _primerPanel with _aspectLegendPanel (from H.10). (2) Add _itemDetailPanel (from H.11) to right column above legend. (3) Wire AspectLegendPanel.AspectSelected signal: compute HighlightEngine.ComputeLegendHighlights(grid, aspectId), call _gridView.SetHighlights(). Click again or click different aspect to update/clear. (4) Wire MetaGridView.HoveredReagentChanged signal to both _itemDetailPanel.ShowReagent() and _aspectLegendPanel.HighlightAspects(reagent aspects). (5) Wire ReagentTrayItem hover to _itemDetailPanel.ShowReagent(). (6) Add eagle sense toggle on Tab key: _eagleSenseActive bool, compute HighlightEngine.ComputeEagleSenseHighlights(), call _gridView.SetEagleSense(true) and _gridView.SetHighlights(). Toggle off clears. (7) Build StatusThresholds snapshot from StatusBarPanel after each placement/removal and pass to MetaGridView for highlight computation. (8) Wire MetaGridView.RejectionFlash signal (from H.9) to _aspectLegendPanel.FlashAspect(). Add comprehensive integration test: full bidirectional flow -- select reagent, highlights appear, place it, legend updates, hover placed reagent, detail panel and legend respond, toggle eagle sense, all interactions visible.",
+      "priority": 43,
+      "phase": "highlight-system",
+      "depends_on": ["H.6", "H.8", "H.10", "H.11"],
+      "verification": "dotnet build + test harness verifies full orchestration and eagle sense toggle",
+      "status": "pending"
+    },
+    {
+      "id": "H.13",
+      "title": "Ghost preview constraint composition",
+      "description": "Add constraint highlights directly on ghost preview cells. Implement ComputeGhostConstraintHighlights(MetaGrid grid, Reagent reagent, Vector2I position) in HighlightEngine: same as ComputeConstraintHighlights but produces highlights on the GhostOverlay layer (rendered on top of the ghost cells themselves). When a Sharp reagent ghost hovers over a bag edge, the ghost cell at that position gets red edge markers showing it's an invalid spot. Integrate into MetaGridView.UpdateGhostPreview(): alongside regular constraint highlights (which mark bag edges), compute ghost constraint highlights (which mark the ghost cells). Merge both into the HighlightSet passed to the overlay. Ghost constraints only show when the ghost is in an invalid or warning position. Add integration test: select Sharp reagent, hover over bag edge, ghost cells show red constraint markers. Move to interior, ghost is normal green (no constraint markers).",
+      "priority": 44,
+      "phase": "highlight-system",
+      "depends_on": ["H.5", "H.8"],
+      "verification": "dotnet build + test harness screenshot shows ghost constraint highlights",
+      "status": "pending"
+    },
+    {
+      "id": "H.14",
+      "title": "Visual polish design document",
+      "description": "Create docs/visual-polish-design.md documenting the full visual polish vision for future implementation. This is a design document, not code. Contents: (1) Per-aspect icon designs: flame for Hot, snowflake for Cold, yellow warning triangle for Volatile, shield for Stable, anvil for Heavy, skull-and-crossbones for Toxic, blade for Sharp, cracked glass for Fragile, catalyst flask for Catalytic, herb/leaf for Medicinal. (2) Highlight visual styles: crosshatching for danger zones, pulsing glow for active interactions, animated dashed borders for eagle sense. (3) RetroDiffusion sprite pipeline: how to generate reagent portraits, bag textures, aspect icons using the AI art tool. (4) Contiguous boundary rendering refinements: glow effects, drop shadows, animated shimmer. (5) 'Quiet mode' concept: reduced highlight intensity for experienced players (thinner lines, dimmer alpha, earned after N successful placements). (6) Sprite editor UI concept: a meta-UI for tweaking highlight colors, widths, alpha, pulse speeds without code changes -- could be a simple Godot tool scene with sliders. (7) Information density guidelines: what to show at each progressive disclosure level (nothing -> aspect icons -> edge highlights -> full interaction map). (8) Eagle sense visual treatment: deep blue-black overlay, glowing interaction lines, reagents as silhouettes. (9) Layout balance checklist: portrait panel vs legend vs grid proportions at different viewport sizes. (10) Color palette reference: aspect colors, severity colors, UI chrome colors.",
+      "priority": 45,
+      "phase": "highlight-system",
+      "depends_on": [],
+      "verification": "File exists with all 10 sections",
+      "status": "pending"
     }
   ]
 }
