@@ -530,6 +530,11 @@ public partial class MetaGridView : Control
             _metaGrid, _selectedReagent, _hoverGridPos.Value);
         highlights.AddRange(constraintHighlights.GetByLayer(HighlightLayer.Constraint));
 
+        // Ghost constraint highlights (rendered on ghost cells themselves)
+        var ghostConstraints = HighlightEngine.ComputeGhostConstraintHighlights(
+            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+        highlights.AddRange(ghostConstraints.GetByLayer(HighlightLayer.GhostOverlay));
+
         // Interaction highlights (adjacent reactive aspects)
         if (_isPlacementValid)
         {

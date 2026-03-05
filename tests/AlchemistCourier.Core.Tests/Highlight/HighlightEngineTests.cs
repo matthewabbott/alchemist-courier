@@ -611,6 +611,100 @@ public class HighlightEngineTests
 
         Assert.Empty(violations);
     }
+
+    // --- ComputeGhostConstraintHighlights tests ---
+
+    [Fact]
+    public void GhostConstraint_SharpOnEdge_ProducesGhostOverlayHighlights()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, sharp, new Vector2I(0, 0));
+
+        Assert.False(highlights.IsEmpty);
+        var ghostHighlights = highlights.GetByLayer(HighlightLayer.GhostOverlay);
+        Assert.Single(ghostHighlights);
+
+        var h = ghostHighlights[0];
+        Assert.Equal(new Vector2I(0, 0), h.Position);
+        Assert.Equal(HighlightLayer.GhostOverlay, h.Layer);
+        Assert.Equal(HighlightSeverity.Danger, h.Severity);
+        Assert.Equal(AspectIds.Sharp, h.AspectId);
+    }
+
+    [Fact]
+    public void GhostConstraint_NoViolations_ReturnsEmpty()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        // Interior position — no Sharp edge violation
+        var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, sharp, new Vector2I(1, 1));
+
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void GhostConstraint_MultiCellSharp_OnlyViolatingCellsHighlighted()
+    {
+        // 5x5 bag so we can have a 2-cell Sharp with one cell on edge, one interior
+        var grid = CreateGrid();
+        var largeBagDef = new BagDefinition("large", "Large Bag", new bool[,]
+        {
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+            { true, true, true, true, true },
+        });
+        var bag = new Bag(largeBagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Horizontal domino at (0,1) — cell (0,1) is left edge, cell (1,1) is interior
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true, true } }));
+        var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, sharp, new Vector2I(0, 1));
+
+        var ghostHighlights = highlights.GetByLayer(HighlightLayer.GhostOverlay);
+        // Only the edge cell (0,1) should be highlighted, not the interior cell (1,1)
+        Assert.Single(ghostHighlights);
+        Assert.Equal(new Vector2I(0, 1), ghostHighlights[0].Position);
+    }
+
+    [Fact]
+    public void GhostConstraint_FragileInGravity_ProducesGhostOverlayWarning()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
+        var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, fragile, new Vector2I(1, 2));
+
+        var ghostHighlights = highlights.GetByLayer(HighlightLayer.GhostOverlay);
+        Assert.Single(ghostHighlights);
+        Assert.Equal(HighlightSeverity.Warning, ghostHighlights[0].Severity);
+        Assert.Equal(HighlightLayer.GhostOverlay, ghostHighlights[0].Layer);
+    }
+
+    [Fact]
+    public void GhostConstraint_HasNoConstraintLayerHighlights()
+    {
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var sharp = new Reagent(CreateSharpReagentDef(new bool[,] { { true } }));
+        var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, sharp, new Vector2I(0, 0));
+
+        // Should only have GhostOverlay layer, not Constraint layer
+        Assert.Empty(highlights.GetByLayer(HighlightLayer.Constraint));
+        Assert.NotEmpty(highlights.GetByLayer(HighlightLayer.GhostOverlay));
+    }
 }
 
 public class StatusThresholdsTests

@@ -66,6 +66,43 @@ public static class HighlightEngine
     }
 
     /// <summary>
+    /// Converts constraint violations into CellHighlight entries on the GhostOverlay layer.
+    /// Same violations as ComputeConstraintHighlights, but rendered on top of the ghost
+    /// cells themselves rather than the grid.
+    /// </summary>
+    public static HighlightSet ComputeGhostConstraintHighlights(
+        MetaGrid grid, Reagent reagent, Vector2I position)
+    {
+        var violations = GetConstraintViolations(grid, reagent, position);
+        var highlightSet = new HighlightSet();
+
+        if (violations.Count == 0)
+            return highlightSet;
+
+        var allCells = violations.SelectMany(v => v.AffectedCells).Distinct().ToList();
+        var boundaries = ContiguousBoundary.Compute(allCells);
+
+        foreach (var violation in violations)
+        {
+            var severity = GetSeverityForConstraint(violation.Type);
+
+            foreach (var cell in violation.AffectedCells)
+            {
+                var edges = boundaries.TryGetValue(cell, out var e) ? e : CellEdge.All;
+                highlightSet.Add(new CellHighlight(
+                    cell,
+                    edges,
+                    HighlightLayer.GhostOverlay,
+                    severity,
+                    violation.AspectId,
+                    violation.Reason));
+            }
+        }
+
+        return highlightSet;
+    }
+
+    /// <summary>
     /// Computes interaction highlights for a reagent at a given position.
     /// For each cell of the reagent, checks cardinal neighbors for aspects that
     /// participate in Adjacent reaction rules. Highlighted cells are grouped by
