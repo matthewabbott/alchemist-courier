@@ -30,6 +30,10 @@ test_output/
 # Ralph loop state
 .ralph-phase-marker
 scripts/ralph/logs/
+tmp_commit_msg*.txt
+
+# Godot 4.4+ UID files
+*.uid
 
 # OS
 Thumbs.db
