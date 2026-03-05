@@ -304,3 +304,15 @@ localStorage swap — no Godot dependency needed since System.Text.Json handles 
 System.IO handles file ops. The graceful degradation pattern (corrupt JSON → fresh SaveData) means
 the game never crashes on a bad save file.
 Commit: c4d78c9
+
+## 5.1: UI layout polish to match MVP mockup
+The final MVP task — polishing PuzzleScreen's procedural UI to match the ASCII mockup in the
+specification. Replaced the plain centered title with a styled header bar: "Alchemist Courier" on the
+left, with optional day count and streak labels on the right for daily puzzle mode. Added
+HeaderDayText/HeaderStreakText properties that callers set before _Ready(). Styled the three action
+buttons with distinct background colors (Confirm=green, Reset=warm gray, Reactions=indigo) and
+hover/pressed states, making the primary action visually prominent. Moved the result overlay from the
+VBox flow (which pushed content down when shown) to a centered absolute overlay. Tightened margins
+and spacing for a more compact layout. All 16 integration tests pass — the layout change is purely
+cosmetic with no behavioral impact.
+Commit: 1de6cae

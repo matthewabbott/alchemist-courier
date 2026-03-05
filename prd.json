@@ -383,7 +383,7 @@
       "phase": "polish",
       "depends_on": ["3.2", "3.3", "3.4", "3.5"],
       "verification": "Test harness screenshot matches MVP mockup layout",
-      "status": "pending"
+      "status": "done"
     }
   ]
 }

@@ -277,3 +277,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Issues: 0
 - Added: `daily_puzzle` integration test — validates DailyPuzzleManager → PuzzleGenerator → PuzzleScreen pipeline end-to-end
 - Notes: Game-flow phase (4.1–4.6) complete. Full puzzle loop working: place, warnings, status bar, confirm win/loss, reset. Tutorial progression and daily puzzle generation both verified. Only task 5.1 (UI polish) remains. Cosmetic: tutorial "Next Lesson" button overlaps title bar slightly; status bar shows base thresholds not effective thresholds — both defer to 5.1.
+
+## 5.1 — UI layout polish to match MVP mockup
+- Date: 2026-03-04
+- Commit: 1de6cae
+- Notes: Reworked PuzzleScreen.BuildUI() to match the MVP mockup layout from docs/mvp-specification.md. Replaced centered title with a styled PanelContainer header bar: "Alchemist Courier" on the left, optional day count and streak labels on the right (driven by new HeaderDayText/HeaderStreakText properties, set before _Ready). Styled the three buttons (Confirm/Reset/Reactions) with distinct background colors and hover/pressed states via CreateStyledButton() helper: Confirm=green, Reset=warm gray, Reactions=indigo. Reordered buttons to put Confirm first (primary action). Moved result overlay from VBox flow to a centered absolute overlay on the PuzzleScreen. Tightened margins (16/8 vs 20 all-around), reduced VBox separation to 6px, made status hint text subtler (smaller font, dimmer color). Core layout structure unchanged: grid left, reagent tray + objective right, status bar + buttons at bottom. All 356 unit tests pass, 16/16 integration tests pass.
