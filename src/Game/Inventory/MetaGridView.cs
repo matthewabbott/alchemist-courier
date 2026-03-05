@@ -311,7 +311,6 @@ public partial class MetaGridView : Control
         if (reagent == null)
         {
             ClearGhost();
-            _highlightOverlay.Clear();
             _hoverGridPos = null;
         }
         else
@@ -360,7 +359,6 @@ public partial class MetaGridView : Control
             _mouseInsideGrid = false;
             _hoverGridPos = null;
             ClearGhost();
-            _highlightOverlay.Clear();
             UpdateHoveredReagent(null);
         }
     }
@@ -391,7 +389,6 @@ public partial class MetaGridView : Control
                 _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
                 _selectedReagent = null;
                 ClearGhost();
-                _highlightOverlay.Clear();
                 RefreshDisplay();
                 EmitSignal(SignalName.ReagentPlaced);
             }
@@ -431,14 +428,12 @@ public partial class MetaGridView : Control
         {
             _selectedReagent = null;
             ClearGhost();
-            _highlightOverlay.Clear();
         }
     }
 
     private void UpdateGhostPreview()
     {
         ClearGhost();
-        _highlightOverlay.Clear();
         _currentWarningLevel = PlacementWarningLevel.Invalid;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
@@ -546,5 +541,6 @@ public partial class MetaGridView : Control
             ghost.QueueFree();
         }
         _ghostCells.Clear();
+        _highlightOverlay.Clear();
     }
 }
