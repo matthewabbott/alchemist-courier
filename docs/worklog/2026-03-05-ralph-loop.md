@@ -88,6 +88,13 @@ GhostOverlay) and deduplicates fills per position. This is the bridge between th
 highlight engine (H.5-H.6) and the visual game — H.8 will wire it into MetaGridView.
 Commit: 8b22c2a
 
+## Code Review (c)
+Reviewed H.6, H.7, H.8 (d0c4e68..c28c85e). One P2 DRY fix: `_highlightOverlay.Clear()` was
+always paired with `ClearGhost()` in 5 locations — moved into `ClearGhost()` to eliminate 4
+redundant calls. Two P3 notes: `HoveredReagentChanged` signal declared but not yet consumed
+(planned for H.10/H.11), and `SetHoverPosition` test helper doesn't call `UpdateHoveredReagent`
+(harmless for current tests). 461 tests pass after fix.
+
 ## H.8: MetaGridView highlight integration
 The culmination of H.1–H.7: wiring the highlight system into the actual game view. HighlightOverlay
 now lives as a child of MetaGridView at ZIndex 4 (above ghost preview at Z3), and UpdateGhostPreview
