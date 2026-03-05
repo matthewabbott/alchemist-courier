@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using AlchemistCourier.Core.Puzzle;
 
 namespace AlchemistCourier.Core.Chemistry;
 
@@ -80,14 +79,6 @@ public static class ReactionRuleDatabase
                 threshold: 3,
                 resultType: ReactionResultType.Poisoning),
         };
-    }
-
-    /// <summary>
-    /// Returns only rules whose trigger aspects are all available at the given complexity level.
-    /// </summary>
-    public static List<ReactionRule> GetRulesForComplexity(ComplexityLevel level)
-    {
-        return ComplexityFilter.GetRules(level);
     }
 
     /// <summary>

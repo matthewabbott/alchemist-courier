@@ -25,7 +25,7 @@ public static class ComplexityFilter
 
     private static readonly string[] AdvancedAspects =
     {
-        "magnetic", "absorbent",
+        AspectIds.Magnetic, AspectIds.Absorbent,
     };
 
     private static readonly BagPropertyType[] SimpleBagTypes =

@@ -1,7 +1,6 @@
 using System.Linq;
 using Xunit;
 using AlchemistCourier.Core.Chemistry;
-using AlchemistCourier.Core.Puzzle;
 
 namespace AlchemistCourier.Core.Tests.Chemistry;
 
@@ -160,21 +159,4 @@ public class ReactionRuleDatabaseTests
             reverse.Select(r => r.Name).OrderBy(n => n));
     }
 
-    [Fact]
-    public void GetRulesForComplexity_Simple_ExcludesBreakage()
-    {
-        var rules = ReactionRuleDatabase.GetRulesForComplexity(ComplexityLevel.Simple);
-
-        Assert.DoesNotContain(rules, r => r.Name == "Breakage");
-        Assert.Equal(6, rules.Count);
-    }
-
-    [Fact]
-    public void GetRulesForComplexity_Intermediate_IncludesAllRules()
-    {
-        var rules = ReactionRuleDatabase.GetRulesForComplexity(ComplexityLevel.Intermediate);
-
-        Assert.Equal(7, rules.Count);
-        Assert.Contains(rules, r => r.Name == "Breakage");
-    }
 }

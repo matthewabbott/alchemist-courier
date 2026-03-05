@@ -58,8 +58,8 @@ public class ComplexityFilterTests
         // Includes all Intermediate aspects
         Assert.Contains(AspectIds.Sharp, aspects);
         // Plus Advanced additions
-        Assert.Contains("magnetic", aspects);
-        Assert.Contains("absorbent", aspects);
+        Assert.Contains(AspectIds.Magnetic, aspects);
+        Assert.Contains(AspectIds.Absorbent, aspects);
     }
 
     [Fact]

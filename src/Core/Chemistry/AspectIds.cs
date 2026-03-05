@@ -16,4 +16,6 @@ public static class AspectIds
     public const string Fragile = "fragile";
     public const string Catalytic = "catalytic";
     public const string Medicinal = "medicinal";
+    public const string Magnetic = "magnetic";
+    public const string Absorbent = "absorbent";
 }
