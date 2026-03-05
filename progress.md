@@ -282,3 +282,23 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: 1de6cae
 - Notes: Reworked PuzzleScreen.BuildUI() to match the MVP mockup layout from docs/mvp-specification.md. Replaced centered title with a styled PanelContainer header bar: "Alchemist Courier" on the left, optional day count and streak labels on the right (driven by new HeaderDayText/HeaderStreakText properties, set before _Ready). Styled the three buttons (Confirm/Reset/Reactions) with distinct background colors and hover/pressed states via CreateStyledButton() helper: Confirm=green, Reset=warm gray, Reactions=indigo. Reordered buttons to put Confirm first (primary action). Moved result overlay from VBox flow to a centered absolute overlay on the PuzzleScreen. Tightened margins (16/8 vs 20 all-around), reduced VBox separation to 6px, made status hint text subtler (smaller font, dimmer color). Core layout structure unchanged: grid left, reagent tray + objective right, status bar + buttons at bottom. All 356 unit tests pass, 16/16 integration tests pass.
+
+## R-8 — Fix StatusBarPanel Null bag suppression bug
+- Date: 2026-03-05
+- Commit: 1a11d94
+- Notes: StatusBarPanel.ComputeTotal() was summing aspect magnitudes without checking Null bag suppression, inflating displayed totals for reagents in Null bags. Fixed by calling ChemistryEngine.IsAspectSuppressed() (changed from private to public static) to skip suppressed cells in both PerCell and PerItem granularity paths. 3 new unit tests for the public IsAspectSuppressed API. All 359 tests pass (356 existing + 3 new).
+
+## H.1 — Core highlight data types
+- Date: 2026-03-05
+- Commit: 6c6ed55
+- Notes: Created src/Core/Highlight/ with 5 files: CellEdge ([Flags] enum for boundary edge rendering), HighlightLayer (Constraint/Interaction/Legend/GhostOverlay), HighlightSeverity (Info/Safe/Warning/Danger), CellHighlight (position + edges + layer + severity + optional aspect/reason), HighlightSet (collection with Add/AddRange/Clear/GetAtPosition/GetByLayer/GetReferencedAspects/IsEmpty). Zero Godot dependencies. 17 new tests covering flag composition, constructor properties, set operations, position/layer filtering, aspect deduplication, and empty-set edge cases. All 376 tests pass (359 existing + 17 new).
+
+## H.2 — Aspect metadata database
+- Date: 2026-03-05
+- Commit: 2c80550
+- Notes: Created AspectMetadata class (Id, Name, Description, ConstraintText, School) and AspectMetadataDatabase static class with Get(), GetAll(), GetForPuzzle() methods. All 10 MVP aspects have metadata entries with one-sentence descriptions; Sharp, Heavy, and Fragile have ConstraintText for placement rules; other 7 have null. GetForPuzzle filters to only aspects referenced by given rules or present in given reagents via HashSet deduplication. Added FlavorText (string?) property to ReagentDefinition with null default; populated in DemoPuzzle with 6 thematic descriptions. PuzzleGenerator sets FlavorText to null (default). 29 new tests covering all 10 aspect metadata lookups, constraint text presence/absence, puzzle filtering, deduplication, empty inputs, FlavorText default/set/round-trip. All 405 tests pass (376 existing + 29 new).
+
+## Code Review — 2026-03-05
+- Reviewed commits: 1a11d94..2c80550 (R-8, H.1, H.2)
+- Findings: 0 (P0: 0, P1: 0, P2: 0)
+- Fixed: 0, Tasks created: 0
