@@ -268,3 +268,12 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-04
 - Commit: c4d78c9
 - Notes: Created SaveData model and SaveManager in src/Core/Save/. SaveData tracks tutorial progress (highest completed lesson number), daily puzzle completions (List<int> of YYYYMMDD dates), streak count, and last completed date. CompleteDailyPuzzle handles streak logic: consecutive days extend streak, gaps reset to 1, duplicate dates are no-ops, older dates don't update LastCompletedDate. GetEffectiveStreak(DateTime today) returns 0 if streak is broken (>1 day gap from today). SaveManager uses System.Text.Json for file-based persistence with static Serialize/Deserialize methods for future web localStorage support. Load() gracefully handles missing files and corrupt JSON by returning fresh SaveData. 33 new tests: 20 SaveData tests (tutorial progression, streak calculation, month boundaries, long streaks, duplicate dates, effective streak staleness) + 13 SaveManager tests (file round-trip, corrupt JSON, directory creation, overwrite, delete). All 356 tests pass (323 existing + 33 new).
+
+## Integration Review — 2026-03-04 (e)
+- Reviewed commits: ded67ea..b07a3a8 (4.2, 4.3, 4.4, 4.5, 4.6, code-review-f fix, daily puzzle integration test)
+- Build: PASS (356/356 unit tests)
+- Harness: 16/16 tests pass, 0 failures
+- Visual: All 22 screenshots verified, no regressions
+- Issues: 0
+- Added: `daily_puzzle` integration test — validates DailyPuzzleManager → PuzzleGenerator → PuzzleScreen pipeline end-to-end
+- Notes: Game-flow phase (4.1–4.6) complete. Full puzzle loop working: place, warnings, status bar, confirm win/loss, reset. Tutorial progression and daily puzzle generation both verified. Only task 5.1 (UI polish) remains. Cosmetic: tutorial "Next Lesson" button overlaps title bar slightly; status bar shows base thresholds not effective thresholds — both defer to 5.1.
