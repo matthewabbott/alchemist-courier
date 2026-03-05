@@ -158,3 +158,14 @@ aspect ID, eliminating the need for a duplicate method. An interesting edge case
 can't reduce thresholds below 0, so pair reactions (Sharp+Fragile, threshold=0) fire regardless
 of nearby Catalytic — but Catalytic CAN counter Stable suppression of those same pairs.
 Commit: a69a5fa
+
+## A.5: Add Medicinal passive threshold reduction
+Medicinal completes the trio of threshold modifiers alongside Stable and Catalytic, but with
+a fundamentally different design: it's passive and global rather than adjacency-based. Carrying
+Medicinal reagents anywhere in your inventory raises all cumulative thresholds (Overheating,
+Hypothermia, Poisoning) by the total Medicinal magnitude. This means Medicinal doesn't need
+careful spatial positioning — its strategic value comes from carrying it at all, trading bag
+space for safety margin. Added a GetTotalAspectMagnitude helper that sums across the entire
+inventory (respecting Null bag suppression). Importantly, Medicinal only affects WholeInventory
+rules — it does NOT suppress Adjacent or SameBag reactions like explosions or neutralizations.
+Commit: 5734bb9

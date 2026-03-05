@@ -271,7 +271,7 @@
       "phase": "aspect-rework",
       "depends_on": ["1.4"],
       "verification": "dotnet test -- Medicinal threshold relief tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "A.6",
