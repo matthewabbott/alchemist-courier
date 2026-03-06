@@ -244,3 +244,10 @@ finalized the visual polish by adding a `disabled` StyleBox to CreateStyledButto
 all styled buttons (including Hint) a properly darkened background and dimmed text when
 disabled. Small change, but it closes the visual gap in the hint system UI.
 Commit: 0560de9
+
+## Code Review (g) — HINT.5-HINT.7
+Reviewed 8 commits (718631a..58a0f93) covering HINT.5 visual indicators, HINT.6 save data
+tracking, and HINT.7 disabled button styling. All clean — no P0-P2 issues. Three P3 notes:
+CreateHintedBorderRect/CreateBorderRect near-duplication (Rule of Three not met), local magic
+number for hint border width, and GetMvpRules() repeated calls (carried forward from review f).
+One P4 cosmetic: asymmetric cleanup pattern for bag vs hinted borders in RefreshDisplay.
