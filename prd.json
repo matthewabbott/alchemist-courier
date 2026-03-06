@@ -677,7 +677,7 @@
         "HINT.1"
       ],
       "verification": "dotnet build succeeds, dotnet test passes new MaxHints tests + all existing generation tests",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.4",

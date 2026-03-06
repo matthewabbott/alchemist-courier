@@ -195,3 +195,10 @@ then restores — a pattern borrowed from ChemistryEngine's prospective evaluati
 carefully orchestrates removal → dislodge → rotate → place → flag, resetting dislodged reagents
 to rotation=0 and clearing their IsHinted flags so they return cleanly to the tray.
 Commit: caa1f1a
+
+## HINT.3: DifficultyParams MaxHints + generator integration
+Straightforward wiring task: added MaxHints to DifficultyParams with per-level scaling
+(tutorials/easy=3, medium=2, hard=1) and a one-line addition in PuzzleGenerator.TryGenerate
+to propagate the value to the generated PuzzleState. Also updated TutorialData's five
+manually-constructed DifficultyParams to include maxHints: 3 so tutorial puzzles get hints too.
+Commit: e6ddc8e

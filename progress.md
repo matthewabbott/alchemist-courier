@@ -417,3 +417,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: caa1f1a
 - Notes: Static class with 4 methods. GetSolutionPlacement does linear scan over PuzzleState.Solution. ComputeDislodgeList temporarily sets target rotation to compute solution positions, checks cell occupants via GetReagentAtCell, returns null if any occupant IsLocked. PickNextHintTarget uses two-pass priority: first scan for snap-back candidates (unplaced + previously hinted = free), then new hint candidates (unplaced + never hinted = costs budget). ExecuteHint orchestrates removal, dislodge, rotation, placement, and IsHinted flag. Dislodged reagents get Rotation=0 and IsHinted=false. 15 unit tests covering all methods. All 485 tests pass (470 existing + 15 new).
+
+## HINT.3 — DifficultyParams MaxHints + generator integration
+- Date: 2026-03-05
+- Commit: e6ddc8e
+- Notes: Added MaxHints property to DifficultyParams with per-level values (Tutorial1-5/Easy=3, Medium=2, Hard=1). Constructor takes optional maxHints parameter (default 0). PuzzleGenerator.TryGenerate now sets state.MaxHints = difficulty.MaxHints. Also updated TutorialData.cs to explicitly pass maxHints: 3. 10 new tests (Theory covering all 8 difficulty levels + 2 Facts for custom params and default value). All 495 tests pass.
