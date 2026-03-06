@@ -617,3 +617,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: e9e67a2..184d4d2 (ART.1–ART.3)
 - Findings: 1 (P0: 0, P1: 1, P2: 0)
 - Fixed: 1, Tasks created: 0
+
+## ART.4 — Manuscript reference curation
+- Date: 2026-03-06
+- Commit: 8c56f06
+- Notes: Created docs/art-references.md with all 5 required sections. (1) Overview connects historical manuscripts to the "earnest lore" design pillar. (2) Source Catalog documents 5 manuscripts: Vienna Dioscurides (6th century, 400+ botanical illustrations, Wikimedia Commons + PICRYL, public domain), Badianus Codex (1552, 204 herbs, INAH digitization), Splendor Solis (1582, 22 alchemical illustrations, Internet Archive), Rosarium Philosophorum (16th century, 20 woodcuts, various institutional), Apuleius Herbarium (medieval, 100+ botanical illustrations, various). (3) Mapping to Game Elements maps sources to reagent sprites, UI backdrops, menu art, and aspect icons. (4) Style Translation Notes covers what to preserve (hand-drawn quality, earth-tone palettes, botanical accuracy, alchemical symbolism) vs what to adapt (pixel-art-ify at 32x32, modernize for readability, cute-ify for cozy tone). (5) RetroDiffusion Integration describes the custom style pipeline (ART.5) reference image selection workflow. Docs-only — no code changes, all 519 tests still pass.
+
+## CQ.1 — Extract PuzzleValidator to Core
+- Date: 2026-03-06
+- Commit: ae7ff2a
+- Notes: Extracted puzzle win-condition evaluation from PuzzleScreen to pure C# in src/Core/Puzzle/. Created ConfirmResult.cs (moved enum from PuzzleScreen.cs), ValidationResult.cs (with static factories NotAllPlaced/HasReactions/Win), and PuzzleValidator.cs (static Evaluate method handling FitAllSafely, MaximizeValue, MeetRequirement). Removed duplicate ConfirmResult enum from PuzzleScreen.cs — all Game-side files already had `using AlchemistCourier.Core.Puzzle;` so resolution was seamless. Key gotcha: test setup initially used Fire/Ice aspects which don't exist in the MVP rule set; switched to Hot+Cold (SameBag Neutralization rule). Also learned that Sharp reagents can't be placed on edge cells of non-Reinforced bags, which blocked Sharp+Fragile adjacency tests in small bags. 7 new tests, 526 total pass.

@@ -8,14 +8,6 @@ using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Game.Inventory;
 
-public enum ConfirmResult
-{
-    None,
-    NotAllPlaced,
-    HasReactions,
-    Win,
-}
-
 public partial class PuzzleScreen : Control
 {
     private MetaGrid _metaGrid = null!;

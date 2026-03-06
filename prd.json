@@ -921,7 +921,7 @@
       "phase": "art",
       "depends_on": [],
       "verification": "File exists at docs/art-references.md with all 5 sections and accurate source URLs",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "ART.5",
@@ -941,7 +941,7 @@
       "phase": "code-quality",
       "depends_on": [],
       "verification": "dotnet test passes, new PuzzleValidatorTests all green, dotnet build succeeds, no Godot imports in src/Core/Puzzle/PuzzleValidator.cs or ValidationResult.cs or ConfirmResult.cs",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CQ.2",
