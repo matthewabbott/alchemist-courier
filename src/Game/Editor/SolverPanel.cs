@@ -44,6 +44,11 @@ public partial class SolverPanel : VBoxContainer
     private object? _pendingResult;
     private Action<object?>? _pendingCallback;
 
+    public override void _ExitTree()
+    {
+        CancelSolving();
+    }
+
     public void Initialize(MetaGridView gridView, Func<PuzzleState> getState)
     {
         _gridView = gridView;
@@ -249,6 +254,9 @@ public partial class SolverPanel : VBoxContainer
 
         Task.Run(() => work(ct), ct).ContinueWith(task =>
         {
+            // Guard against node freed while solving
+            if (!IsInstanceValid(this)) return;
+
             // Store result for main-thread retrieval
             _pendingResult = task.IsCompletedSuccessfully ? task.Result : null;
             _pendingCallback = onComplete;
