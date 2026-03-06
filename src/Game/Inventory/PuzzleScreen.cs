@@ -388,6 +388,20 @@ public partial class PuzzleScreen : Control
             CornerRadiusBottomRight = 4,
         };
         button.AddThemeStyleboxOverride("pressed", pressed);
+        var disabled = new StyleBoxFlat
+        {
+            BgColor = bgColor.Darkened(0.4f),
+            ContentMarginLeft = 12,
+            ContentMarginRight = 12,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 4,
+            CornerRadiusTopRight = 4,
+            CornerRadiusBottomLeft = 4,
+            CornerRadiusBottomRight = 4,
+        };
+        button.AddThemeStyleboxOverride("disabled", disabled);
+        button.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.45f, 0.45f));
         return button;
     }
 
