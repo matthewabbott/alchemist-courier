@@ -185,3 +185,13 @@ of a hint attempt — success, budget exhausted, locked blockers, etc. — provi
 HINT.2's engine will need. Also threaded IsHinted through Reagent (parallel to IsLocked) and
 MaxHints through PuzzleState for serialization. Clean foundation for the engine logic next.
 Commit: a25909b
+
+## HINT.2: HintEngine core logic (auto-pick, dislodge, execute)
+Built the brain of the hint system — four static methods that handle the full lifecycle of a hint.
+The key design choice is the two-pass auto-pick: snap-back candidates (previously hinted, now
+unplaced) get priority because they're free, preserving the player's hint budget for genuinely new
+hints. ComputeDislodgeList temporarily rotates the target to compute accurate solution positions,
+then restores — a pattern borrowed from ChemistryEngine's prospective evaluation. ExecuteHint
+carefully orchestrates removal → dislodge → rotate → place → flag, resetting dislodged reagents
+to rotation=0 and clearing their IsHinted flags so they return cleanly to the tray.
+Commit: caa1f1a

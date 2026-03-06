@@ -412,3 +412,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: a25909b
 - Notes: First task of the hint-system phase. Created HintState class (MaxHints, HintsUsed, HintedReagentIndices HashSet, HasHintsRemaining computed bool, WasHinted method) and HintResult class with HintResultType enum (Success, NoHintsRemaining, ReagentLocked, NoSolutionFound, BlockedByLockedReagent, AlreadyAtSolutionPosition). Added Reagent.IsHinted bool property paralleling existing IsLocked pattern. Added PuzzleState.MaxHints int field for serializable hint budget. 4 new unit tests covering HintState budget tracking and hinted index queries. All 470 tests pass (466 existing + 4 new).
+
+## HINT.2 — HintEngine core logic (auto-pick, dislodge, execute)
+- Date: 2026-03-05
+- Commit: caa1f1a
+- Notes: Static class with 4 methods. GetSolutionPlacement does linear scan over PuzzleState.Solution. ComputeDislodgeList temporarily sets target rotation to compute solution positions, checks cell occupants via GetReagentAtCell, returns null if any occupant IsLocked. PickNextHintTarget uses two-pass priority: first scan for snap-back candidates (unplaced + previously hinted = free), then new hint candidates (unplaced + never hinted = costs budget). ExecuteHint orchestrates removal, dislodge, rotation, placement, and IsHinted flag. Dislodged reagents get Rotation=0 and IsHinted=false. 15 unit tests covering all methods. All 485 tests pass (470 existing + 15 new).

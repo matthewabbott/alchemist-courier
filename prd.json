@@ -665,7 +665,7 @@
         "HINT.1"
       ],
       "verification": "dotnet build succeeds, dotnet test passes 14 new HintEngine tests",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.3",
