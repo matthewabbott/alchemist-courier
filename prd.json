@@ -690,7 +690,7 @@
         "HINT.3"
       ],
       "verification": "dotnet build succeeds, hint orchestration testable via integration test (HINT.8)",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.5",

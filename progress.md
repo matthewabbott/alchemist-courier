@@ -422,3 +422,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: e6ddc8e
 - Notes: Added MaxHints property to DifficultyParams with per-level values (Tutorial1-5/Easy=3, Medium=2, Hard=1). Constructor takes optional maxHints parameter (default 0). PuzzleGenerator.TryGenerate now sets state.MaxHints = difficulty.MaxHints. Also updated TutorialData.cs to explicitly pass maxHints: 3. 10 new tests (Theory covering all 8 difficulty levels + 2 Facts for custom params and default value). All 495 tests pass.
+
+## HINT.4 — PuzzleScreen hint orchestration
+- Date: 2026-03-05
+- Commit: 82eb71b
+- Notes: Wired HintEngine and HintState into PuzzleScreen. New HintState field initialized from PuzzleState.MaxHints in InitializeFromPuzzleState(). OnHintPressed() handler: calls PickNextHintTarget for auto-pick, checks snap-back status (free re-hint vs budget cost), calls ExecuteHint, updates budget and UI. UseHint() public method for programmatic/testing access. Hint button with purple styling and "N/M" budget counter label; hidden entirely when MaxHints==0. UpdateHintButton() disables when budget exhausted AND no snap-back candidates available. ResetPuzzle() clears IsHinted on all reagents but preserves hint budget (no refund). All 495 unit tests pass, no new Core tests needed (this is a Game-layer wiring task).

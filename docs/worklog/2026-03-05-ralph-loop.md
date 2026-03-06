@@ -202,3 +202,14 @@ Straightforward wiring task: added MaxHints to DifficultyParams with per-level s
 to propagate the value to the generated PuzzleState. Also updated TutorialData's five
 manually-constructed DifficultyParams to include maxHints: 3 so tutorial puzzles get hints too.
 Commit: e6ddc8e
+
+## HINT.4: PuzzleScreen hint orchestration
+Wired HintEngine into PuzzleScreen — the bridge between the Core hint logic and the Godot UI.
+OnHintPressed calls PickNextHintTarget for auto-pick, checks snap-back status to decide if the
+hint costs budget, then calls ExecuteHint and refreshes all UI components (tray, grid, status
+bar, eagle sense). Added UseHint() for programmatic testing. The hint button uses a purple
+theme to distinguish it from Confirm/Reset, with a "N/M" budget counter. Button is hidden
+entirely when MaxHints==0 (old puzzles, demo mode), and disabled when budget is exhausted
+unless a snap-back candidate exists. ResetPuzzle clears IsHinted on all reagents but preserves
+the hint budget — no refunds.
+Commit: 82eb71b
