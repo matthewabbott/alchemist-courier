@@ -568,3 +568,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: c5a9b51..8465dbc
 - Findings: 6 (P0: 0, P1: 1, P2: 2, P3: 2, P4: 1)
 - Fixed: 3, Tasks created: 0
+
+## E.7 — SolverPanel with auto-solve integration
+- Date: 2026-03-05
+- Commit: 9a6d751
+- Notes: Created src/Game/Editor/SolverPanel.cs — a VBoxContainer panel wired into EditorScreen below the MetaGridView. Three buttons: Solve (finds one solution via PuzzleSearchSolver.Solve), Count Solutions (counts up to 100 via CountSolutions), Show/Hide Solution (toggles blue overlay on grid). Solver runs on background thread using Task.Run with CancellationToken, results marshaled back to main thread via CallDeferred. Solution overlay renders semi-transparent blue ColorRects at ZIndex 3 on the MetaGridView. EditorScreen integration: SolverPanel clears results when bags/reagents change (OnEditorDataChanged, NewPuzzle, LoadPuzzle), updates grid view reference when grid is rebuilt. Also cleaned up unused `reagents` parameter from PuzzleSearchSolver's private Backtrack/CountBacktrack methods. All 519 tests pass.

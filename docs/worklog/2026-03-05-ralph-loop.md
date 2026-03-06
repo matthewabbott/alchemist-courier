@@ -399,3 +399,12 @@ had one but LoadPuzzle didn't). Removed dead GetShapeRaw() method and redundant 
 setter. Noted duplicated color constants across 3 editor files (Rule of Three met) and
 ShapeEditorWidget's use of `_Input` vs `_GuiInput` as P2 items for future attention.
 Commit: 3df3f7d
+
+## E.7: SolverPanel with auto-solve integration
+The editor now has a solver panel below the MetaGridView. Three buttons: Solve finds one valid
+placement, Count Solutions enumerates up to 100, and Show Solution toggles a blue cell overlay on
+the grid. The interesting design choice was thread safety — solving runs on Task.Run with a
+CancellationToken, and results marshal back to Godot's main thread via CallDeferred with pending
+result fields. The panel auto-clears when bags or reagents change, preventing stale solutions from
+lingering. Also cleaned up unused parameters in PuzzleSearchSolver's private backtrack methods.
+Commit: 9a6d751

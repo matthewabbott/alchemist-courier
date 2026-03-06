@@ -861,7 +861,7 @@
       "phase": "editor",
       "depends_on": ["E.1", "E.6"],
       "verification": "dotnet build succeeds, solver finds solutions for valid puzzles and reports unsolvable for invalid ones",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.8",
