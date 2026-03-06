@@ -739,7 +739,7 @@
         "HINT.7"
       ],
       "verification": "Test harness reports Test_HintSystem PASS, screenshots show hint progression",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "DOC.1",

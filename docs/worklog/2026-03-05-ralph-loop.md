@@ -251,3 +251,13 @@ tracking, and HINT.7 disabled button styling. All clean — no P0-P2 issues. Thr
 CreateHintedBorderRect/CreateBorderRect near-duplication (Rule of Three not met), local magic
 number for hint border width, and GetMvpRules() repeated calls (carried forward from review f).
 One P4 cosmetic: asymmetric cleanup pattern for bag vs hinted borders in RefreshDisplay.
+
+## HINT.8: Integration test: full hint system
+Enhanced the existing Test_HintSystem stub to a comprehensive integration test covering the
+full hint lifecycle. The test exercises budget initialization, first-use placement with
+IsHinted verification, removal and snap-back (free re-placement of previously hinted reagent),
+a second hint on a different reagent consuming budget, the dislodge scenario (placing a reagent
+at another's solution position then hinting to force it back to tray), and budget preservation
+across puzzle reset. The dislodge test dynamically searches for overlapping solution pairs,
+gracefully skipping if no overlap exists for the generated puzzle.
+Commit: 29ed603

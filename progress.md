@@ -457,6 +457,11 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: 0560de9
 - Notes: The hint button, count label, visibility toggle (MaxHints==0), and enable/disable logic were already implemented during HINT.4. This task finalized the UI by adding a `disabled` StyleBox override to CreateStyledButton (darkened background + dimmed font color) ensuring consistent visual feedback when the hint button is disabled. All 497 tests pass.
 
+## HINT.8 — Integration test: full hint system
+- Date: 2026-03-05
+- Commit: 29ed603
+- Notes: Enhanced the existing Test_HintSystem stub with comprehensive coverage: budget initialization (0/3), first hint placement with IsHinted verification, reagent removal and snap-back (no budget cost, same reagent re-placed), second hint on different reagent (budget increments to 2/3), dislodge scenario (manually place reagent at another's solution position, hint dislodges it), and reset preserving budget. Screenshots at all key states. All 497 unit tests pass.
+
 ## Code Review — 2026-03-05 (g)
 - Reviewed commits: 718631a..58a0f93 (HINT.5, HINT.6, HINT.7)
 - Findings: 4 (P0: 0, P1: 0, P2: 0, P3: 3, P4: 1)
