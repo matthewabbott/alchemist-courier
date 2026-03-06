@@ -811,7 +811,7 @@
       "phase": "editor",
       "depends_on": [],
       "verification": "dotnet test -- PuzzleFile serialization round-trip tests pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.3",

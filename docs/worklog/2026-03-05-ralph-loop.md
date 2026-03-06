@@ -332,3 +332,12 @@ PuzzleSolver's grid/reagent reconstruction and handles locked reagents by pre-pl
 before the search begins. CancellationToken support enables timeout for the editor's
 solve-on-demand feature. This is the foundation for E.7 (editor solve integration).
 Commit: dafa8ea
+
+## E.2: PuzzleFile wrapper with editor metadata
+PuzzleFile separates authoring concerns from gameplay data — PuzzleState stays focused on
+what the player sees, while PuzzleFile adds Name, Description, Author, and CreatedAt for
+the editor workflow. Followed SaveManager's exact serialization pattern (System.Text.Json,
+WriteIndented, graceful null returns) to keep the codebase consistent. Both file I/O
+(Save/Load) and in-memory (SaveToString/LoadFromString) APIs are provided, since the editor
+will use files but tests and clipboard features will want string serialization.
+Commit: cb69213

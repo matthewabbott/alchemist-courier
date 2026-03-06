@@ -525,3 +525,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: dafa8ea
 - Notes: Pure C# backtracking constraint-satisfaction solver. Solve() finds one valid solution, CountSolutions() enumerates up to N solutions. Uses MRV heuristic from PuzzleGenerator (Heavy → Sharp → largest first). Reuses PuzzleSolver.ReconstructGrid/ReconstructReagents for setup, ChemistryEngine.EvaluateProspective for chemistry validation. Supports locked reagent pre-placement and CancellationToken for timeout. 12 new tests covering solvable/unsolvable/timeout/cancelled/reactive/multi-seed scenarios, plus CountSolutions edge cases. All 509 tests pass (497 existing + 12 new).
+
+## E.2 — PuzzleFile wrapper with editor metadata
+- Date: 2026-03-05
+- Commit: cb69213
+- Notes: Created PuzzleFile class wrapping PuzzleState with authoring metadata: Name (string), Description (string?), Author (string?), CreatedAt (DateTime). Static methods Save/Load for file I/O and SaveToString/LoadFromString for in-memory serialization, both using System.Text.Json with WriteIndented. Follows SaveManager.cs pattern: graceful null return on missing file or corrupt JSON, auto-creates directories on save. 10 new tests covering round-trip serialization (file and string), null optional fields, invalid JSON returns null, directory creation, overwrite behavior, and bag property preservation. All 519 tests pass (509 existing + 10 new).
