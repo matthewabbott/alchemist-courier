@@ -41,6 +41,9 @@ public partial class MetaGridView : Control
     // Hinted reagent border nodes
     private readonly List<ColorRect> _hintedBorders = new();
 
+    // Locked reagent border nodes
+    private readonly List<ColorRect> _lockedBorders = new();
+
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
 
@@ -272,6 +275,9 @@ public partial class MetaGridView : Control
 
         // Draw hinted reagent borders
         CreateHintedBorders();
+
+        // Draw locked reagent borders
+        CreateLockedBorders();
     }
 
     private void CreateBagBorders(Dictionary<Bag, int> bagIndexMap)
@@ -339,6 +345,80 @@ public partial class MetaGridView : Control
                 }
             }
         }
+    }
+
+    private void CreateLockedBorders()
+    {
+        foreach (var border in _lockedBorders)
+        {
+            border.QueueFree();
+        }
+        _lockedBorders.Clear();
+
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (!cell.IsOccupied) continue;
+
+                var reagent = (Reagent)cell.OccupyingReagent!;
+                if (!reagent.IsLocked) continue;
+
+                var pos = new CoreVec(col, row);
+                var pixelPos = GridCoordinates.GridToPixel(pos);
+
+                foreach (var dir in CoreVec.CardinalDirections)
+                {
+                    var neighborPos = pos + dir;
+                    var neighbor = _metaGrid.GetCell(neighborPos);
+                    bool isBoundary = neighbor == null || neighbor.OccupyingReagent != reagent;
+
+                    if (!isBoundary) continue;
+
+                    var border = CreateLockedBorderRect(pixelPos, dir);
+                    AddChild(border);
+                    _lockedBorders.Add(border);
+                }
+            }
+        }
+    }
+
+    private ColorRect CreateLockedBorderRect(Vector2 cellPixelPos, CoreVec direction)
+    {
+        float cs = GridConstants.CellSize;
+        const float bw = 2;
+        Vector2 pos;
+        Vector2 size;
+
+        if (direction.Row == -1)
+        {
+            pos = cellPixelPos;
+            size = new Vector2(cs, bw);
+        }
+        else if (direction.Row == 1)
+        {
+            pos = cellPixelPos + new Vector2(0, cs - bw);
+            size = new Vector2(cs, bw);
+        }
+        else if (direction.Col == -1)
+        {
+            pos = cellPixelPos;
+            size = new Vector2(bw, cs);
+        }
+        else
+        {
+            pos = cellPixelPos + new Vector2(cs - bw, 0);
+            size = new Vector2(bw, cs);
+        }
+
+        return new ColorRect
+        {
+            Position = pos,
+            Size = size,
+            Color = GridConstants.LockedBorderColor,
+            ZIndex = 2,
+        };
     }
 
     private ColorRect CreateHintedBorderRect(Vector2 cellPixelPos, CoreVec direction)
@@ -513,7 +593,12 @@ public partial class MetaGridView : Control
                 var reagent = _metaGrid.GetReagentAtCell(_hoverGridPos.Value);
                 if (reagent != null)
                 {
-                    _metaGrid.RemoveReagent(reagent);
+                    if (reagent.IsLocked)
+                    {
+                        ShowRejectionTooltip("Cannot remove — locked reagent", _hoverGridPos.Value);
+                        return;
+                    }
+                    if (!_metaGrid.RemoveReagent(reagent)) return;
                     reagent.Rotation = 0;
                     RefreshDisplay();
                     EmitSignal(SignalName.ReagentRemoved);

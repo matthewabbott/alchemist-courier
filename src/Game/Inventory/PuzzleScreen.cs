@@ -549,7 +549,7 @@ public partial class PuzzleScreen : Control
         var pos = new Core.Grid.Vector2I(col, row);
         var reagent = _metaGrid.GetReagentAtCell(pos);
         if (reagent == null) return false;
-        _metaGrid.RemoveReagent(reagent);
+        if (!_metaGrid.RemoveReagent(reagent)) return false;
         reagent.Rotation = 0;
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();

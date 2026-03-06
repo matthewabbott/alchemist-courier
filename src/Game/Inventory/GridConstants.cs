@@ -26,6 +26,9 @@ public static class GridConstants
     // Hint system
     public static readonly Color HintedBorderColor = new(0.55f, 0.45f, 0.75f);
 
+    // Locked reagent indicator
+    public static readonly Color LockedBorderColor = new(0.7f, 0.6f, 0.3f);
+
     // Bag hue offsets — each placed bag gets a slightly different tint
     private static readonly Color[] BagTints = new[]
     {

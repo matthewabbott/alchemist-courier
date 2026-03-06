@@ -82,6 +82,7 @@ public partial class TestHarness : Control
         await Test_EditorCreateAndSave();
         await Test_EditorSolver();
         await Test_EditorPlayMode();
+        await Test_LockedReagentRemovalBlocked();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1613,6 +1614,68 @@ public partial class TestHarness : Control
         bool pass = inPlay && placed && backToEdit && bagsPreserved && reagentsPreserved;
         EndTest("editor_play_mode", pass, pass ? null
             : $"play={inPlay} placed={placed} edit={backToEdit} bags={bagsPreserved} reagents={reagentsPreserved}");
+    }
+
+    private async Task Test_LockedReagentRemovalBlocked()
+    {
+        BeginTest("locked_reagent_removal_blocked");
+
+        // Create a puzzle with a locked reagent
+        var state = new AlchemistCourier.Core.Puzzle.PuzzleState
+        {
+            Seed = 999,
+            PuzzleType = AlchemistCourier.Core.Puzzle.PuzzleType.FitAllSafely,
+            Bags = new System.Collections.Generic.List<AlchemistCourier.Core.Puzzle.PuzzleBag>
+            {
+                AlchemistCourier.Core.Puzzle.PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                }, 0, 0),
+            },
+            Reagents = new System.Collections.Generic.List<AlchemistCourier.Core.Puzzle.PuzzleReagent>
+            {
+                // Locked reagent (1x1)
+                AlchemistCourier.Core.Puzzle.PuzzleReagent.FromMatrix(new bool[,] { { true } }, isLocked: true),
+                // Normal reagent (1x1)
+                AlchemistCourier.Core.Puzzle.PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+            Solution = new System.Collections.Generic.List<AlchemistCourier.Core.Puzzle.Placement>
+            {
+                new() { ReagentIndex = 0, PositionCol = 0, PositionRow = 0, Rotation = 0 },
+                new() { ReagentIndex = 1, PositionCol = 1, PositionRow = 0, Rotation = 0 },
+            },
+            MaxHints = 0,
+        };
+
+        // Replace puzzle screen with this custom puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Verify locked reagent is pre-placed
+        int prePlaced = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] pre_placed={prePlaced}");
+        bool lockedPlaced = prePlaced == 1;
+
+        // Attempt to remove the locked reagent at (0,0)
+        bool removed = _puzzleScreen.RemoveReagentAt(0, 0);
+        Log($"[ACTION] remove_locked col=0 row=0 result={(removed ? "success" : "failed")}");
+
+        // Verify removal was blocked and reagent remains
+        int afterRemove = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] placed_after_remove={afterRemove}");
+        bool removalBlocked = !removed && afterRemove == 1;
+
+        await CaptureScreenshot("25_locked_removal_blocked.png");
+
+        bool pass = lockedPlaced && removalBlocked;
+        EndTest("locked_reagent_removal_blocked", pass, pass ? null
+            : $"lockedPlaced={lockedPlaced} removalBlocked={removalBlocked}");
     }
 
     private async Task Test_RenderFinal()
