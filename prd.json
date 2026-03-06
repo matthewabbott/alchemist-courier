@@ -771,7 +771,7 @@
       "phase": "tooling",
       "depends_on": [],
       "verification": "desloppify scan runs without errors, baseline score recorded in progress.md",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "T.2",

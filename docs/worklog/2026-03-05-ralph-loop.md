@@ -299,4 +299,4 @@ MetaGridView (778 LOC). The strict score of 33.7 is artificially low because 20 
 review dimensions haven't been assessed yet. No P0 issues. The `update-skill claude` command
 hits a Windows cp1252 encoding bug (non-blocking). Added `.desloppify/` state files to git
 and `.bak` files to `.gitignore`.
-Commit: (pending)
+Commit: 4249356

@@ -484,7 +484,7 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 
 ## T.1 — Install desloppify and run baseline scan
 - Date: 2026-03-05
-- Commit: (pending)
+- Commit: 4249356
 - Notes: Installed desloppify 0.9.1 with full extras. `update-skill claude` fails on Windows due to cp1252 encoding bug (UnicodeEncodeError on arrow character U+2192) — non-blocking, scan works fine. Baseline C# scan results: **objective 84.3/100**, strict 33.7/100 (20 subjective dimensions unassessed = 0%). 93 open issues: 11 structural (large files — PuzzleScreen 865 LOC, TestHarness 1376 LOC, MetaGridView 778 LOC, etc.), 42 unused imports, 31 test coverage gaps, 4 duplicate code clusters, 2 coupling (1 import cycle, 1 orphaned file), 2 low-cohesion files, 1 signature variance. Security: clean. No P0 issues. GDScript scan found 0 issues (100/100). Boilerplate duplication skipped (jscpd not available).
 
 ## Desloppify Baseline
