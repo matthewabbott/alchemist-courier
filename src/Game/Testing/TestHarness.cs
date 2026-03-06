@@ -895,7 +895,6 @@ public partial class TestHarness : Control
                         if (dislodgeList != null && dislodgeList.Contains(a))
                         {
                             dislodgeAttempted = true;
-                            bool aPlacedBefore = reagentA.IsPlaced;
                             var hintResult = _puzzleScreen.UseHint();
 
                             // UseHint picks next target via PickNextHintTarget (auto-pick).
