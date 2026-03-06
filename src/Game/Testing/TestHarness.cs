@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Godot;
 using AlchemistCourier.Game.Inventory;
+using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
@@ -74,6 +75,7 @@ public partial class TestHarness : Control
         await Test_ItemDetailPanel();
         await Test_EagleSenseOrchestration();
         await Test_LegendGridLinking();
+        await Test_EditorScreen();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1318,6 +1320,40 @@ public partial class TestHarness : Control
                  && clearedSelection && afterClearHighlights == 0;
         EndTest("legend_grid_linking", pass, pass ? null
             : $"noSel={noSelection} before={beforeHighlights} hotSel={hotSelected} legendHL={legendHighlights} cleared={clearedSelection} afterClear={afterClearHighlights}");
+    }
+
+    private async Task Test_EditorScreen()
+    {
+        BeginTest("editor_screen");
+
+        // Remove PuzzleScreen temporarily
+        _puzzleScreen.Visible = false;
+
+        // Create EditorScreen
+        var editor = new EditorScreen();
+        AddChild(editor);
+        await WaitFrames(3);
+
+        // Verify starts in edit mode
+        bool editMode = !editor.IsPlayMode;
+        Log($"[STATE] edit_mode={editMode} (expected=true)");
+
+        // Try play mode with no reagents — should stay in edit mode
+        editor.EnterPlayMode();
+        await WaitFrames(2);
+        bool stillEditAfterNoReagents = !editor.IsPlayMode;
+        Log($"[STATE] still_edit_no_reagents={stillEditAfterNoReagents} (expected=true)");
+
+        await CaptureScreenshot("35_editor_screen.png");
+
+        // Clean up
+        editor.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen.Visible = true;
+
+        bool passed = editMode && stillEditAfterNoReagents;
+        EndTest("editor_screen", passed,
+            passed ? null : $"edit_mode={editMode} still_edit_no_reagents={stillEditAfterNoReagents}");
     }
 
     private async Task Test_RenderFinal()
