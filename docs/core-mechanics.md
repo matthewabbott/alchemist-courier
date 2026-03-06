@@ -51,15 +51,16 @@ Bag types are introduced at different complexity tiers (see `docs/chemistry-syst
 **Gravity**:
 - Reagents "fall" to the bottom of the bag (highest row index in the shape matrix — row 0 is top, max row is bottom)
 - Placement constraint: items must be supported (resting on the bottom row or on top of existing items)
-- Heavy items must always be placed at the bottom of the bag
+- Heavy items fall as low as possible but stop when they rest on another reagent below. Heavy CAN sit on top of other reagents if supported — the constraint is gravitational settling, not absolute bottom positioning
+- Heavy above Fragile is blocked: a Heavy cell directly above a Fragile cell prevents placement (the Fragile item would be crushed). In Gravity bags, "above" = toward bag top (lower row index)
 - Puzzle effect: limits where items can go, bottom fills first, creates stacking challenges
-- Fragile items can't be placed in Gravity bags (Intermediate -- they'd break from falling)
+- Fragile items can't be placed in Gravity bags (Intermediate — they'd break from falling)
 
 **Locked**:
-- In puzzle mode: bag contains pre-placed reagents that can't be moved or removed
-- Creates fixed constraints the player must work around
-- Implementation: `isLocked: true` flag on placements
-- The locked reagents' aspects are active and participate in reactions -- they're constraints, not inert decorations
+- **Puzzle mode:** Locked bags are immovable on the meta-grid (cannot be repositioned by the player). All other bag types ARE freely movable/rearrangeable. Locked reagents inside are pre-placed constraints that can't be moved or removed. Reset restores the puzzle to its initial state including all locked positions.
+- **Roguelite mode (future):** Locked bags additionally lock reagents placed inside them — once placed, a reagent can't be removed until the bag is unlocked.
+- Implementation: `isLocked: true` flag on placements (reagent-level), bag-level immovability TBD
+- The locked reagents' aspects are active and participate in reactions — they're constraints, not inert decorations
 
 #### Intermediate Complexity
 
@@ -99,9 +100,18 @@ Bag types are introduced at different complexity tiers (see `docs/chemistry-syst
 - Doesn't need to be adjacent to the character on the meta-grid -- it "floats" and can be placed anywhere
 - Removes the meta-grid adjacency constraint for this one bag
 
+#### Aspirational Reagent Properties
+
+**Liquid** (aspirational):
+- Liquid reagents flow downward in Gravity bags to fill the lowest available cells
+- Displaced upward by Heavy reagents (Heavy sinks below Liquid)
+- Open design problem: how does a 1-cell liquid "spread" to fill multiple cells? Simpler version: liquid is a fixed-shape reagent with a "must occupy bottom cells of gravity bag" constraint
+- Needs more design work before implementation
+
 ### Bag Placement Rules
 - Bags are placed on the meta-grid and must fit within its bounds
 - Bags cannot overlap each other on the meta-grid
+- **Bags are movable:** During puzzle solving, the player can rearrange bag positions on the meta-grid. All bags except Locked can be freely repositioned. This is a core puzzle mechanic — spatial arrangement of bags is part of the solution, not just reagent placement.
 - Bags placed adjacent to each other create **contiguous inventory space** — reagents can span across them
 - Bags can be intentionally separated (leaving empty meta-grid cells between them) to prevent cross-bag adjacency
 - The meta-grid space is limited, so the player cannot carry unlimited bags
@@ -268,6 +278,14 @@ In future updates, a "mixing and brewing" system could allow combining reagents 
 - **Shoulder buttons** to rotate
 
 All controls are fully customizable.
+
+## Hint System Design Notes
+
+The hint system (`src/Core/Puzzle/HintEngine.cs`) currently targets reagent placements only. With movable bags, hints need to account for bag arrangement:
+
+- **Bijection check:** When generating a hint, first check if the player's current bag arrangement is structurally equivalent to the intended solution (e.g., bags in different positions but with a valid mapping). If so, adapt the hint to their arrangement rather than moving bags.
+- **Bag rearrangement as fallback:** If no bijection exists between the player's bag layout and the solution, the hint should rearrange bags to match the intended solution before placing reagents.
+- **Bag-targeted hints:** Consider hints that specifically suggest "move this bag here" as a separate hint type, distinct from reagent placement hints. This gives the player a lighter nudge before revealing reagent positions.
 
 ## Key Invariants (Rules That Must Always Hold)
 

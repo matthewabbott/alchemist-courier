@@ -217,6 +217,20 @@ Side-view paper-doll showing the character with equipped bags visible on their b
 
 See `docs/art-and-style.md` lines 78-91.
 
+### Liquid Reagent Property
+
+Liquid reagents flow downward in Gravity bags to fill the lowest available cells. Displaced upward by Heavy (Heavy sinks below Liquid). Open design problem: how does a 1-cell liquid spread to fill multiple cells? Simpler version: fixed-shape with "must occupy bottom cells" constraint. Needs more design work.
+
+See `docs/core-mechanics.md` Aspirational Reagent Properties section.
+
+### Fragile Thermal Stress (Intermediate)
+
+New Fragile interaction: if a Fragile cell is adjacent to both Hot AND Cold cells simultaneously, it breaks from thermal stress. "Inverse Volatile" — Volatile needs net-hot to explode, Fragile breaks from thermal contradiction. Fragile can be near Hot OR Cold safely, but not both.
+
+Also: Heavy directly above Fragile blocks placement (crushing constraint, any bag type).
+
+See `docs/chemistry-system.md` interaction table.
+
 ### Consumable & Transformative Potions
 
 - **Consumable potions** — crafted/purchased, brought on ventures for temporary effects (fire resistance, stamina restoration, threshold raising).

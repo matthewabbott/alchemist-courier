@@ -82,10 +82,10 @@ Every aspect has a **primary mechanic** that makes it relevant on its own (non-p
 | **Cold** | Simple | Cumulative hypothermia threshold (whole inventory) | +Hot = neutralization; reduces net-hot near Volatile (strategic tool) |
 | **Volatile** | Simple | Explodes when adjacent net-hot > 0 (sum adjacent hot - cold) | Volatile+Volatile adjacent amplifies (Intermediate) |
 | **Toxic** | Simple | Cumulative poisoning threshold; Toxic+Toxic same-bag = cloud | Toxic spread within bag (Intermediate) |
-| **Heavy** | Simple | Falls to bottom of bag; always falls TRUE down regardless of bag orientation | Crushes Fragile below (Intermediate); can't protrude (Advanced) |
+| **Heavy** | Simple | Falls as low as possible in gravity bags, stops when resting on another reagent | Crushes Fragile directly below (Intermediate); can't protrude (Advanced) |
 | **Stable** | Simple | Raises thresholds of adjacent reactions (universal buffer) | Cancels Catalytic (Advanced) |
 | **Sharp** | Intermediate | Can't place on edge cells of non-reinforced bags | +Fragile adjacent = breakage; pierces Null suppression (Advanced) |
-| **Fragile** | Intermediate | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; higher value to compensate vulnerability |
+| **Fragile** | Intermediate | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; Hot+Cold adjacent simultaneously = thermal stress fracture; crushed by Heavy directly above; higher value to compensate vulnerability |
 | **Catalytic** | Intermediate | Lowers thresholds of adjacent reactions (inverse of Stable) | Universal amplifier -- makes mild interactions dangerous |
 | **Medicinal** | Intermediate | Passively reduces cumulative thresholds when carried | Consume to clear status effects (roguelite) |
 | **Magnetic** | Advanced | Must be placed adjacent to another Magnetic item (forced clustering) | Creates adjacency pressure with everything near the cluster |
@@ -124,7 +124,8 @@ Cold cells adjacent to Volatile cells reduce the effective heat, potentially pre
 | Toxic + Toxic (same bag, 2+ items) | **Toxic cloud**: Toxicity intensifies, may spread to adjacent bags | Same bag, cumulative |
 | Sharp + Fragile (adjacent cells) | **Breakage**: Fragile reagent cracks or shatters | Adjacent cells, per-cell |
 | Any reaction adjacent to Fragile | **Breakage**: Fragile reagent breaks from nearby reaction | Adjacent cells, per-cell |
-| Heavy + Fragile (gravity bag, below) | **Crushing**: Heavy item falls onto fragile item in gravity bag | Same bag (gravity-specific) |
+| Heavy directly above Fragile (any bag) | **Crushing**: Heavy cell above Fragile cell blocks placement. In Gravity bags "above" = toward bag top; in Normal bags "above" = one row up | Placement constraint, per-cell |
+| Fragile + (Hot AND Cold adjacent) | **Thermal Stress Fracture**: Fragile cell adjacent to both Hot and Cold simultaneously breaks from thermal contradiction. Inverse of Volatile (which needs net-hot). Fragile can be near Hot OR Cold safely, but not both | Adjacent cells, per-cell |
 | Sharp on edge of non-reinforced bag | **Placement blocked**: Sharp reagents can't be on bag edge cells | Placement constraint |
 | Catalytic + any reactive pair | **Lowered threshold**: The reaction's threshold is reduced | Adjacent cells, per-cell |
 | Stable + any reactive pair | **Raised threshold**: The reaction's threshold is increased | Adjacent cells, per-cell |
