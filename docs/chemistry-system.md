@@ -58,6 +58,22 @@ This means the complexity tier isn't just about difficulty -- it's about **conte
 - **Adds interactions**: Volatile chain reactions, Sharp piercing Null suppression, Magnetic forced clustering, Absorbent selective neutralization
 - **Philosophy**: Full mechanical depth. Sequential modes build to this gradually over many puzzles. Players should feel like they've earned these interactions through mastery of simpler tiers.
 
+### Puzzle Complexity Budget
+
+Independent of which complexity tier a mechanic belongs to, each individual puzzle has a **per-puzzle complexity budget** that caps how many distinct mechanics appear simultaneously. This prevents overwhelming the player even when many mechanics exist at the same tier.
+
+The budget counts distinct interaction types: unique aspects + unique bag special properties active in the puzzle.
+
+| Puzzle Context | Complexity Budget | Example |
+|---------------|------------------|---------|
+| **Simple (standalone/daily)** | ~5-6 distinct elements | Hot, Cold, Volatile, Stable + Normal, Gravity = 6 |
+| **Intermediate (sequential)** | Higher, TBD during balancing | Could include 8-10 elements after gradual introduction |
+| **Advanced (late roguelite)** | Full mechanical depth | All unlocked mechanics available |
+
+**Rationale:** Even though the Simple tier defines ~10 elements (6 aspects + 4 bag types), using all of them in a single puzzle would overwhelm a player encountering it cold. The budget ensures puzzles are graspable: the legend and tooltips stay manageable, and the player can internalize the active rules before solving.
+
+The generator should select a subset of available mechanics per puzzle, keeping the total within budget. Scale (puzzle size, reagent count) provides difficulty independently of mechanical depth.
+
 ## Schools of Alchemy
 
 Aspects are organized into **schools** -- thematic categories drawn from different alchemical and mystical traditions. Each school is a self-contained set of aspects with its own internal logic. Aspects from different schools can interact cross-school.
@@ -82,7 +98,7 @@ Every aspect has a **primary mechanic** that makes it relevant on its own (non-p
 | **Cold** | Simple | Cumulative hypothermia threshold (whole inventory) | +Hot = neutralization; reduces net-hot near Volatile (strategic tool) |
 | **Volatile** | Simple | Explodes when adjacent net-hot > 0 (sum adjacent hot - cold) | Volatile+Volatile adjacent amplifies (Intermediate) |
 | **Toxic** | Simple | Cumulative poisoning threshold; Toxic+Toxic same-bag = cloud | Toxic spread within bag (Intermediate) |
-| **Heavy** | Simple | Falls as low as possible in gravity bags, stops when resting on another reagent | Crushes Fragile directly below (Intermediate); can't protrude (Advanced) |
+| **Heavy** | Simple | Falls as low as possible in ALL bags (not just Gravity). Descends until bottom-most cells hit the bag floor or another reagent. In Normal bags "bottom" is down; Gravity bags may redefine "bottom" direction | Crushes Fragile directly below (Intermediate); can't protrude (Advanced) |
 | **Stable** | Simple | Raises thresholds of adjacent reactions (universal buffer) | Cancels Catalytic (Advanced) |
 | **Sharp** | Intermediate | Can't place on edge cells of non-reinforced bags | +Fragile adjacent = breakage; pierces Null suppression (Advanced) |
 | **Fragile** | Intermediate | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; Hot+Cold adjacent simultaneously = thermal stress fracture; crushed by Heavy directly above; higher value to compensate vulnerability |

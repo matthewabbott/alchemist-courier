@@ -49,12 +49,14 @@ Bag types are introduced at different complexity tiers (see `docs/chemistry-syst
 - Selective null (suppress only specific aspects) is aspirational
 
 **Gravity**:
-- Reagents "fall" to the bottom of the bag (highest row index in the shape matrix — row 0 is top, max row is bottom)
-- Placement constraint: items must be supported (resting on the bottom row or on top of existing items)
-- Heavy items fall as low as possible but stop when they rest on another reagent below. Heavy CAN sit on top of other reagents if supported — the constraint is gravitational settling, not absolute bottom positioning
-- Heavy above Fragile is blocked: a Heavy cell directly above a Fragile cell prevents placement (the Fragile item would be crushed). In Gravity bags, "above" = toward bag top (lower row index)
+- Everything in a Gravity bag acts as if it were Heavy — ALL items must be supported from below (resting on the bottom row or on top of existing items)
+- "Bottom" is whichever direction the bag faces. Players can rotate Gravity bags, changing the gravity direction (bottom could be down, left, right, or up)
+- Note: Heavy falls in ALL bag types, not just Gravity (see Heavy aspect in `docs/chemistry-system.md`). The distinction is: in Normal bags only Heavy reagents fall; in Gravity bags everything falls
+- **Cross-bag gravity resolution:** If a reagent spans a Gravity bag and a Normal bag, the Gravity bag takes precedence — the reagent is subject to the Gravity bag's constraints regardless of how many cells are in each bag. (Aspirational: a heavy object partially in an upside-down Gravity bag could be "balanced" and not need support — noted as a potential future expansion, not for now.)
+- Heavy above Fragile is blocked: a Heavy cell directly above a Fragile cell prevents placement (the Fragile item would be crushed). In Gravity bags, "above" = toward bag top (opposite of gravity direction)
 - Puzzle effect: limits where items can go, bottom fills first, creates stacking challenges
 - Fragile items can't be placed in Gravity bags (Intermediate — they'd break from falling)
+- **Empty space design goal:** Puzzles involving Heavy or Gravity should be generated with empty space in the solution. If a bag is completely filled, gravity/heavy constraints become trivial. The generator's `SpareSpacePercent` parameter (`src/Core/Puzzle/PuzzleGenerator.cs`) should be tuned to ensure non-trivial spatial constraints when these mechanics are in play. (Empty space is NOT required for puzzles without Heavy or Gravity.)
 
 **Locked**:
 - **Puzzle mode:** Locked bags are immovable on the meta-grid (cannot be repositioned by the player). All other bag types ARE freely movable/rearrangeable. Locked reagents inside are pre-placed constraints that can't be moved or removed. Reset restores the puzzle to its initial state including all locked positions.
@@ -295,6 +297,8 @@ The hint system (`src/Core/Puzzle/HintEngine.cs`) currently targets reagent plac
 4. Adjacency is always cell-contact, cardinal-direction based.
 5. Bag effects always resolve per-cell for spanning reagents.
 6. Consuming a reagent always removes it from the bag.
+7. Heavy reagents fall in ALL bag types (not just Gravity). In Normal bags, "bottom" is down. Gravity bags may redefine which direction is "bottom."
+8. Per-puzzle complexity is budgeted — see Puzzle Complexity Budget in `docs/chemistry-system.md`.
 
 ## Protrusion System (Aspirational)
 
