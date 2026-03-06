@@ -29,8 +29,8 @@ public partial class PuzzleScreen : Control
     private Button _hintButton = null!;
     private Label _hintCountLabel = null!;
     private HintState _hintState = new HintState(0);
-    private PanelContainer _resultOverlay = null!;
-    private Label _resultLabel = null!;
+    private ResultOverlayPanel _resultOverlay = null!;
+    private HintOrchestrator? _hintOrchestrator;
     private Label _dayLabel = null!;
     private Label _streakLabel = null!;
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
@@ -103,6 +103,7 @@ public partial class PuzzleScreen : Control
         _metaGrid = PuzzleSolver.ReconstructGrid(state);
         _trayReagents = PuzzleSolver.ReconstructReagents(state);
         _hintState = new HintState(state.MaxHints);
+        _hintOrchestrator = new HintOrchestrator(state, _hintState, _metaGrid, _trayReagents);
 
         // Pre-place locked reagents at their solution positions
         foreach (var placement in state.Solution)
@@ -278,7 +279,7 @@ public partial class PuzzleScreen : Control
 
         _hintCountLabel = new Label
         {
-            Text = FormatHintCount(),
+            Text = _hintOrchestrator?.FormatHintCount() ?? $"{_hintState.HintsUsed}/{_hintState.MaxHints}",
         };
         _hintCountLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.85f));
         _hintCountLabel.AddThemeFontSizeOverride("font_size", 12);
@@ -305,36 +306,7 @@ public partial class PuzzleScreen : Control
         vbox.AddChild(_statusLabel);
 
         // Result overlay — positioned as a centered overlay on the main area
-        _resultOverlay = new PanelContainer();
-        _resultOverlay.Visible = false;
-        _resultOverlay.SetAnchorsPreset(LayoutPreset.Center);
-        _resultOverlay.GrowHorizontal = GrowDirection.Both;
-        _resultOverlay.GrowVertical = GrowDirection.Both;
-        var overlayStyle = new StyleBoxFlat
-        {
-            BgColor = new Color(0.06f, 0.06f, 0.08f, 0.94f),
-            ContentMarginLeft = 32,
-            ContentMarginRight = 32,
-            ContentMarginTop = 20,
-            ContentMarginBottom = 20,
-            CornerRadiusTopLeft = 8,
-            CornerRadiusTopRight = 8,
-            CornerRadiusBottomLeft = 8,
-            CornerRadiusBottomRight = 8,
-            BorderColor = new Color(0.4f, 0.4f, 0.35f),
-            BorderWidthBottom = 2,
-            BorderWidthTop = 2,
-            BorderWidthLeft = 2,
-            BorderWidthRight = 2,
-        };
-        _resultOverlay.AddThemeStyleboxOverride("panel", overlayStyle);
-        _resultLabel = new Label
-        {
-            HorizontalAlignment = HorizontalAlignment.Center,
-            AutowrapMode = TextServer.AutowrapMode.WordSmart,
-        };
-        _resultLabel.AddThemeFontSizeOverride("font_size", 18);
-        _resultOverlay.AddChild(_resultLabel);
+        _resultOverlay = new ResultOverlayPanel();
         AddChild(_resultOverlay);
     }
 
@@ -577,7 +549,7 @@ public partial class PuzzleScreen : Control
 
         _lastConfirmResult = ConfirmResult.None;
         _lastReactions.Clear();
-        HideResultOverlay();
+        _resultOverlay.Hide();
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
@@ -596,15 +568,15 @@ public partial class PuzzleScreen : Control
         switch (_lastConfirmResult)
         {
             case ConfirmResult.NotAllPlaced:
-                HideResultOverlay();
+                _resultOverlay.Hide();
                 UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
                 break;
             case ConfirmResult.HasReactions:
-                ShowResultOverlay(false, _lastReactions);
+                _resultOverlay.ShowFailure(_lastReactions);
                 UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
                 break;
             case ConfirmResult.Win:
-                ShowResultOverlay(true, _lastReactions);
+                _resultOverlay.ShowWin("SUCCESS — All reagents placed safely!", result.Score);
                 if (result.Score > 0)
                     UpdateStatus($"All reagents placed safely! Puzzle complete! Score: {result.Score}");
                 else
@@ -698,27 +670,10 @@ public partial class PuzzleScreen : Control
     /// <summary>Programmatic hint invocation for testing.</summary>
     public HintResult? UseHint()
     {
-        if (PuzzleData == null) return null;
+        if (_hintOrchestrator == null) return null;
 
-        var reagentIndex = HintEngine.PickNextHintTarget(PuzzleData, _hintState, _trayReagents);
-        if (reagentIndex == null) return null;
-
-        var solutionPlacement = HintEngine.GetSolutionPlacement(PuzzleData, reagentIndex.Value);
-        if (solutionPlacement == null)
-            return new HintResult(HintResultType.NoSolutionFound, reagentIndex.Value);
-
-        bool isSnapBack = _hintState.WasHinted(reagentIndex.Value);
-
-        if (!isSnapBack && !_hintState.HasHintsRemaining)
-            return new HintResult(HintResultType.NoHintsRemaining, reagentIndex.Value);
-
-        var result = HintEngine.ExecuteHint(_metaGrid, _trayReagents, reagentIndex.Value, solutionPlacement);
-
-        if (result.IsSuccess && !isSnapBack)
-        {
-            _hintState.HintsUsed++;
-            _hintState.HintedReagentIndices.Add(reagentIndex.Value);
-        }
+        var result = _hintOrchestrator.ExecuteHint();
+        if (result == null) return null;
 
         if (result.IsSuccess)
         {
@@ -736,24 +691,16 @@ public partial class PuzzleScreen : Control
 
     private void UpdateHintButton()
     {
-        _hintCountLabel.Text = FormatHintCount();
-
-        // Enable when budget remains OR any unplaced reagent was previously hinted (snap-back)
-        bool hasSnapBack = false;
-        for (int i = 0; i < _trayReagents.Count; i++)
+        if (_hintOrchestrator != null)
         {
-            if (!_trayReagents[i].IsPlaced && _hintState.WasHinted(i))
-            {
-                hasSnapBack = true;
-                break;
-            }
+            _hintCountLabel.Text = _hintOrchestrator.FormatHintCount();
+            _hintButton.Disabled = !_hintOrchestrator.HasHintsAvailable;
         }
-        _hintButton.Disabled = !_hintState.HasHintsRemaining && !hasSnapBack;
-    }
-
-    private string FormatHintCount()
-    {
-        return $"{_hintState.HintsUsed}/{_hintState.MaxHints}";
+        else
+        {
+            _hintCountLabel.Text = $"{_hintState.HintsUsed}/{_hintState.MaxHints}";
+            _hintButton.Disabled = !_hintState.HasHintsRemaining;
+        }
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)
@@ -771,47 +718,6 @@ public partial class PuzzleScreen : Control
                 GetViewport().SetInputAsHandled();
             }
         }
-    }
-
-    private void ShowResultOverlay(bool isWin, List<ReactionResult> reactions)
-    {
-        if (isWin)
-        {
-            _resultLabel.Text = "SUCCESS — All reagents placed safely!";
-            _resultLabel.AddThemeColorOverride("font_color", new Color(0.3f, 0.9f, 0.3f));
-        }
-        else
-        {
-            var lines = new System.Text.StringBuilder();
-            lines.AppendLine("FAILED — Reactions triggered:");
-            foreach (var r in reactions)
-            {
-                lines.AppendLine($"  - {FormatReactionType(r.Type)}");
-            }
-            _resultLabel.Text = lines.ToString().TrimEnd();
-            _resultLabel.AddThemeColorOverride("font_color", new Color(0.95f, 0.3f, 0.3f));
-        }
-        _resultOverlay.Visible = true;
-    }
-
-    private void HideResultOverlay()
-    {
-        _resultOverlay.Visible = false;
-    }
-
-    private static string FormatReactionType(ReactionResultType type)
-    {
-        return type switch
-        {
-            ReactionResultType.Explosion => "Explosion!",
-            ReactionResultType.Neutralization => "Neutralization",
-            ReactionResultType.Breakage => "Breakage",
-            ReactionResultType.Overheating => "Overheating",
-            ReactionResultType.Hypothermia => "Hypothermia",
-            ReactionResultType.Poisoning => "Poisoning",
-            ReactionResultType.ToxicCloud => "Toxic Cloud",
-            _ => type.ToString(),
-        };
     }
 
     private void UpdateStatus(string text)

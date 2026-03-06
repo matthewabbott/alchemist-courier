@@ -633,7 +633,17 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: 2f5167b
 - Notes: Replaced inline win condition logic in PuzzleScreen.ConfirmPuzzle() with a single call to PuzzleValidator.Evaluate(). The method now handles all three PuzzleType modes via the validator, and adds score display in the success message for MaximizeValue puzzles. The ConfirmResult enum was already fully extracted in CQ.1, so no duplicate deletion was needed — all consumer files (TutorialScreen, TestHarness) already had the correct using directive. Clean refactor: 20 insertions, 22 deletions. All 526 tests pass.
 
+## CQ.3 — Add locked reagent visual feedback
+- Date: 2026-03-06
+- Commit: 608b943
+- Notes: Added amber border rendering for locked reagents in MetaGridView following the existing CreateHintedBorders() pattern. Added rejection feedback when right-clicking a locked reagent — shows tooltip "Cannot remove — locked reagent" and blocks removal. Also hardened PuzzleScreen.RemoveReagentAt() to check the MetaGrid.RemoveReagent() return value. Integration test Test_LockedReagentRemovalBlocked creates a custom PuzzleState with a locked reagent, verifies it's pre-placed, attempts removal, and confirms it's blocked. All 526 unit tests pass.
+
 ## Code Review — 2026-03-06
 - Reviewed commits: 8c56f06..2f5167b (ART.4, CQ.1, CQ.2)
 - Findings: 3 (P0: 0, P1: 1, P2: 0, P3: 2)
 - Fixed: 1, Tasks created: 0
+
+## CQ.4 — Decompose PuzzleScreen: extract ResultOverlayPanel and HintOrchestrator
+- Date: 2026-03-06
+- Commit: 5c86a24
+- Notes: Extracted two cohesive subsystems from PuzzleScreen (855→761 lines). ResultOverlayPanel extends PanelContainer, encapsulates the result overlay UI construction and ShowWin/ShowFailure/Hide/FormatReactionType methods. HintOrchestrator is a plain C# class (not a Godot node) encapsulating hint domain logic: ExecuteHint(), HasHintsAvailable, FormatHintCount(). PuzzleScreen creates the orchestrator in InitializeFromPuzzleState() and delegates to it from UseHint()/UpdateHintButton(). UI refresh calls remain in PuzzleScreen. Used `new` keyword on Hide() to suppress CS0108 warning (CanvasItem.Hide inherited member). All 526 tests pass.

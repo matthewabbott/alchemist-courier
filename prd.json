@@ -951,7 +951,7 @@
       "phase": "code-quality",
       "depends_on": ["CQ.1"],
       "verification": "dotnet build succeeds, dotnet test passes (all 519+ tests), grep for 'enum ConfirmResult' finds only src/Core/Puzzle/ConfirmResult.cs, integration tests still pass",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CQ.3",
@@ -961,7 +961,7 @@
       "phase": "code-quality",
       "depends_on": [],
       "verification": "dotnet build succeeds, dotnet test passes, integration test Test_LockedReagentRemovalBlocked passes, locked reagents show amber border visually",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CQ.4",
@@ -971,7 +971,7 @@
       "phase": "code-quality",
       "depends_on": ["CQ.2"],
       "verification": "dotnet build succeeds, dotnet test passes (all existing tests), integration tests still pass (hint and confirm tests exercise the refactored code), PuzzleScreen.cs line count under 750",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GF.1",

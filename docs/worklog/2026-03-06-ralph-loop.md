@@ -12,6 +12,14 @@ Commit: ae7ff2a
 Completed the second half of the validator refactor — PuzzleScreen.ConfirmPuzzle() now delegates entirely to PuzzleValidator.Evaluate() instead of reimplementing win-condition logic inline. The switch statement maps each ConfirmResult to the appropriate UI response (overlay + status message), and MaximizeValue wins now display the score. This shrinks ConfirmPuzzle from 32 lines of branching logic to a clean evaluate-then-display pattern, and means any future PuzzleType additions only need changes in the Core validator.
 Commit: 2f5167b
 
+## CQ.3: Add locked reagent visual feedback
+Added amber borders around locked reagents in MetaGridView, following the same pattern used for hinted reagent borders. When a player right-clicks a locked reagent to try removing it, they now see a rejection tooltip ("Cannot remove — locked reagent") instead of a silent no-op — previously the MetaGrid.RemoveReagent guard silently blocked the removal but the UI gave no feedback. Also hardened PuzzleScreen.RemoveReagentAt to check the RemoveReagent return value. The integration test creates a minimal PuzzleState with one locked and one normal reagent, verifies the locked one is pre-placed and cannot be removed programmatically.
+Commit: 608b943
+
 ## Code Review
 Reviewed the PuzzleValidator extraction (CQ.1, CQ.2) and art reference curation (ART.4). One P1 finding: the default branch in PuzzleValidator.Evaluate's switch silently returned NotAllPlaced for unknown PuzzleType values instead of throwing. Fixed by replacing with ArgumentOutOfRangeException (fail-fast). Two P3 notes: unused `unplacedCount` parameter on ValidationResult.NotAllPlaced, and `List<ReactionRule>` parameter type on the public API. Overall the extraction is clean — good Core/Game separation, solid test coverage, and the refactored ConfirmPuzzle is more readable than the original.
 Commit: fef7e61
+
+## CQ.4: Decompose PuzzleScreen — ResultOverlayPanel and HintOrchestrator
+Continued PuzzleScreen decomposition by extracting two self-contained subsystems. ResultOverlayPanel (PanelContainer subclass) owns the win/fail overlay UI — construction, styling, and the ShowWin/ShowFailure/Hide/FormatReactionType methods. HintOrchestrator (plain C# class, deliberately not a Godot node) encapsulates the hint domain logic: auto-pick, snap-back detection, budget tracking, and ExecuteHint orchestration. PuzzleScreen drops from 855 to 761 lines, with the remaining bulk being UI construction (BuildUI) and signal wiring — both inherently screen-level concerns. The orchestrator pattern keeps testable logic out of the Godot scene tree while leaving UI refresh calls where they belong.
+Commit: 5c86a24
