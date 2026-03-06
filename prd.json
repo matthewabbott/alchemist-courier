@@ -991,7 +991,7 @@
       "phase": "game-flow",
       "depends_on": [],
       "verification": "dotnet build succeeds, MainMenuScreen compiles, all three buttons wired to emit ScreenRequested",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GF.3",

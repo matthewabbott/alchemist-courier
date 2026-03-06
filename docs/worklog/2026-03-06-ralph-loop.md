@@ -30,3 +30,7 @@ Commit: fe4c0cb
 
 ## Code Review B
 Reviewed 9809fb9..eba3d86 (ResultOverlayPanel/HintOrchestrator extraction, GameFlowController, screen stubs). One P1: DailyPuzzleScreen called DateTime.UtcNow 4 times independently — potential midnight-boundary inconsistency; fixed to use PuzzleDate throughout. Two P3 quick wins fixed: GameFlowController default branch now throws (fail-fast, matching PuzzleValidator pattern), and ResultOverlayPanel's redundant `new Hide()` shadow removed. Noted P3 magic number `5` for tutorial lesson count — not worth fixing since the event-based trigger is the real guard.
+
+## GF.2: Create MainMenuScreen
+Replaced the GF.1 stub with the full styled implementation. The three buttons now have distinct visual identities: Daily Puzzle in green (showing streak count or "Completed" based on SaveData), Tutorial in blue (showing lesson progress like "Lesson 3/5" or "Complete"), and Editor in neutral gray. Each button uses CreateStyledButton() with StyleBoxFlat for normal/hover/pressed states, matching the pattern established in PuzzleScreen. The streak footer uses GetEffectiveStreak() rather than raw CurrentStreak to avoid displaying stale streaks after a gap day.
+Commit: 3b95f1d

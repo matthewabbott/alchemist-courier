@@ -667,3 +667,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 9809fb9..eba3d86
 - Findings: 4 (P0: 0, P1: 1, P2: 0, P3: 3)
 - Fixed: 3, Tasks created: 0
+
+## GF.2 — Create MainMenuScreen
+- Date: 2026-03-06
+- Commit: 3b95f1d
+- Notes: Replaced the GF.1 stub MainMenuScreen with full styled implementation. Three buttons with distinct colors: Daily Puzzle (green, shows streak count or "Completed" from SaveData), Tutorial (blue, shows lesson progress e.g. "Lesson 3/5" or "Complete"), Editor (neutral gray). All buttons use CreateStyledButton() with StyleBoxFlat for normal/hover/pressed states, matching PuzzleScreen's pattern. Streak footer uses GetEffectiveStreak() to avoid showing stale streaks. No new tests needed (Game-layer UI, no Core changes). All 526 tests pass.
