@@ -851,7 +851,7 @@
       "phase": "editor",
       "depends_on": ["E.2", "E.4", "E.5"],
       "verification": "dotnet build succeeds, editor scene launches, can create/save/load puzzle files",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.7",

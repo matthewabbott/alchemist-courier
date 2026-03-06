@@ -379,3 +379,15 @@ reagents default to a simple 1x1 cell. The smaller 4x4 shape grid (vs bags' 6x6)
 reagents are typically smaller than bags. Weight, Value, and IsLocked round out the per-reagent
 properties. With E.4 and E.5 done, E.6 (EditorScreen) can wire both panels into the main editor.
 Commit: 73cccaf
+
+## E.6: EditorScreen main layout and file I/O
+The main editor screen brings together all the editor infrastructure built so far. EditorScreen
+follows PuzzleScreen's procedural UI pattern exactly: full-rect Control, BuildUI() constructing the
+entire node tree, StyleBoxFlat theming, and signal-based change propagation. The layout splits into
+a MetaGridView on the left (showing the puzzle state live) and a scrollable right column with
+BagEditorPanel and ReagentEditorPanel. When either panel changes, OnEditorDataChanged() syncs the
+PuzzleState, rebuilds the MetaGrid from scratch (mirroring PuzzleSolver.ReconstructGrid), and
+replaces the MetaGridView. File I/O uses PuzzleFile for JSON serialization to user://puzzles/.
+One interesting hurdle: Vector2I ambiguity between Core.Grid and Godot — resolved by partial
+qualification for Core types and full Godot qualification for the FileDialog's PopupCentered call.
+Commit: c5a9b51
