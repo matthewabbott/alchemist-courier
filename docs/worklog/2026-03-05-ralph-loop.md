@@ -219,3 +219,12 @@ Reviewed HINT.3–HINT.4 (e6ddc8e..f8e4117). Found one P1 DRY violation: OnHintP
 duplicated ~40 lines of identical hint orchestration logic with a subtle behavioral inconsistency
 (UseHint refreshed UI on failure, OnHintPressed didn't). Fixed by making OnHintPressed delegate to
 UseHint and only refreshing UI on success. Net -24 lines. 495 tests pass.
+
+## HINT.5: Hint visual indicators (grid + tray)
+Added the visual feedback layer for the hint system. Hinted reagents on the grid now get a soft
+purple (0.55, 0.45, 0.75) contiguous border — only outer edges are drawn, matching the bag border
+pattern but with a distinct color that reads as "system-assisted placement." In the tray, previously
+hinted reagents that have been removed show a small purple dot next to their name, signaling that
+snap-back is available at no budget cost. Wired HintState from PuzzleScreen into ReagentTray via
+a SetHintState() setter so BuildItems() can query hint history for each reagent index.
+Commit: 25298b2

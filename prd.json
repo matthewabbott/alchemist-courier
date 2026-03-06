@@ -702,7 +702,7 @@
         "HINT.4"
       ],
       "verification": "dotnet build succeeds, visual indicators visible in integration test screenshots",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.6",

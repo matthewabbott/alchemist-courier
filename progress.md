@@ -432,3 +432,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: e6ddc8e..f8e4117 (HINT.3, HINT.4, docs)
 - Findings: 2 (P0: 0, P1: 1, P2: 0, P3: 1)
 - Fixed: 1 (DRY: OnHintPressed/UseHint 40-line duplication → OnHintPressed delegates to UseHint), Tasks created: 0
+
+## HINT.5 — Hint visual indicators (grid + tray)
+- Date: 2026-03-05
+- Commit: 25298b2
+- Notes: Added visual indicators for hinted reagents. Grid: 2px purple border around cells of hinted reagents using contiguous boundary pattern (only outer edges drawn). Tray: small 6x6 purple dot on ReagentTrayItem when the reagent was previously hinted (snap-back available). HintState is passed from PuzzleScreen to ReagentTray via SetHintState() and used during BuildItems() to set indicators. 5 files changed, 116 insertions. All 495 tests pass.
