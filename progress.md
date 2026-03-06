@@ -535,3 +535,21 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: a09deaa
 - Notes: Created src/Game/Editor/ShapeEditorWidget.cs — a Godot Control for visually editing bool[,] shape matrices. Displays a configurable NxN grid (default 6x6) of clickable ColorRect cells. Click toggles on/off, hover shows feedback. Initialize(maxRows, maxCols, cellPixelSize) builds the grid procedurally following MetaGridView's pattern (ColorRect cells + grid lines). SetShape/GetShape for load/read (GetShape trims to bounding box of active cells), GetShapeRaw returns full grid. Clear() resets all. ShapeChanged signal emits on every toggle. Uses own pixel→grid conversion (configurable cell size, not tied to GridConstants.CellSize). Reusable for both bag and reagent shape editing. No Core tests needed (Godot UI widget). All 519 tests pass.
+
+## Code Review (j) — 2026-03-05
+- Reviewed commits: dafa8ea..e29edbc (E.1–E.3)
+- Findings: 3 (P0: 0, P1: 0, P2: 2, P3: 0)
+- Fixed: 2, Tasks created: 0
+
+## Integration Review — 2026-03-05 (h)
+- Reviewed commits: 1c7cdcc..e29edbc (T.2, T.3, code-review-i, E.1, E.2, E.3)
+- Build: PASS (519/519 unit tests)
+- Harness: 23/23 tests pass, 0 failures
+- Visual: All 34 screenshots verified, no regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Notes: E.1-E.3 are editor-infrastructure features (solver, file I/O, shape widget) with 22 new unit tests but no game-facing behavior to integration-test yet. Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
+
+## E.4 — BagEditorPanel
+- Date: 2026-03-05
+- Commit: bf1017c
+- Notes: Created src/Game/Editor/BagEditorPanel.cs — a procedural Godot VBoxContainer for editing bags in the puzzle editor. Layout: header label + "Add Bag" button with count, scrollable list of collapsible BagEntry panels. Each entry contains a ShapeEditorWidget (6x6, 20px cells) for shape editing, SpinBox controls for PositionCol/PositionRow (0-20 range), and a 2-column GridContainer of CheckBoxes for bag properties (Null, Gravity, Locked, Insulated, Reinforced, Fragile). BagEntry is a nested partial class with its own Changed/RemoveRequested signals. Panel emits BagsChanged on any modification. GetBags()/SetBags() for data binding. Default new bag is 3x3 fully active at (0,0). Follows PuzzleScreen's procedural UI pattern with consistent theme overrides (gold headers, muted labels). No Core tests needed (Godot UI widget). All 519 tests pass.

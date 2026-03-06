@@ -350,3 +350,21 @@ controls need to be more compact. GetShape() trims to the bounding box of active
 consumers get a tight shape matrix regardless of where the user clicked within the 6x6 grid.
 This widget serves double duty: bag shape editing and reagent shape editing in the editor UI.
 Commit: a09deaa
+
+## Code Review (j)
+Reviewed E.1–E.3 (dafa8ea..e29edbc). Found and fixed two dead code issues: unused `reagents`
+parameter threaded through PuzzleSearchSolver's Backtrack/CountBacktrack methods (never read,
+only forwarded recursively), and unused `using AlchemistCourier.Game.Inventory` import in
+ShapeEditorWidget. Noted DRY duplication in Solve/CountSolutions locked-reagent setup but
+Rule of Three not met (2 occurrences). 519 tests pass after fixes.
+
+## E.4: BagEditorPanel
+Built the first of two editor panels — the bag editor. Each bag gets a collapsible panel with
+a ShapeEditorWidget for drawing the bag shape, SpinBox controls for grid position, and property
+checkboxes (Null, Gravity, Locked, etc.). The panel composes ShapeEditorWidget from E.3 and
+PuzzleBag from E.2, bridging the editor data model to the Godot UI. Followed PuzzleScreen's
+procedural UI conventions: VBoxContainer layout, theme color overrides, signal-based change
+propagation. New bags default to a 3x3 filled rectangle at (0,0). The nested BagEntry class
+keeps each bag's state encapsulated with its own Changed/RemoveRequested signals bubbling up
+to the parent's BagsChanged signal. E.5 (ReagentEditorPanel) follows the same pattern.
+Commit: bf1017c

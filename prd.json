@@ -831,7 +831,7 @@
       "phase": "editor",
       "depends_on": ["E.3"],
       "verification": "dotnet build succeeds, panel renders with add/remove/edit bag controls",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.5",
