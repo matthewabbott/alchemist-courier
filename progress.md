@@ -647,3 +647,18 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: 5c86a24
 - Notes: Extracted two cohesive subsystems from PuzzleScreen (855→761 lines). ResultOverlayPanel extends PanelContainer, encapsulates the result overlay UI construction and ShowWin/ShowFailure/Hide/FormatReactionType methods. HintOrchestrator is a plain C# class (not a Godot node) encapsulating hint domain logic: ExecuteHint(), HasHintsAvailable, FormatHintCount(). PuzzleScreen creates the orchestrator in InitializeFromPuzzleState() and delegates to it from UseHint()/UpdateHintButton(). UI refresh calls remain in PuzzleScreen. Used `new` keyword on Hide() to suppress CS0108 warning (CanvasItem.Hide inherited member). All 526 tests pass.
+
+## Integration Review — 2026-03-06
+- Reviewed commits: e29edbc..9809fb9 (E.4-E.9, ART.1-ART.4, CQ.1-CQ.4, code reviews)
+- Build: PASS (526/526 unit tests)
+- Harness: 28/28 tests pass, 0 failures
+- Visual: All 41 screenshots verified, no regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Added: `locked_reagent_removal_blocked` test (CQ.3 — locked pre-placement + removal rejection)
+- Coverage: Editor tests (E.9) added 3 integration tests; locked reagent test added 1. Total harness grew 24→28.
+- Notes: Large scope since last integration review — editor phase (E.4-E.9), art pipeline (ART.1-ART.4), and code quality refactoring (CQ.1-CQ.4). All features working end-to-end. PuzzleValidator extraction (CQ.1-CQ.2) confirmed by win_loss_evaluation test passing with PuzzleScreen delegating to Core validator. HintOrchestrator extraction (CQ.4) confirmed by hint_system test passing all budget/snap-back/dislodge scenarios. Editor solver, play mode, and save/load verified by dedicated integration tests. Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
+
+## GF.1 — Create GameFlowController
+- Date: 2026-03-06
+- Commit: fe4c0cb
+- Notes: Created GameFlowController (src/Game/GameFlowController.cs) managing screen transitions between MainMenu, Tutorial, DailyPuzzle, and Editor screens. Uses SaveManager with GlobalizePath("user://save.json") for persistence. TransitionTo() handles cleanup (RemoveChild + QueueFree) and creation of new screens with pre-init properties. First-launch detection: TutorialLessonCompleted == 0 starts at Tutorial, otherwise MainMenu. Completion handlers save data and return to MainMenu. Also created: GameScreen enum, scenes/game.tscn (minimal scene pointing to controller), stub MainMenuScreen (3 buttons + streak footer), stub DailyPuzzleScreen (wraps PuzzleScreen with back button + already-completed guard), and TutorialCompleted event on TutorialScreen (fires from AdvanceLesson when IsComplete). GF.2/GF.3 will flesh out MainMenuScreen/DailyPuzzleScreen; GF.4 will wire main.tscn. All 526 tests pass.

@@ -981,7 +981,7 @@
       "phase": "game-flow",
       "depends_on": [],
       "verification": "dotnet build succeeds, scenes/game.tscn exists, GameFlowController compiles with all screen creation paths",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GF.2",
