@@ -821,7 +821,7 @@
       "phase": "editor",
       "depends_on": [],
       "verification": "dotnet build succeeds, widget renders a toggleable cell grid",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.4",

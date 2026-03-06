@@ -530,3 +530,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: cb69213
 - Notes: Created PuzzleFile class wrapping PuzzleState with authoring metadata: Name (string), Description (string?), Author (string?), CreatedAt (DateTime). Static methods Save/Load for file I/O and SaveToString/LoadFromString for in-memory serialization, both using System.Text.Json with WriteIndented. Follows SaveManager.cs pattern: graceful null return on missing file or corrupt JSON, auto-creates directories on save. 10 new tests covering round-trip serialization (file and string), null optional fields, invalid JSON returns null, directory creation, overwrite behavior, and bag property preservation. All 519 tests pass (509 existing + 10 new).
+
+## E.3 — ShapeEditorWidget reusable control
+- Date: 2026-03-05
+- Commit: a09deaa
+- Notes: Created src/Game/Editor/ShapeEditorWidget.cs — a Godot Control for visually editing bool[,] shape matrices. Displays a configurable NxN grid (default 6x6) of clickable ColorRect cells. Click toggles on/off, hover shows feedback. Initialize(maxRows, maxCols, cellPixelSize) builds the grid procedurally following MetaGridView's pattern (ColorRect cells + grid lines). SetShape/GetShape for load/read (GetShape trims to bounding box of active cells), GetShapeRaw returns full grid. Clear() resets all. ShapeChanged signal emits on every toggle. Uses own pixel→grid conversion (configurable cell size, not tied to GridConstants.CellSize). Reusable for both bag and reagent shape editing. No Core tests needed (Godot UI widget). All 519 tests pass.

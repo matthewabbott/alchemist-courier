@@ -341,3 +341,12 @@ WriteIndented, graceful null returns) to keep the codebase consistent. Both file
 (Save/Load) and in-memory (SaveToString/LoadFromString) APIs are provided, since the editor
 will use files but tests and clipboard features will want string serialization.
 Commit: cb69213
+
+## E.3: ShapeEditorWidget reusable control
+The first visual piece of the puzzle editor — a toggleable grid widget for drawing bool[,]
+shape matrices. Following MetaGridView's procedural pattern (ColorRect cells + grid lines),
+but with its own configurable cell pixel size (24px default vs the game's 32px) since editor
+controls need to be more compact. GetShape() trims to the bounding box of active cells so
+consumers get a tight shape matrix regardless of where the user clicked within the 6x6 grid.
+This widget serves double duty: bag shape editing and reagent shape editing in the editor UI.
+Commit: a09deaa
