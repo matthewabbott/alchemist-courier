@@ -49,5 +49,9 @@ nul
 *.user
 *.suo
 
+# Desloppify
+.desloppify/*.bak
+scorecard.png
+
 # Environment
 .env

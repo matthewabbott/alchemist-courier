@@ -1,0 +1,3007 @@
+{
+  "version": 1,
+  "created": "2026-03-06T03:19:07+00:00",
+  "last_scan": "2026-03-06T03:19:09+00:00",
+  "scan_count": 1,
+  "overall_score": 33.7,
+  "objective_score": 84.3,
+  "strict_score": 33.7,
+  "verified_strict_score": 84.3,
+  "stats": {
+    "total": 93,
+    "auto_resolved": 0,
+    "false_positive": 0,
+    "fixed": 0,
+    "open": 93,
+    "wontfix": 0,
+    "by_tier": {
+      "2": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 4,
+        "wontfix": 0
+      },
+      "3": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 87,
+        "wontfix": 0
+      },
+      "4": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 2,
+        "wontfix": 0
+      }
+    }
+  },
+  "issues": {
+    "structural::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs": {
+      "id": "structural::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs",
+      "detector": "structural",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "Large file: large (1852 LOC) / complexity score 182 / ChemistryEngineTests (87 methods, 4 long methods (>50 LOC))",
+      "detail": {
+        "loc": 1852,
+        "complexity_score": 182,
+        "complexity_signals": [
+          "91 methods"
+        ],
+        "name": "ChemistryEngineTests"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Game/Testing/TestHarness.cs": {
+      "id": "structural::src/Game/Testing/TestHarness.cs",
+      "detector": "structural",
+      "file": "src/Game/Testing/TestHarness.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (1376 LOC)",
+      "detail": {
+        "loc": 1376
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs": {
+      "id": "structural::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs",
+      "detector": "structural",
+      "file": "tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (1232 LOC) / complexity score 152",
+      "detail": {
+        "loc": 1232,
+        "complexity_score": 152,
+        "complexity_signals": [
+          "76 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Game/Inventory/PuzzleScreen.cs": {
+      "id": "structural::src/Game/Inventory/PuzzleScreen.cs",
+      "detector": "structural",
+      "file": "src/Game/Inventory/PuzzleScreen.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (865 LOC) / complexity score 76",
+      "detail": {
+        "loc": 865,
+        "complexity_score": 76,
+        "complexity_signals": [
+          "38 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs": {
+      "id": "structural::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs",
+      "detector": "structural",
+      "file": "tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (791 LOC) / complexity score 94",
+      "detail": {
+        "loc": 791,
+        "complexity_score": 94,
+        "complexity_signals": [
+          "47 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Game/Inventory/MetaGridView.cs": {
+      "id": "structural::src/Game/Inventory/MetaGridView.cs",
+      "detector": "structural",
+      "file": "src/Game/Inventory/MetaGridView.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (778 LOC) / complexity score 68",
+      "detail": {
+        "loc": 778,
+        "complexity_score": 68,
+        "complexity_signals": [
+          "34 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs": {
+      "id": "structural::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs",
+      "detector": "structural",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (584 LOC) / complexity score 62",
+      "detail": {
+        "loc": 584,
+        "complexity_score": 62,
+        "complexity_signals": [
+          "31 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Core/Chemistry/ChemistryEngine.cs": {
+      "id": "structural::src/Core/Chemistry/ChemistryEngine.cs",
+      "detector": "structural",
+      "file": "src/Core/Chemistry/ChemistryEngine.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (552 LOC)",
+      "detail": {
+        "loc": 552
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Core/Puzzle/PuzzleGenerator.cs": {
+      "id": "structural::src/Core/Puzzle/PuzzleGenerator.cs",
+      "detector": "structural",
+      "file": "src/Core/Puzzle/PuzzleGenerator.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (548 LOC)",
+      "detail": {
+        "loc": 548
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::src/Core/Grid/MetaGrid.cs": {
+      "id": "structural::src/Core/Grid/MetaGrid.cs",
+      "detector": "structural",
+      "file": "src/Core/Grid/MetaGrid.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (519 LOC) / complexity score 56",
+      "detail": {
+        "loc": 519,
+        "complexity_score": 56,
+        "complexity_signals": [
+          "28 methods"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs": {
+      "id": "structural::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs",
+      "detector": "structural",
+      "file": "tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: complexity score 46",
+      "detail": {
+        "complexity_score": 46,
+        "complexity_signals": [
+          "23 methods"
+        ],
+        "loc": 261
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:07+00:00",
+      "last_seen": "2026-03-06T03:19:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "cycles::src/Core/Bags/Bag.cs::src/Core/Bags/Bag.cs::src/Core/Chemistry/AspectMetadataDatabase.cs::src/Core/Chemistry/ChemistryEngine.cs::src/Core/Chemistry/ReactionResult.cs::+28": {
+      "id": "cycles::src/Core/Bags/Bag.cs::src/Core/Bags/Bag.cs::src/Core/Chemistry/AspectMetadataDatabase.cs::src/Core/Chemistry/ChemistryEngine.cs::src/Core/Chemistry/ReactionResult.cs::+28",
+      "detector": "cycles",
+      "file": "src/Core/Bags/Bag.cs",
+      "tier": 4,
+      "confidence": "high",
+      "summary": "Import cycle (32 files): src/Core/Bags/Bag.cs -> src/Core/Chemistry/AspectMetadataDatabase.cs -> src/Core/Chemistry/ChemistryEngine.cs -> src/Core/Chemistry/ReactionResult.cs -> src/Core/Grid/MetaGrid.cs -> +27",
+      "detail": {
+        "files": [
+          "src/Core/Bags/Bag.cs",
+          "src/Core/Chemistry/AspectMetadataDatabase.cs",
+          "src/Core/Chemistry/ChemistryEngine.cs",
+          "src/Core/Chemistry/ReactionResult.cs",
+          "src/Core/Grid/MetaGrid.cs",
+          "src/Core/Highlight/CellHighlight.cs",
+          "src/Core/Highlight/ConstraintViolation.cs",
+          "src/Core/Highlight/ContiguousBoundary.cs",
+          "src/Core/Highlight/HighlightEngine.cs",
+          "src/Core/Highlight/HighlightSet.cs",
+          "src/Core/Puzzle/ComplexityFilter.cs",
+          "src/Core/Puzzle/HintEngine.cs",
+          "src/Core/Puzzle/PuzzleGenerator.cs",
+          "src/Core/Puzzle/PuzzleSolver.cs",
+          "src/Core/Reagents/Reagent.cs",
+          "src/Core/Reagents/ReagentDefinition.cs",
+          "src/Core/Reagents/ShapeUtil.cs",
+          "src/Game/Inventory/AspectLegendPanel.cs",
+          "src/Game/Inventory/AspectPrimerPanel.cs",
+          "src/Game/Inventory/DemoPuzzle.cs",
+          "src/Game/Inventory/GridConstants.cs",
+          "src/Game/Inventory/GridCoordinates.cs",
+          "src/Game/Inventory/HighlightOverlay.cs",
+          "src/Game/Inventory/ItemDetailPanel.cs",
+          "src/Game/Inventory/MetaGridView.cs",
+          "src/Game/Inventory/ObjectivePanel.cs",
+          "src/Game/Inventory/PuzzleScreen.cs",
+          "src/Game/Inventory/ReagentTray.cs",
+          "src/Game/Inventory/ReagentTrayItem.cs",
+          "src/Game/Inventory/StatusBarPanel.cs",
+          "src/Game/Testing/TestActions.cs",
+          "src/Game/TutorialScreen.cs"
+        ],
+        "length": 32
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "orphaned::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs": {
+      "id": "orphaned::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs",
+      "detector": "orphaned",
+      "file": "tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Orphaned file (116 LOC): zero importers, not an entry point",
+      "detail": {
+        "loc": 116,
+        "corroboration_signals": [
+          "high fan-out (89 imports)"
+        ],
+        "corroboration_count": 1,
+        "corroboration_min_required": 2,
+        "complexity_score": 0,
+        "import_count": 89
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "responsibility_cohesion::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::cohesion::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs": {
+      "id": "responsibility_cohesion::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::cohesion::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs",
+      "detector": "responsibility_cohesion",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "20 disconnected function clusters (31 functions) \u2014 likely mixed responsibilities",
+      "detail": "Clusters: ReconstructReagents, HasFalseCellInBoundingBox, Generate_SameSeedProducesSamePuzzle, Generate_CustomDifficultyParams_PreservesMaxHints",
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "responsibility_cohesion::src/Core/Grid/MetaGrid.cs::cohesion::src/Core/Grid/MetaGrid.cs": {
+      "id": "responsibility_cohesion::src/Core/Grid/MetaGrid.cs::cohesion::src/Core/Grid/MetaGrid.cs",
+      "detector": "responsibility_cohesion",
+      "file": "src/Core/Grid/MetaGrid.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "10 disconnected function clusters (19 functions) \u2014 likely mixed responsibilities",
+      "detail": "Clusters: GetSharpViolations, GetAdjacentReagents, PlaceReagent, PlaceBag",
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Core/Chemistry/Aspect.cs::unused_import::1": {
+      "id": "unused::src/Core/Chemistry/Aspect.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Core/Chemistry/Aspect.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: System",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Core/Grid/Vector2I.cs::unused_import::1": {
+      "id": "unused::src/Core/Grid/Vector2I.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Core/Grid/Vector2I.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: System",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Core/Highlight/CellEdge.cs::unused_import::1": {
+      "id": "unused::src/Core/Highlight/CellEdge.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Core/Highlight/CellEdge.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: System",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1": {
+      "id": "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Core/Puzzle/DailyPuzzleManager.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: System",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/AspectLegendPanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/AspectPrimerPanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/GridConstants.cs::unused_import::1": {
+      "id": "unused::src/Game/Inventory/GridConstants.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Game/Inventory/GridConstants.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1": {
+      "id": "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Game/Inventory/GridCoordinates.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/ItemDetailPanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3": {
+      "id": "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3",
+      "detector": "unused",
+      "file": "src/Game/Inventory/MetaGridView.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1": {
+      "id": "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Game/Inventory/ObjectivePanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/PuzzleScreen.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/ReagentTray.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/ReagentTrayItem.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2": {
+      "id": "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Inventory/StatusBarPanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1": {
+      "id": "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1",
+      "detector": "unused",
+      "file": "src/Game/Testing/ScreenshotHelper.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Testing/TestActions.cs::unused_import::3": {
+      "id": "unused::src/Game/Testing/TestActions.cs::unused_import::3",
+      "detector": "unused",
+      "file": "src/Game/Testing/TestActions.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/Testing/TestHarness.cs::unused_import::2": {
+      "id": "unused::src/Game/Testing/TestHarness.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/Testing/TestHarness.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::src/Game/TutorialScreen.cs::unused_import::2": {
+      "id": "unused::src/Game/TutorialScreen.cs::unused_import::2",
+      "detector": "unused",
+      "file": "src/Game/TutorialScreen.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Godot",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3": {
+      "id": "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3",
+      "detector": "unused",
+      "file": "tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Unused import: Xunit",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:08+00:00",
+      "last_seen": "2026-03-06T03:19:08+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "signature::src/Game/Inventory/AspectPrimerPanel.cs::signature_variance::Initialize": {
+      "id": "signature::src/Game/Inventory/AspectPrimerPanel.cs::signature_variance::Initialize",
+      "detector": "signature",
+      "file": "src/Game/Inventory/AspectPrimerPanel.cs",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "'Initialize' has 7 different signatures across 6 files",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module": {
+      "id": "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Reagents/ReagentDefinition.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (130 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 130,
+        "importer_count": 0,
+        "loc_weight": 11.40175425099138
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/AspectLegendPanel.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (366 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 366,
+        "importer_count": 0,
+        "loc_weight": 19.131126469708992
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/TutorialScreen.cs::untested_module": {
+      "id": "test_coverage::src/Game/TutorialScreen.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/TutorialScreen.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (188 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 188,
+        "importer_count": 0,
+        "loc_weight": 13.711309200802088
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module": {
+      "id": "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Chemistry/AspectIds.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (21 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 21,
+        "importer_count": 0,
+        "loc_weight": 4.58257569495584
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/GridCoordinates.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (17 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 17,
+        "importer_count": 0,
+        "loc_weight": 4.123105625617661
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module": {
+      "id": "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Highlight/ConstraintViolation.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (20 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 20,
+        "importer_count": 0,
+        "loc_weight": 4.47213595499958
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/ObjectivePanel.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (54 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 54,
+        "importer_count": 0,
+        "loc_weight": 7.3484692283495345
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module": {
+      "id": "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Highlight/CellHighlight.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (29 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 29,
+        "importer_count": 0,
+        "loc_weight": 5.385164807134504
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module": {
+      "id": "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Chemistry/ReactionRule.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (47 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 47,
+        "importer_count": 0,
+        "loc_weight": 6.855654600401044
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical": {
+      "id": "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/PuzzleScreen.cs",
+      "tier": 2,
+      "confidence": "high",
+      "summary": "Untested critical module (865 LOC, 0 importers) \u2014 high blast radius",
+      "detail": {
+        "kind": "untested_critical",
+        "loc": 865,
+        "importer_count": 0,
+        "loc_weight": 29.410882339705484,
+        "complexity_score": 76
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module": {
+      "id": "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Chemistry/AspectMetadataDatabase.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (91 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 91,
+        "importer_count": 0,
+        "loc_weight": 9.539392014169456
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module": {
+      "id": "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Puzzle/TutorialLesson.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (26 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 26,
+        "importer_count": 0,
+        "loc_weight": 5.0990195135927845
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module": {
+      "id": "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Highlight/HighlightSet.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (47 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 47,
+        "importer_count": 0,
+        "loc_weight": 6.855654600401044
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/DemoPuzzle.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (109 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 109,
+        "importer_count": 0,
+        "loc_weight": 10.44030650891055
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Bags/Bag.cs::untested_module": {
+      "id": "test_coverage::src/Core/Bags/Bag.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Bags/Bag.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (102 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 102,
+        "importer_count": 0,
+        "loc_weight": 10.099504938362077
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/HighlightOverlay.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (177 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 177,
+        "importer_count": 0,
+        "loc_weight": 13.30413469565007
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/ReagentTray.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (114 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 114,
+        "importer_count": 0,
+        "loc_weight": 10.677078252031311
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/GridConstants.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (66 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 66,
+        "importer_count": 0,
+        "loc_weight": 8.12403840463596
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Testing/TestActions.cs::untested_module": {
+      "id": "test_coverage::src/Game/Testing/TestActions.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Testing/TestActions.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (63 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 63,
+        "importer_count": 0,
+        "loc_weight": 7.937253933193772
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module": {
+      "id": "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Highlight/StatusThresholds.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (31 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 31,
+        "importer_count": 0,
+        "loc_weight": 5.5677643628300215
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Grid/GridCell.cs::untested_module": {
+      "id": "test_coverage::src/Core/Grid/GridCell.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Grid/GridCell.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (43 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 43,
+        "importer_count": 0,
+        "loc_weight": 6.557438524302
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/AspectPrimerPanel.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (113 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 113,
+        "importer_count": 0,
+        "loc_weight": 10.63014581273465
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical": {
+      "id": "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/MetaGridView.cs",
+      "tier": 2,
+      "confidence": "high",
+      "summary": "Untested critical module (778 LOC, 0 importers) \u2014 high blast radius",
+      "detail": {
+        "kind": "untested_critical",
+        "loc": 778,
+        "importer_count": 0,
+        "loc_weight": 27.892651361962706,
+        "complexity_score": 68
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/ItemDetailPanel.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (240 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 240,
+        "importer_count": 0,
+        "loc_weight": 15.491933384829668
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module": {
+      "id": "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Puzzle/HintResult.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (57 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 57,
+        "importer_count": 0,
+        "loc_weight": 7.54983443527075
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module": {
+      "id": "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Testing/ScreenshotHelper.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (33 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 33,
+        "importer_count": 0,
+        "loc_weight": 5.744562646538029
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module": {
+      "id": "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Bags/BagDefinition.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (106 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 106,
+        "importer_count": 0,
+        "loc_weight": 10.295630140987
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module": {
+      "id": "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Puzzle/DifficultyParams.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (81 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 81,
+        "importer_count": 0,
+        "loc_weight": 9.0
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/StatusBarPanel.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (217 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 217,
+        "importer_count": 0,
+        "loc_weight": 14.730919862656235
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module": {
+      "id": "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Core/Chemistry/ReactionResult.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (34 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 34,
+        "importer_count": 0,
+        "loc_weight": 5.830951894845301
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module": {
+      "id": "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module",
+      "detector": "test_coverage",
+      "file": "src/Game/Inventory/ReagentTrayItem.cs",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (222 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 222,
+        "importer_count": 0,
+        "loc_weight": 14.89966442575134
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix": {
+      "id": "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix",
+      "detector": "dupes",
+      "file": "src/Core/Puzzle/PuzzleState.cs",
+      "tier": 2,
+      "confidence": "high",
+      "summary": "Exact dupe: ToShapeMatrix (src/Core/Puzzle/PuzzleState.cs:58) <-> ToShapeMatrix (src/Core/Puzzle/PuzzleState.cs:121) [100%]",
+      "detail": {
+        "fn_a": {
+          "file": "src/Core/Puzzle/PuzzleState.cs",
+          "name": "ToShapeMatrix",
+          "line": 58,
+          "loc": 13
+        },
+        "fn_b": {
+          "file": "src/Core/Puzzle/PuzzleState.cs",
+          "name": "ToShapeMatrix",
+          "line": 121,
+          "loc": 13
+        },
+        "similarity": 1.0,
+        "kind": "exact",
+        "cluster_size": 2,
+        "cluster": [
+          {
+            "file": "src/Core/Puzzle/PuzzleState.cs",
+            "name": "ToShapeMatrix",
+            "line": 58,
+            "loc": 13
+          },
+          {
+            "file": "src/Core/Puzzle/PuzzleState.cs",
+            "name": "ToShapeMatrix",
+            "line": 121,
+            "loc": 13
+          }
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor": {
+      "id": "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor",
+      "detector": "dupes",
+      "file": "src/Game/Inventory/AspectLegendPanel.cs",
+      "tier": 2,
+      "confidence": "high",
+      "summary": "Exact dupe: GetRuleColor (src/Game/Inventory/AspectLegendPanel.cs:355) <-> GetRuleColor (src/Game/Inventory/AspectPrimerPanel.cs:99) [100%]",
+      "detail": {
+        "fn_a": {
+          "file": "src/Game/Inventory/AspectLegendPanel.cs",
+          "name": "GetRuleColor",
+          "line": 355,
+          "loc": 11
+        },
+        "fn_b": {
+          "file": "src/Game/Inventory/AspectPrimerPanel.cs",
+          "name": "GetRuleColor",
+          "line": 99,
+          "loc": 11
+        },
+        "similarity": 1.0,
+        "kind": "exact",
+        "cluster_size": 2,
+        "cluster": [
+          {
+            "file": "src/Game/Inventory/AspectLegendPanel.cs",
+            "name": "GetRuleColor",
+            "line": 355,
+            "loc": 11
+          },
+          {
+            "file": "src/Game/Inventory/AspectPrimerPanel.cs",
+            "name": "GetRuleColor",
+            "line": 99,
+            "loc": 11
+          }
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights": {
+      "id": "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights",
+      "detector": "dupes",
+      "file": "src/Core/Highlight/HighlightEngine.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Near dupe: ComputeConstraintHighlights (src/Core/Highlight/HighlightEngine.cs:35) <-> ComputeGhostConstraintHighlights (src/Core/Highlight/HighlightEngine.cs:73) [92%]",
+      "detail": {
+        "fn_a": {
+          "file": "src/Core/Highlight/HighlightEngine.cs",
+          "name": "ComputeConstraintHighlights",
+          "line": 35,
+          "loc": 32
+        },
+        "fn_b": {
+          "file": "src/Core/Highlight/HighlightEngine.cs",
+          "name": "ComputeGhostConstraintHighlights",
+          "line": 73,
+          "loc": 31
+        },
+        "similarity": 0.923,
+        "kind": "near-duplicate",
+        "cluster_size": 2,
+        "cluster": [
+          {
+            "file": "src/Core/Highlight/HighlightEngine.cs",
+            "name": "ComputeConstraintHighlights",
+            "line": 35,
+            "loc": 32
+          },
+          {
+            "file": "src/Core/Highlight/HighlightEngine.cs",
+            "name": "ComputeGhostConstraintHighlights",
+            "line": 73,
+            "loc": 31
+          }
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect": {
+      "id": "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect",
+      "detector": "dupes",
+      "file": "src/Game/Inventory/MetaGridView.cs",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Near dupe: CreateHintedBorderRect (src/Game/Inventory/MetaGridView.cs:344) <-> CreateBorderRect (src/Game/Inventory/MetaGridView.cs:381) [91%]",
+      "detail": {
+        "fn_a": {
+          "file": "src/Game/Inventory/MetaGridView.cs",
+          "name": "CreateHintedBorderRect",
+          "line": 344,
+          "loc": 36
+        },
+        "fn_b": {
+          "file": "src/Game/Inventory/MetaGridView.cs",
+          "name": "CreateBorderRect",
+          "line": 381,
+          "loc": 36
+        },
+        "similarity": 0.912,
+        "kind": "near-duplicate",
+        "cluster_size": 2,
+        "cluster": [
+          {
+            "file": "src/Game/Inventory/MetaGridView.cs",
+            "name": "CreateHintedBorderRect",
+            "line": 344,
+            "loc": 36
+          },
+          {
+            "file": "src/Game/Inventory/MetaGridView.cs",
+            "name": "CreateBorderRect",
+            "line": 381,
+            "loc": 36
+          }
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-06T03:19:09+00:00",
+      "last_seen": "2026-03-06T03:19:09+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "csharp",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    }
+  },
+  "scan_coverage": {
+    "csharp": {
+      "status": "full",
+      "confidence": 1.0,
+      "detectors": {
+        "security": {
+          "detector": "security",
+          "status": "full",
+          "confidence": 1.0,
+          "summary": "Security coverage complete for enabled detectors.",
+          "impact": "",
+          "remediation": "",
+          "tool": "",
+          "reason": ""
+        }
+      },
+      "warnings": [],
+      "updated_at": "2026-03-06T03:19:09+00:00"
+    }
+  },
+  "score_confidence": {
+    "status": "full",
+    "confidence": 1.0,
+    "detectors": [],
+    "dimensions": []
+  },
+  "subjective_integrity": {
+    "status": "pass",
+    "target_score": 95.0,
+    "matched_count": 0,
+    "matched_dimensions": [],
+    "reset_dimensions": []
+  },
+  "subjective_assessments": {},
+  "scan_history": [
+    {
+      "timestamp": "2026-03-06T03:19:09+00:00",
+      "lang": "csharp",
+      "strict_score": 33.7,
+      "verified_strict_score": 84.3,
+      "objective_score": 84.3,
+      "overall_score": 33.7,
+      "open": 93,
+      "diff_new": 93,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 93,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "full",
+        "confidence": 1.0,
+        "detector_count": 0,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 99.2,
+          "strict": 99.2
+        },
+        "Security": {
+          "score": 99.4,
+          "strict": 99.4
+        },
+        "File health": {
+          "score": 93.7,
+          "strict": 93.7
+        },
+        "Duplication": {
+          "score": 99.2,
+          "strict": 99.2
+        },
+        "Test health": {
+          "score": 44.6,
+          "strict": 44.6
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    }
+  ],
+  "lang_capabilities": {
+    "csharp": {
+      "fixers": [],
+      "typecheck_cmd": "dotnet build"
+    }
+  },
+  "zone_distribution": {
+    "production": 67,
+    "test": 23
+  },
+  "tool_hash": "8abd96c47193",
+  "scan_path": ".",
+  "scan_completeness": {
+    "csharp": "full"
+  },
+  "potentials": {
+    "csharp": {
+      "structural": 67,
+      "flat_dirs": 20,
+      "single_use": 0,
+      "cycles": 67,
+      "orphaned": 67,
+      "responsibility_cohesion": 2,
+      "unused_imports": 42,
+      "signature": 1,
+      "test_coverage": 582,
+      "security": 90,
+      "dupes": 318,
+      "stale_wontfix": 0
+    }
+  },
+  "codebase_metrics": {
+    "csharp": {
+      "total_files": 90,
+      "total_loc": 17398,
+      "total_directories": 18
+    }
+  },
+  "dimension_scores": {
+    "Code quality": {
+      "score": 99.2,
+      "strict": 99.2,
+      "verified_strict_score": 99.2,
+      "checks": 89,
+      "failing": 1,
+      "tier": 3,
+      "detectors": {
+        "orphaned": {
+          "potential": 67,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        },
+        "flat_dirs": {
+          "potential": 20,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        },
+        "responsibility_cohesion": {
+          "potential": 2,
+          "pass_rate": 0.65,
+          "failing": 1,
+          "weighted_failures": 0.7
+        }
+      }
+    },
+    "Security": {
+      "score": 99.4,
+      "strict": 99.4,
+      "verified_strict_score": 99.4,
+      "checks": 157,
+      "failing": 1,
+      "tier": 4,
+      "detectors": {
+        "cycles": {
+          "potential": 67,
+          "pass_rate": 0.9850746268656716,
+          "failing": 1,
+          "weighted_failures": 1.0
+        },
+        "security": {
+          "potential": 90,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "File health": {
+      "score": 93.7,
+      "strict": 93.7,
+      "verified_strict_score": 93.7,
+      "checks": 67,
+      "failing": 6,
+      "tier": 3,
+      "detectors": {
+        "structural": {
+          "potential": 67,
+          "pass_rate": 0.9373134328358208,
+          "failing": 6,
+          "weighted_failures": 4.2
+        }
+      }
+    },
+    "Duplication": {
+      "score": 99.2,
+      "strict": 99.2,
+      "verified_strict_score": 99.2,
+      "checks": 318,
+      "failing": 4,
+      "tier": 3,
+      "detectors": {
+        "dupes": {
+          "potential": 318,
+          "pass_rate": 0.9918238993710691,
+          "failing": 4,
+          "weighted_failures": 2.5999999999999996
+        }
+      }
+    },
+    "Test health": {
+      "score": 44.6,
+      "strict": 44.6,
+      "verified_strict_score": 44.6,
+      "checks": 582,
+      "failing": 31,
+      "tier": 4,
+      "detectors": {
+        "test_coverage": {
+          "potential": 582,
+          "pass_rate": 0.44554972871766174,
+          "failing": 31,
+          "weighted_failures": 322.69005788632086
+        }
+      }
+    },
+    "Naming quality": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "naming_quality",
+          "configured_weight": 2.0,
+          "components": []
+        }
+      }
+    },
+    "Logic clarity": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "logic_clarity",
+          "configured_weight": 6.0,
+          "components": []
+        }
+      }
+    },
+    "Type safety": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "type_safety",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Contracts": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "contract_coherence",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Error consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "error_consistency",
+          "configured_weight": 3.0,
+          "components": []
+        }
+      }
+    },
+    "Abstraction fit": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "abstraction_fitness",
+          "configured_weight": 8.0,
+          "components": []
+        }
+      }
+    },
+    "AI generated debt": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "ai_generated_debt",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "High elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "high_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Mid elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "mid_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Low elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "low_level_elegance",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Cross-module arch": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "cross_module_architecture",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Init coupling": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "initialization_coupling",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Convention drift": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "convention_outlier",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Dep health": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "dependency_health",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Test strategy": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "test_strategy",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "API coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "api_surface_coherence",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Auth consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "authorization_consistency",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Stale migration": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "incomplete_migration",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Structure nav": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "package_organization",
+          "configured_weight": 5.0,
+          "components": []
+        }
+      }
+    },
+    "Design coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "design_coherence",
+          "configured_weight": 10.0,
+          "components": []
+        }
+      }
+    }
+  },
+  "reminder_history": {
+    "zone_classification": 1,
+    "report_scores": 1
+  }
+}

@@ -288,3 +288,15 @@ Reviewed ec3c12a..1efadb8 (HINT.8 test expansion + DOC.1/DOC.2 docs). Only code 
 TestHarness.cs hint_system test enhancement — well-structured with numbered sections, good
 coverage of budget, snap-back, second hint, dislodge, and reset. One dead variable (P2) and
 one FQ type (P4) noted but not fixed. CLEAN status — no P0-P1 issues.
+
+## T.1: Install desloppify and run baseline scan
+Installed desloppify 0.9.1 as the project's first mechanical code quality tracker. The C#
+baseline came in at 84.3/100 objective (mechanical detectors only) — strong code quality
+(99.2%) and security (99.4%), but test health dragged at 44.6% due to coverage gaps in
+Game-layer code (which is tested via integration harness, not xUnit). 93 issues total, all
+T3 severity — largest files are PuzzleScreen (865 LOC), TestHarness (1376 LOC), and
+MetaGridView (778 LOC). The strict score of 33.7 is artificially low because 20 subjective
+review dimensions haven't been assessed yet. No P0 issues. The `update-skill claude` command
+hits a Windows cp1252 encoding bug (non-blocking). Added `.desloppify/` state files to git
+and `.bak` files to `.gitignore`.
+Commit: (pending)
