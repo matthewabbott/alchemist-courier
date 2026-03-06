@@ -421,3 +421,16 @@ avoids any state synchronization complexity between edit and play modes. Refacto
 view replacement into a shared ReplaceGridView(MetaGrid) method, which simplified both the
 editor's OnEditorDataChanged flow and the play mode transitions.
 Commit: 3d233b9
+
+## E.9: Editor integration tests
+Three focused integration tests close the editor phase with end-to-end coverage.
+Test_EditorCreateAndSave verifies the full save/load pipeline: build a PuzzleState with 2 bags
+and 3 reagents, load into EditorScreen, save from the editor, load back via PuzzleFile.Load,
+and confirm bag/reagent counts and shape dimensions survive the round-trip. Test_EditorSolver
+validates the solver against editor-format puzzles — a solvable 3x3 bag with two 1x1 reagents
+returns 2 placements, while an unsolvable 1x1 bag with two reagents correctly returns null.
+Test_EditorPlayMode is the most interesting: it enters play mode, programmatically places a
+reagent on the play grid (via internal test accessors), exits play mode, and verifies the
+editor state is unchanged through before/after file comparison. The internal PlayGrid and
+PlayReagentList properties were the only production code additions — minimal surface for testing.
+Commit: 376dcbb

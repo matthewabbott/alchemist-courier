@@ -881,7 +881,7 @@
       "phase": "editor",
       "depends_on": ["E.7", "E.8"],
       "verification": "Test harness reports all editor tests PASS",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "ART.1",

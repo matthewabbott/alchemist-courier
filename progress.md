@@ -578,3 +578,17 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 3d233b9
 - Notes: Added Play/Edit toggle button to EditorScreen header bar. Play mode builds a fresh MetaGrid and reagent list from the current editor PuzzleState using PuzzleSolver.ReconstructGrid/ReconstructReagents, replaces the grid view, hides editor panels (BagEditorPanel, ReagentEditorPanel, SolverPanel, file controls), and shows a ReagentTray, ObjectivePanel, StatusBarPanel, and Reset button. Reagent selection, placement, removal, and keyboard shortcuts (Escape to cancel) work identically to PuzzleScreen via MetaGridView signals. Exiting play mode discards all placements and restores the editor view. Refactored grid view replacement into a shared ReplaceGridView(MetaGrid) method used by both editor refresh and play mode transitions. All 519 tests pass.
+
+## Integration Review — 2026-03-05 (k)
+- Reviewed commits: e29edbc..5b6fb26 (E.4, E.5, E.6, E.7, E.8, code-review-k fixes)
+- Build: PASS (519/519 unit tests)
+- Harness: 24/24 tests pass, 0 failures
+- Visual: 35 screenshots verified, no regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Added: `editor_screen` integration test — validates EditorScreen loads, starts in edit mode, play mode guard rejects empty puzzles
+- Notes: Editor infrastructure phase (E.4–E.8) functional end-to-end. Pre-existing cosmetic issues unchanged: tutorial vertical text (result overlay width collapse), Heat label left-edge clipping (fixed 60px min width), base thresholds in status bar.
+
+## E.9 — Editor integration tests
+- Date: 2026-03-05
+- Commit: 376dcbb
+- Notes: Added three editor integration tests to TestHarness. Test_EditorCreateAndSave: builds a PuzzleState with 2 bags and 3 reagents, saves to file, loads into EditorScreen, saves from editor, loads back via PuzzleFile.Load, verifies bag/reagent counts and shape dimensions survive the round-trip. Test_EditorSolver: loads a known-solvable puzzle (3x3 bag, two 1x1 reagents) into editor and verifies PuzzleSearchSolver.Solve returns 2 placements; loads an unsolvable puzzle (1x1 bag, two reagents) and verifies solver returns null. Test_EditorPlayMode: loads puzzle with reagents, enters play mode (verified IsPlayMode=true), places a reagent directly on PlayGrid, exits play mode, saves state and compares with pre-play state to verify bags/reagents unchanged. Added internal PlayGrid/PlayReagentList test accessors to EditorScreen. All 27 integration tests pass (24 existing + 3 new), 519 unit tests pass.
