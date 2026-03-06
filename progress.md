@@ -602,3 +602,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 7801c3f
 - Notes: Created scripts/mcp/retrodiffusion-server.js — a Node.js ES module MCP server wrapping the RetroDiffusion API. Three tools: generate_sprite (POST /v1/inferences, saves PNGs + JSON metadata sidecars to art/generated/), list_styles (returns built-in styles grouped by model + any custom styles from art/retrodiffusion-styles.json), create_custom_style (POST /v1/styles with base64-encoded reference images, persists style_id). Credit exhaustion guard: after every API call, checks remaining_balance; if below 1.0, sets a flag that blocks all subsequent generate/create calls until balance is confirmed above threshold. API key loaded from .env via dotenv. Added to .mcp.json alongside existing Godot server. Also added node_modules/ to .gitignore. No C# code changes — all 519 tests still pass.
+
+## ART.2 — Sprite preview scene
+- Date: 2026-03-05
+- Commit: f1d3089
+- Notes: Created src/Game/Tools/SpritePreview.cs — a procedural Godot Control development tool for previewing all game sprites. Scans art/sprites/ recursively for .png files, displays them in a scrollable grid at 1x (32px) and 2x (64px) zoom with filename labels, grouped by subdirectory. Background color toggle cycles through dark gray, white, and checkerboard for transparency testing. Shows total sprite count. Displays placeholder message when art/sprites/ doesn't exist or is empty. Built following the TestHarness procedural pattern (no .tscn dependencies beyond the root scene). Scene file at scenes/sprite_preview.tscn. No Core code changes — all 519 tests still pass.

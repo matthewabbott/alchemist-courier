@@ -901,7 +901,7 @@
       "phase": "art",
       "depends_on": [],
       "verification": "Scene launches without errors, displays any sprites found in art/sprites/ or shows placeholder message",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "ART.3",

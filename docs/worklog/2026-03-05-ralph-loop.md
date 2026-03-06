@@ -456,3 +456,13 @@ remaining balance and if it drops below 1.0, sets a flag that blocks all subsequ
 calls until balance is confirmed above threshold. This prevents accidental credit drain during
 overnight agent loops.
 Commit: 7801c3f
+
+## ART.2: Sprite preview scene
+Development tool for previewing game sprites at 1x and 2x zoom. Follows the TestHarness
+procedural pattern — a single Control that builds its entire UI in _Ready(). Scans
+art/sprites/ recursively for PNGs, groups them by subdirectory, and displays each in a
+scrollable FlowContainer grid with 32px and 64px previews and filename labels. Background
+color toggles between dark gray, white, and checkerboard for transparency testing. Since
+no sprites exist yet, it currently shows a placeholder message — but once the RetroDiffusion
+pipeline starts producing art (ART.5), this becomes the go-to tool for reviewing the results.
+Commit: f1d3089
