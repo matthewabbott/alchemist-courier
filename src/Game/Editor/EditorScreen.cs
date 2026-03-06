@@ -63,6 +63,12 @@ public partial class EditorScreen : Control
     /// <summary>Whether the editor is currently in play mode.</summary>
     public bool IsPlayMode => _isPlayMode;
 
+    /// <summary>Test accessor: play mode grid (null when not in play mode).</summary>
+    internal MetaGrid? PlayGrid => _playMetaGrid;
+
+    /// <summary>Test accessor: play mode reagent list (null when not in play mode).</summary>
+    internal List<Reagent>? PlayReagentList => _playReagents;
+
     public override void _Ready()
     {
         SetAnchorsPreset(LayoutPreset.FullRect);

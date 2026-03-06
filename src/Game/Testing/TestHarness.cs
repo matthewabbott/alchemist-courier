@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
+using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Game.Inventory;
 using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Core.Highlight;
@@ -76,6 +79,9 @@ public partial class TestHarness : Control
         await Test_EagleSenseOrchestration();
         await Test_LegendGridLinking();
         await Test_EditorScreen();
+        await Test_EditorCreateAndSave();
+        await Test_EditorSolver();
+        await Test_EditorPlayMode();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1356,6 +1362,259 @@ public partial class TestHarness : Control
             passed ? null : $"edit_mode={editMode} still_edit_no_reagents={stillEditAfterNoReagents}");
     }
 
+    private async Task Test_EditorCreateAndSave()
+    {
+        BeginTest("editor_create_and_save");
+        _puzzleScreen.Visible = false;
+
+        var editor = new EditorScreen();
+        AddChild(editor);
+        await WaitFrames(3);
+
+        // Build a puzzle state with 2 bags and 3 reagents
+        var bag1Shape = new bool[3, 3];
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                bag1Shape[r, c] = true;
+
+        var bag2Shape = new bool[2, 2];
+        for (int r = 0; r < 2; r++)
+            for (int c = 0; c < 2; c++)
+                bag2Shape[r, c] = true;
+
+        var state = new PuzzleState
+        {
+            Seed = 42,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(bag1Shape, 0, 0),
+                PuzzleBag.FromMatrix(bag2Shape, 4, 0),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true, true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true }, { true } }),
+            },
+        };
+
+        // Save to file, load into editor, save from editor, verify round-trip
+        var dir = ScreenshotHelper.GetOutputDirectory();
+        string inputPath = System.IO.Path.Combine(dir, "test_editor_input.json");
+        string outputPath = System.IO.Path.Combine(dir, "test_editor_output.json");
+
+        var inputFile = new PuzzleFile
+        {
+            Name = "Test Editor Puzzle",
+            Author = "TestHarness",
+            CreatedAt = DateTime.UtcNow,
+            Puzzle = state,
+        };
+        PuzzleFile.Save(inputFile, inputPath);
+
+        editor.LoadPuzzle(inputPath);
+        await WaitFrames(3);
+
+        editor.SavePuzzle(outputPath);
+
+        // Load back via PuzzleFile and verify
+        var loaded = PuzzleFile.Load(outputPath);
+        bool loadOk = loaded != null;
+        bool nameOk = loaded?.Name == "Test Editor Puzzle";
+        bool bagCountOk = loaded?.Puzzle.Bags.Count == 2;
+        bool reagentCountOk = loaded?.Puzzle.Reagents.Count == 3;
+
+        // Verify bag shapes preserved
+        bool bag1ShapeOk = false;
+        bool bag2ShapeOk = false;
+        if (loaded != null && loaded.Puzzle.Bags.Count == 2)
+        {
+            var b1 = loaded.Puzzle.Bags[0].ToShapeMatrix();
+            bag1ShapeOk = b1.GetLength(0) == 3 && b1.GetLength(1) == 3;
+            var b2 = loaded.Puzzle.Bags[1].ToShapeMatrix();
+            bag2ShapeOk = b2.GetLength(0) == 2 && b2.GetLength(1) == 2;
+        }
+
+        Log($"[STATE] load={loadOk} name={nameOk} bags={loaded?.Puzzle.Bags.Count} reagents={loaded?.Puzzle.Reagents.Count}");
+        await CaptureScreenshot("36_editor_create_save.png");
+
+        editor.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen.Visible = true;
+        TryDeleteFile(inputPath);
+        TryDeleteFile(outputPath);
+
+        bool pass = loadOk && nameOk && bagCountOk && reagentCountOk && bag1ShapeOk && bag2ShapeOk;
+        EndTest("editor_create_and_save", pass, pass ? null
+            : $"load={loadOk} name={nameOk} bags={bagCountOk} reagents={reagentCountOk} b1={bag1ShapeOk} b2={bag2ShapeOk}");
+    }
+
+    private async Task Test_EditorSolver()
+    {
+        BeginTest("editor_solver");
+        _puzzleScreen.Visible = false;
+
+        var editor = new EditorScreen();
+        AddChild(editor);
+        await WaitFrames(3);
+
+        // Known-solvable puzzle: one 3x3 bag, two 1x1 reagents (no aspects = no reactions)
+        var bagShape = new bool[3, 3];
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                bagShape[r, c] = true;
+
+        var solvableState = new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag> { PuzzleBag.FromMatrix(bagShape, 0, 0) },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+        };
+
+        // Load into editor and solve
+        var dir = ScreenshotHelper.GetOutputDirectory();
+        string path = System.IO.Path.Combine(dir, "test_solver.json");
+        PuzzleFile.Save(new PuzzleFile { Name = "Solvable", Puzzle = solvableState }, path);
+        editor.LoadPuzzle(path);
+        await WaitFrames(3);
+
+        var solution = PuzzleSearchSolver.Solve(solvableState);
+        bool solvableOk = solution != null && solution.Count == 2;
+        Log($"[STATE] solvable={solvableOk} placements={solution?.Count ?? 0} (expected=true, 2)");
+        await CaptureScreenshot("37_editor_solver_solvable.png");
+
+        // Known-unsolvable puzzle: 1x1 bag with two 1x1 reagents (only one fits)
+        var unsolvableState = new PuzzleState
+        {
+            Seed = 2,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag> { PuzzleBag.FromMatrix(new bool[,] { { true } }, 0, 0) },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+        };
+
+        PuzzleFile.Save(new PuzzleFile { Name = "Unsolvable", Puzzle = unsolvableState }, path);
+        editor.LoadPuzzle(path);
+        await WaitFrames(3);
+
+        var noSolution = PuzzleSearchSolver.Solve(unsolvableState);
+        bool unsolvableOk = noSolution == null;
+        Log($"[STATE] unsolvable={unsolvableOk} (expected=true)");
+        await CaptureScreenshot("38_editor_solver_unsolvable.png");
+
+        editor.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen.Visible = true;
+        TryDeleteFile(path);
+
+        bool pass = solvableOk && unsolvableOk;
+        EndTest("editor_solver", pass, pass ? null
+            : $"solvable={solvableOk} unsolvable={unsolvableOk}");
+    }
+
+    private async Task Test_EditorPlayMode()
+    {
+        BeginTest("editor_play_mode");
+        _puzzleScreen.Visible = false;
+
+        var editor = new EditorScreen();
+        AddChild(editor);
+        await WaitFrames(3);
+
+        // Build puzzle with reagents for play mode
+        var bagShape = new bool[3, 3];
+        for (int r = 0; r < 3; r++)
+            for (int c = 0; c < 3; c++)
+                bagShape[r, c] = true;
+
+        var state = new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag> { PuzzleBag.FromMatrix(bagShape, 0, 0) },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true, true } }),
+            },
+        };
+
+        var dir = ScreenshotHelper.GetOutputDirectory();
+        string path = System.IO.Path.Combine(dir, "test_play.json");
+        string beforePath = System.IO.Path.Combine(dir, "test_play_before.json");
+        string afterPath = System.IO.Path.Combine(dir, "test_play_after.json");
+
+        PuzzleFile.Save(new PuzzleFile { Name = "PlayTest", Puzzle = state }, path);
+        editor.LoadPuzzle(path);
+        await WaitFrames(3);
+
+        // Save state before play mode
+        editor.SavePuzzle(beforePath);
+
+        // Enter play mode
+        editor.EnterPlayMode();
+        await WaitFrames(3);
+        bool inPlay = editor.IsPlayMode;
+        Log($"[STATE] in_play_mode={inPlay} (expected=true)");
+
+        // Place a reagent on the play grid
+        bool placed = false;
+        int placedCount = 0;
+        if (editor.PlayGrid != null && editor.PlayReagentList != null && editor.PlayReagentList.Count > 0)
+        {
+            var reagent = editor.PlayReagentList[0];
+            var pos = new CoreVec(0, 0);
+            if (editor.PlayGrid.CanPlaceReagent(reagent, pos))
+            {
+                editor.PlayGrid.PlaceReagent(reagent, pos);
+                placed = true;
+            }
+            placedCount = editor.PlayGrid.PlacedReagents.Count;
+        }
+        Log($"[STATE] placed={placed} placed_count={placedCount} (expected=true, 1)");
+        await CaptureScreenshot("39_editor_play_mode.png");
+
+        // Exit play mode — placements should be discarded
+        editor.ExitPlayMode();
+        await WaitFrames(3);
+        bool backToEdit = !editor.IsPlayMode;
+        Log($"[STATE] back_to_edit={backToEdit} (expected=true)");
+
+        // Save state after play mode
+        editor.SavePuzzle(afterPath);
+
+        // Verify editor state preserved (bags and reagents unchanged)
+        var before = PuzzleFile.Load(beforePath);
+        var after = PuzzleFile.Load(afterPath);
+        bool bagsPreserved = before?.Puzzle.Bags.Count == after?.Puzzle.Bags.Count;
+        bool reagentsPreserved = before?.Puzzle.Reagents.Count == after?.Puzzle.Reagents.Count;
+        Log($"[STATE] bags_preserved={bagsPreserved} reagents_preserved={reagentsPreserved}");
+
+        editor.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen.Visible = true;
+        TryDeleteFile(path);
+        TryDeleteFile(beforePath);
+        TryDeleteFile(afterPath);
+
+        bool pass = inPlay && placed && backToEdit && bagsPreserved && reagentsPreserved;
+        EndTest("editor_play_mode", pass, pass ? null
+            : $"play={inPlay} placed={placed} edit={backToEdit} bags={bagsPreserved} reagents={reagentsPreserved}");
+    }
+
     private async Task Test_RenderFinal()
     {
         BeginTest("render_final");
@@ -1407,5 +1666,10 @@ public partial class TestHarness : Control
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
         }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try { System.IO.File.Delete(path); } catch { /* best effort cleanup */ }
     }
 }
