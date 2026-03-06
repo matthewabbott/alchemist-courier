@@ -56,5 +56,8 @@ scorecard.png
 # Node.js
 node_modules/
 
+# AI-generated art (binary, regenerable)
+art/generated/
+
 # Environment
 .env
