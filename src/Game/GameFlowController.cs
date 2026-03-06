@@ -56,7 +56,7 @@ public partial class GameFlowController : Control
             GameScreen.Tutorial => CreateTutorial(),
             GameScreen.DailyPuzzle => CreateDailyPuzzle(),
             GameScreen.Editor => CreateEditor(),
-            _ => CreateMainMenu(),
+            _ => throw new ArgumentOutOfRangeException(nameof(screen), screen, "Unhandled GameScreen value"),
         };
 
         _currentScreenNode.SizeFlagsVertical = SizeFlags.ExpandFill;

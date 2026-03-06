@@ -72,7 +72,7 @@ public partial class DailyPuzzleScreen : Control
 
         var dayLabel = new Label
         {
-            Text = $"Day {DateTime.UtcNow.DayOfYear}",
+            Text = $"Day {PuzzleDate.DayOfYear}",
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             HorizontalAlignment = HorizontalAlignment.Right,
         };
@@ -103,7 +103,7 @@ public partial class DailyPuzzleScreen : Control
             PuzzleData = puzzle,
             HeaderDayText = $"Day {DateTime.UtcNow.DayOfYear}",
             HeaderStreakText = SaveInfo != null
-                ? $"Streak: {SaveInfo.GetEffectiveStreak(DateTime.UtcNow.Date)}"
+                ? $"Streak: {SaveInfo.GetEffectiveStreak(PuzzleDate)}"
                 : null,
         };
         _puzzleScreen.SizeFlagsVertical = SizeFlags.ExpandFill;

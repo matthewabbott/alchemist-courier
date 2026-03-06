@@ -66,11 +66,6 @@ public partial class ResultOverlayPanel : PanelContainer
         Visible = true;
     }
 
-    public new void Hide()
-    {
-        Visible = false;
-    }
-
     public static string FormatReactionType(ReactionResultType type)
     {
         return type switch

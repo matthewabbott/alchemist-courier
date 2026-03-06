@@ -662,3 +662,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: fe4c0cb
 - Notes: Created GameFlowController (src/Game/GameFlowController.cs) managing screen transitions between MainMenu, Tutorial, DailyPuzzle, and Editor screens. Uses SaveManager with GlobalizePath("user://save.json") for persistence. TransitionTo() handles cleanup (RemoveChild + QueueFree) and creation of new screens with pre-init properties. First-launch detection: TutorialLessonCompleted == 0 starts at Tutorial, otherwise MainMenu. Completion handlers save data and return to MainMenu. Also created: GameScreen enum, scenes/game.tscn (minimal scene pointing to controller), stub MainMenuScreen (3 buttons + streak footer), stub DailyPuzzleScreen (wraps PuzzleScreen with back button + already-completed guard), and TutorialCompleted event on TutorialScreen (fires from AdvanceLesson when IsComplete). GF.2/GF.3 will flesh out MainMenuScreen/DailyPuzzleScreen; GF.4 will wire main.tscn. All 526 tests pass.
+
+## Code Review B — 2026-03-06
+- Reviewed commits: 9809fb9..eba3d86
+- Findings: 4 (P0: 0, P1: 1, P2: 0, P3: 3)
+- Fixed: 3, Tasks created: 0
