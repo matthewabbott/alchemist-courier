@@ -309,6 +309,9 @@ stays as the human-insight complement — desloppify handles naming/formatting/d
 while the manual review catches architectural drift and game-specific design concerns.
 Commit: acf41ab
 
+## Code Review (i)
+Reviewed 5d3c5d4..7ed6878 (T.1–T.3). Only C# change was TestHarness.cs hint_system test from HINT.8 — found and removed one unused variable (`aPlacedBefore`). No P0-P1 issues. Desloppify scan was blocked by permission system. 497 tests pass.
+
 ## T.3: Create game architecture guidelines doc
 Wrote `docs/game-architecture.md` — a reference for game-specific structural patterns
 as the project grows beyond MVP. Covers the six areas that matter most: how screens

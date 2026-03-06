@@ -515,3 +515,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 861a1d0
 - Notes: Created docs/game-architecture.md with 6 sections documenting game-specific structural patterns: scene management (pre-init property + deferred _Ready, QueueFree transitions, .tscn vs procedural), Godot scene-tree patterns (signal conventions, AddChild, theme overrides), web export performance budgets (WASM memory, draw calls, GC pressure), asset pipeline (placeholder→RetroDiffusion→curate→import flow), input handling (select-then-place, ghost preview, keyboard shortcuts), and three-layer testing strategy (xUnit for Core, Godot harness for integration, manual playtesting). All patterns reference real codebase files and line numbers. Cross-references docs/roadmap.md.
+
+## Code Review (i) — 2026-03-05
+- Reviewed commits: 5d3c5d4..7ed6878
+- Findings: 1 (P0: 0, P1: 0, P2: 1)
+- Fixed: 1, Tasks created: 0
