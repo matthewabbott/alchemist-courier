@@ -391,3 +391,11 @@ replaces the MetaGridView. File I/O uses PuzzleFile for JSON serialization to us
 One interesting hurdle: Vector2I ambiguity between Core.Grid and Godot — resolved by partial
 qualification for Core types and full Godot qualification for the FileDialog's PopupCentered call.
 Commit: c5a9b51
+
+## Code Review (k) — E.4–E.6
+Reviewed the three new editor files (EditorScreen, BagEditorPanel, ReagentEditorPanel) plus
+ShapeEditorWidget. Fixed one P1: LoadPuzzle was missing try-catch for I/O exceptions (SavePuzzle
+had one but LoadPuzzle didn't). Removed dead GetShapeRaw() method and redundant AnchorsPreset
+setter. Noted duplicated color constants across 3 editor files (Rule of Three met) and
+ShapeEditorWidget's use of `_Input` vs `_GuiInput` as P2 items for future attention.
+Commit: 3df3f7d
