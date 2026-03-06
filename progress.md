@@ -510,3 +510,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: acf41ab
 - Notes: Added step 5 (desloppify scan/next/fix) to scripts/ralph/prompts/review-code.md. The new step runs `desloppify scan` for baseline score, `desloppify next` for highest-priority issue, fixes P0-P1 issues if quick, and re-scans to verify. Renumbered subsequent steps (5→6 through 11→12). Added Desloppify section to the report template for before/after score tracking. The qualitative deslop.md review (step 4) is preserved for architectural and game-specific concerns that desloppify cannot catch.
+
+## T.3 — Create game architecture guidelines doc
+- Date: 2026-03-05
+- Commit: 861a1d0
+- Notes: Created docs/game-architecture.md with 6 sections documenting game-specific structural patterns: scene management (pre-init property + deferred _Ready, QueueFree transitions, .tscn vs procedural), Godot scene-tree patterns (signal conventions, AddChild, theme overrides), web export performance budgets (WASM memory, draw calls, GC pressure), asset pipeline (placeholder→RetroDiffusion→curate→import flow), input handling (select-then-place, ghost preview, keyboard shortcuts), and three-layer testing strategy (xUnit for Core, Godot harness for integration, manual playtesting). All patterns reference real codebase files and line numbers. Cross-references docs/roadmap.md.

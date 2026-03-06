@@ -791,7 +791,7 @@
       "phase": "tooling",
       "depends_on": [],
       "verification": "File exists at docs/game-architecture.md with all 6 sections, references real codebase patterns",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.1",

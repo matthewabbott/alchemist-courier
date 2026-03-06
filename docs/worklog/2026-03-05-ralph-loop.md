@@ -308,3 +308,13 @@ fixes any P0-P1 quick wins, and re-scans to verify. The qualitative deslop.md re
 stays as the human-insight complement — desloppify handles naming/formatting/dead code,
 while the manual review catches architectural drift and game-specific design concerns.
 Commit: acf41ab
+
+## T.3: Create game architecture guidelines doc
+Wrote `docs/game-architecture.md` — a reference for game-specific structural patterns
+as the project grows beyond MVP. Covers the six areas that matter most: how screens
+work (pre-init property + deferred _Ready, procedural UI over .tscn), Godot signal
+and node conventions, web export performance budgets (draw calls, GC pressure, WASM
+memory), the placeholder-to-real-art pipeline, the select-then-place input architecture,
+and the three-layer testing strategy. Every pattern references actual codebase files and
+methods so it stays grounded, not aspirational.
+Commit: 861a1d0
