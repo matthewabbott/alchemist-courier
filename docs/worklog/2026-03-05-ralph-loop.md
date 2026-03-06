@@ -273,3 +273,12 @@ concrete implications here: the timer pauses when reading rules, reset is free, 
 reduce stars but don't prevent completion. This doc fills a real gap — several other docs
 were referencing it by name before it existed.
 Commit: 1b300c1
+
+## DOC.2: Update existing docs with puzzle-design cross-references
+Companion to DOC.1 — now that puzzle-design.md exists, the three docs that should reference
+it needed updating. mvp-specification.md got the hint system added to its Nice-to-Have list
+(it was implemented but not listed), plus a Related Documents cross-ref. game-overview.md got
+a sentence after the roadmap section pointing readers to detailed puzzle type designs.
+chemistry-system.md's stub "Future: Brewing and Mixing" section was replaced with a compact
+cross-reference to puzzle-design.md sections 6 and 7 where those topics are covered in depth.
+Commit: 801a640

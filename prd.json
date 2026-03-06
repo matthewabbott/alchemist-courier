@@ -761,7 +761,7 @@
         "DOC.1"
       ],
       "verification": "All three docs contain accurate cross-references to puzzle-design.md",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "T.1",
