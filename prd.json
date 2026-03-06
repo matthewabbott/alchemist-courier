@@ -891,7 +891,7 @@
       "phase": "art",
       "depends_on": [],
       "verification": "MCP server starts, list_styles returns results, generate_sprite creates an image file (manual test with small generation)",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "ART.2",

@@ -443,3 +443,16 @@ guard in the task continuation. Three P3 notes: CreateStyledButton 3-way duplica
 margins per context), internal test accessors (pragmatic), test setup repetition (DAMP over DRY).
 519 tests pass.
 Commit: a2cc0ea
+
+## ART.1: RetroDiffusion MCP server
+First task of the art phase — setting up the RetroDiffusion API integration as an MCP server
+so that future iterations (and humans) can generate pixel art sprites from within Claude Code.
+The server is a plain Node.js ES module (no TypeScript build step) with three tools:
+generate_sprite calls the API and saves PNGs alongside JSON metadata sidecars,
+list_styles returns available prompt styles grouped by model tier, and create_custom_style
+posts reference images for custom style training and persists the style_id. The critical
+safety feature is the credit exhaustion guard — after every API call, the server checks the
+remaining balance and if it drops below 1.0, sets a flag that blocks all subsequent generation
+calls until balance is confirmed above threshold. This prevents accidental credit drain during
+overnight agent loops.
+Commit: 7801c3f

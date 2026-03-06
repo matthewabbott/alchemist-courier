@@ -597,3 +597,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 9a6d751..2bdeeb8 (E.7 SolverPanel, E.8 Play mode, E.9 Editor tests)
 - Findings: 4 (P0: 0, P1: 1, P2: 0, P3: 2, P4: 1)
 - Fixed: 1 (SolverPanel missing _ExitTree cleanup for background solver tasks), Tasks created: 0
+
+## ART.1 — RetroDiffusion MCP server
+- Date: 2026-03-05
+- Commit: 7801c3f
+- Notes: Created scripts/mcp/retrodiffusion-server.js — a Node.js ES module MCP server wrapping the RetroDiffusion API. Three tools: generate_sprite (POST /v1/inferences, saves PNGs + JSON metadata sidecars to art/generated/), list_styles (returns built-in styles grouped by model + any custom styles from art/retrodiffusion-styles.json), create_custom_style (POST /v1/styles with base64-encoded reference images, persists style_id). Credit exhaustion guard: after every API call, checks remaining_balance; if below 1.0, sets a flag that blocks all subsequent generate/create calls until balance is confirmed above threshold. API key loaded from .env via dotenv. Added to .mcp.json alongside existing Godot server. Also added node_modules/ to .gitignore. No C# code changes — all 519 tests still pass.
