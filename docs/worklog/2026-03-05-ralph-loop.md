@@ -368,3 +368,14 @@ propagation. New bags default to a 3x3 filled rectangle at (0,0). The nested Bag
 keeps each bag's state encapsulated with its own Changed/RemoveRequested signals bubbling up
 to the parent's BagsChanged signal. E.5 (ReagentEditorPanel) follows the same pattern.
 Commit: bf1017c
+
+## E.5: ReagentEditorPanel
+The second editor panel, mirroring BagEditorPanel's structure for reagent editing. The interesting
+design challenge was the per-cell aspect assignment: each true cell in the shape gets an
+AspectCellRow with an OptionButton dropdown populated from AspectMetadataDatabase (10 aspects +
+None). When the shape changes — cells toggled on or off — SyncAspectRowsToShape() dynamically
+adds or removes aspect rows to match the true-cell count, preserving existing selections. New
+reagents default to a simple 1x1 cell. The smaller 4x4 shape grid (vs bags' 6x6) reflects that
+reagents are typically smaller than bags. Weight, Value, and IsLocked round out the per-reagent
+properties. With E.4 and E.5 done, E.6 (EditorScreen) can wire both panels into the main editor.
+Commit: 73cccaf
