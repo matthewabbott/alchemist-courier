@@ -783,58 +783,174 @@ public partial class TestHarness : Control
         AddChild(_puzzleScreen);
         await WaitFrames(3);
 
-        // Verify hint budget is initialized
+        // (1) Verify hint budget is initialized at 0/3
         int maxHints = _puzzleScreen.HintState.MaxHints;
         int hintsUsedBefore = _puzzleScreen.HintState.HintsUsed;
         bool budgetCorrect = maxHints == 3 && hintsUsedBefore == 0;
         Log($"[STATE] hint_max={maxHints} hints_used={hintsUsedBefore} (expected: max=3, used=0)");
 
-        // Use a hint — should place a reagent at its solution position
+        // (2) Use first hint — should place a reagent at its solution position
         var result1 = _puzzleScreen.UseHint();
-        bool hintSucceeded = result1 != null && result1.IsSuccess;
-        int hintsUsedAfter = _puzzleScreen.HintState.HintsUsed;
-        int placedAfterHint = _puzzleScreen.Grid.PlacedReagents.Count;
-        Log($"[STATE] hint1_success={hintSucceeded} hints_used={hintsUsedAfter} placed={placedAfterHint} (expected: true, 1, >0)");
+        bool hint1Succeeded = result1 != null && result1.IsSuccess;
+        int hintsAfterHint1 = _puzzleScreen.HintState.HintsUsed;
+        int placedAfterHint1 = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] hint1_success={hint1Succeeded} hints_used={hintsAfterHint1} placed={placedAfterHint1} (expected: true, 1, >0)");
 
         // Verify the hinted reagent has IsHinted = true
-        bool reagentIsHinted = false;
-        int hintedIndex = -1;
+        bool reagent1IsHinted = false;
+        int hintedIndex1 = -1;
         if (result1 != null && result1.IsSuccess)
         {
-            hintedIndex = result1.ReagentIndex;
-            reagentIsHinted = _puzzleScreen.TrayReagents[hintedIndex].IsHinted;
+            hintedIndex1 = result1.ReagentIndex;
+            reagent1IsHinted = _puzzleScreen.TrayReagents[hintedIndex1].IsHinted;
         }
-        Log($"[STATE] hinted_index={hintedIndex} is_hinted={reagentIsHinted} (expected: >=0, true)");
+        Log($"[STATE] hinted_index={hintedIndex1} is_hinted={reagent1IsHinted} (expected: >=0, true)");
 
         await CaptureScreenshot("31_hint_used.png");
 
-        // Remove the hinted reagent to test snap-back
+        // (3) Remove the hinted reagent to test snap-back
         bool removed = false;
-        if (hintedIndex >= 0)
+        if (hintedIndex1 >= 0)
         {
-            var hintedReagent = _puzzleScreen.TrayReagents[hintedIndex];
+            var hintedReagent = _puzzleScreen.TrayReagents[hintedIndex1];
             if (hintedReagent.IsPlaced && hintedReagent.PlacedPosition is Core.Grid.Vector2I pos)
             {
                 removed = _puzzleScreen.RemoveReagentAt(pos.Col, pos.Row);
             }
         }
-        int hintsUsedAfterRemove = _puzzleScreen.HintState.HintsUsed;
-        Log($"[STATE] removed_hinted={removed} hints_used_after_remove={hintsUsedAfterRemove} (expected: true, 1)");
+        int hintsAfterRemove = _puzzleScreen.HintState.HintsUsed;
+        bool isUnplacedAfterRemove = hintedIndex1 >= 0 && !_puzzleScreen.TrayReagents[hintedIndex1].IsPlaced;
+        Log($"[STATE] removed_hinted={removed} hints_used={hintsAfterRemove} unplaced={isUnplacedAfterRemove} (expected: true, 1, true)");
 
-        // Use hint again — should snap-back (re-place same reagent without costing budget)
+        // (4) Use hint again — should snap-back (re-place same reagent without costing budget)
         var result2 = _puzzleScreen.UseHint();
         bool snapBackSucceeded = result2 != null && result2.IsSuccess;
-        int hintsUsedAfterSnapBack = _puzzleScreen.HintState.HintsUsed;
-        bool snapBackFree = hintsUsedAfterSnapBack == hintsUsedAfter; // same as before removal
-        Log($"[STATE] snapback_success={snapBackSucceeded} hints_used={hintsUsedAfterSnapBack} free={snapBackFree} (expected: true, 1, true)");
+        int hintsAfterSnapBack = _puzzleScreen.HintState.HintsUsed;
+        bool snapBackFree = hintsAfterSnapBack == hintsAfterHint1; // still 1, no budget cost
+        bool snapBackSameReagent = result2 != null && result2.ReagentIndex == hintedIndex1;
+        Log($"[STATE] snapback_success={snapBackSucceeded} same_reagent={snapBackSameReagent} hints_used={hintsAfterSnapBack} free={snapBackFree} (expected: true, true, 1, true)");
 
         await CaptureScreenshot("32_hint_snapback.png");
 
-        bool pass = budgetCorrect && hintSucceeded && hintsUsedAfter == 1
-                 && reagentIsHinted && removed
-                 && snapBackSucceeded && snapBackFree;
+        // (5) Use second hint — should pick a new (different) reagent, costing budget (counter -> 2/3)
+        var result3 = _puzzleScreen.UseHint();
+        bool hint2Succeeded = result3 != null && result3.IsSuccess;
+        int hintsAfterHint2 = _puzzleScreen.HintState.HintsUsed;
+        bool hint2DifferentReagent = result3 != null && result3.ReagentIndex != hintedIndex1;
+        int hintedIndex2 = result3?.ReagentIndex ?? -1;
+        Log($"[STATE] hint2_success={hint2Succeeded} different_reagent={hint2DifferentReagent} hints_used={hintsAfterHint2} (expected: true, true, 2)");
+
+        await CaptureScreenshot("33_hint_second.png");
+
+        // (6) Test dislodge scenario: manually place a reagent where the next hint target
+        // needs to go, then hint should dislodge it.
+        // First, reset to clear all placements, then set up a dislodge situation.
+        _puzzleScreen.ResetPuzzle();
+        await WaitFrames(2);
+
+        int hintsAfterReset = _puzzleScreen.HintState.HintsUsed;
+        Log($"[STATE] hints_after_reset={hintsAfterReset} (expected: 2, budget preserved)");
+
+        // Try to set up a dislodge: find a reagent whose solution position overlaps with another's.
+        // Place one reagent at another's solution position, then hint the other.
+        bool dislodgeTestPassed = true; // default pass if we can't set up the scenario
+        bool dislodgeAttempted = false;
+
+        if (state.Solution.Count >= 2 && hintsAfterReset < maxHints)
+        {
+            // Find two reagents A and B where B's solution position overlaps A's solution cells
+            for (int a = 0; a < state.Reagents.Count && !dislodgeAttempted; a++)
+            {
+                var solA = HintEngine.GetSolutionPlacement(state, a);
+                if (solA == null) continue;
+
+                var reagentA = _puzzleScreen.TrayReagents[a];
+
+                for (int b = 0; b < state.Reagents.Count && !dislodgeAttempted; b++)
+                {
+                    if (a == b) continue;
+                    var solB = HintEngine.GetSolutionPlacement(state, b);
+                    if (solB == null) continue;
+
+                    // Check if placing reagent A at reagent B's solution position is valid
+                    // and if it would cause B's hint to need to dislodge A
+                    var reagentB = _puzzleScreen.TrayReagents[b];
+
+                    // Try placing reagent A at B's solution position
+                    _puzzleScreen.SelectReagent(a);
+                    // Set rotation to match B's solution rotation so we're more likely to overlap
+                    for (int r = 0; r < solB.Rotation; r++)
+                        _puzzleScreen.RotateSelected();
+                    bool placedA = _puzzleScreen.PlaceSelectedAt(solB.PositionCol, solB.PositionRow);
+
+                    if (placedA)
+                    {
+                        // Now hint reagent B — it should dislodge reagent A
+                        // We need to make sure B's solution placement overlaps with A's current position
+                        // First check if A actually occupies cells that B needs
+                        var dislodgeList = HintEngine.ComputeDislodgeList(
+                            _puzzleScreen.Grid, new System.Collections.Generic.List<AlchemistCourier.Core.Reagents.Reagent>(_puzzleScreen.TrayReagents),
+                            reagentB, solB);
+
+                        if (dislodgeList != null && dislodgeList.Contains(a))
+                        {
+                            dislodgeAttempted = true;
+                            bool aPlacedBefore = reagentA.IsPlaced;
+                            var hintResult = _puzzleScreen.UseHint();
+
+                            // UseHint picks next target via PickNextHintTarget (auto-pick).
+                            // It may not pick B. Let's just verify if a dislodge happened.
+                            bool dislodgeOccurred = hintResult != null && hintResult.IsSuccess
+                                && hintResult.DislodgedReagentIndices.Count > 0;
+                            bool dislodgedReturnsToTray = !reagentA.IsPlaced;
+
+                            Log($"[STATE] dislodge_attempted=true a={a} b={b} dislodge_occurred={dislodgeOccurred} a_returned_to_tray={dislodgedReturnsToTray}");
+
+                            dislodgeTestPassed = dislodgeOccurred && dislodgedReturnsToTray;
+                        }
+                        else
+                        {
+                            // A doesn't overlap B's target — remove A and try another pair
+                            if (reagentA.IsPlaced && reagentA.PlacedPosition is Core.Grid.Vector2I rPos)
+                                _puzzleScreen.RemoveReagentAt(rPos.Col, rPos.Row);
+                            reagentA.Rotation = 0;
+                        }
+                    }
+                    else
+                    {
+                        reagentA.Rotation = 0;
+                    }
+                }
+            }
+
+            if (!dislodgeAttempted)
+            {
+                Log("[STATE] dislodge_attempted=false (no suitable overlap found, skipping dislodge test)");
+            }
+        }
+        else
+        {
+            Log("[STATE] dislodge_skipped (insufficient reagents or hints)");
+        }
+
+        await CaptureScreenshot("34_hint_dislodge.png");
+
+        bool pass = budgetCorrect
+                 && hint1Succeeded && hintsAfterHint1 == 1 && reagent1IsHinted
+                 && removed && isUnplacedAfterRemove
+                 && snapBackSucceeded && snapBackFree && snapBackSameReagent
+                 && hint2Succeeded && hintsAfterHint2 == 2 && hint2DifferentReagent
+                 && hintsAfterReset == 2
+                 && dislodgeTestPassed;
         EndTest("hint_system", pass, pass ? null
-            : $"budget={budgetCorrect} hint1={hintSucceeded} used={hintsUsedAfter} hinted={reagentIsHinted} removed={removed} snapback={snapBackSucceeded} free={snapBackFree}");
+            : $"budget={budgetCorrect} hint1={hint1Succeeded} used1={hintsAfterHint1} hinted={reagent1IsHinted} removed={removed} unplaced={isUnplacedAfterRemove} snapback={snapBackSucceeded} free={snapBackFree} sameReagent={snapBackSameReagent} hint2={hint2Succeeded} used2={hintsAfterHint2} diffReagent={hint2DifferentReagent} resetPreserved={hintsAfterReset == 2} dislodge={dislodgeTestPassed}");
+
+        // Reset back to demo puzzle for remaining tests
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
     }
 
     private async Task Test_HighlightOverlay()
