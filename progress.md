@@ -672,3 +672,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: 3b95f1d
 - Notes: Replaced the GF.1 stub MainMenuScreen with full styled implementation. Three buttons with distinct colors: Daily Puzzle (green, shows streak count or "Completed" from SaveData), Tutorial (blue, shows lesson progress e.g. "Lesson 3/5" or "Complete"), Editor (neutral gray). All buttons use CreateStyledButton() with StyleBoxFlat for normal/hover/pressed states, matching PuzzleScreen's pattern. Streak footer uses GetEffectiveStreak() to avoid showing stale streaks. No new tests needed (Game-layer UI, no Core changes). All 526 tests pass.
+
+## GF.3 — Create DailyPuzzleScreen wrapper
+- Date: 2026-03-06
+- Commit: fe4c0cb (created during GF.1)
+- Notes: DailyPuzzleScreen was fully implemented as part of GF.1 — follows TutorialScreen pattern. Wraps PuzzleScreen with SaveInfo property, DailyCompleted/BackRequested events, back button + day label in top bar, streak info passed via HeaderStreakText, already-completed guard showing "Already completed today!" label. All requirements met. Marked as done without additional changes.
+
+## GF.4 — Wire main.tscn to GameFlowController and add screen completion events
+- Date: 2026-03-06
+- Commit: 9d485fb
+- Notes: Updated scenes/main.tscn to point to GameFlowController instead of PuzzleScreen — the game now starts at the main menu (or tutorial for first launch). TutorialCompleted event, completion handlers, and first-launch detection were all already implemented in GF.1. Added two integration tests: Test_GameFlowStartsAtMenu (TransitionTo MainMenu, verify CurrentScreen and node type) and Test_GameFlowFirstLaunchTutorial (TransitionTo Tutorial and DailyPuzzle, verify each transition produces correct screen enum and node type). All 526 unit tests pass.

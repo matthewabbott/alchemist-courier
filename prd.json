@@ -931,7 +931,8 @@
       "phase": "art",
       "depends_on": ["ART.1", "ART.4"],
       "verification": "art/retrodiffusion-styles.json exists with at least one approved style_id, sample sprites generated successfully",
-      "status": "pending"
+      "status": "blocked",
+      "blocked_reason": "Human-in-the-loop task: requires human aesthetic decisions for reference image selection and style approval"
     },
     {
       "id": "CQ.1",
@@ -1001,7 +1002,7 @@
       "phase": "game-flow",
       "depends_on": ["CQ.2"],
       "verification": "dotnet build succeeds, DailyPuzzleScreen compiles and correctly wraps PuzzleScreen with daily puzzle data",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GF.4",
@@ -1011,7 +1012,7 @@
       "phase": "game-flow",
       "depends_on": ["GF.1", "GF.2", "GF.3"],
       "verification": "dotnet build succeeds, dotnet test passes, running scenes/main.tscn shows MainMenu (or Tutorial for first launch), integration tests pass, all existing 519+ unit tests still pass",
-      "status": "pending"
+      "status": "done"
     }
   ]
 }

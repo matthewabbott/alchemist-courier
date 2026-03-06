@@ -34,3 +34,7 @@ Reviewed 9809fb9..eba3d86 (ResultOverlayPanel/HintOrchestrator extraction, GameF
 ## GF.2: Create MainMenuScreen
 Replaced the GF.1 stub with the full styled implementation. The three buttons now have distinct visual identities: Daily Puzzle in green (showing streak count or "Completed" based on SaveData), Tutorial in blue (showing lesson progress like "Lesson 3/5" or "Complete"), and Editor in neutral gray. Each button uses CreateStyledButton() with StyleBoxFlat for normal/hover/pressed states, matching the pattern established in PuzzleScreen. The streak footer uses GetEffectiveStreak() rather than raw CurrentStreak to avoid displaying stale streaks after a gap day.
 Commit: 3b95f1d
+
+## GF.4: Wire main.tscn to GameFlowController
+The final game-flow wiring task — updated scenes/main.tscn to use GameFlowController instead of PuzzleScreen. The game now launches into the main menu (or tutorial for first-time players) rather than a standalone puzzle screen. GF.3 (DailyPuzzleScreen) was already fully implemented during GF.1 as a necessary dependency, so this iteration marks both GF.3 and GF.4 as done. Added two integration tests exercising GameFlowController's TransitionTo API across MainMenu, Tutorial, and DailyPuzzle screens, verifying both the enum state and node type after each transition. ART.5 (custom RetroDiffusion style creation) is the only remaining pending task but is blocked as a human-in-the-loop task requiring aesthetic decisions.
+Commit: 9d485fb
