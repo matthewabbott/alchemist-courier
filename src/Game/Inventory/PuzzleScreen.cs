@@ -653,36 +653,24 @@ public partial class PuzzleScreen : Control
 
     private void OnHintPressed()
     {
-        if (PuzzleData == null) return;
-
-        var reagentIndex = HintEngine.PickNextHintTarget(PuzzleData, _hintState, _trayReagents);
-        if (reagentIndex == null)
+        var result = UseHint();
+        if (result == null)
         {
             UpdateStatus("No hint targets available — all reagents are placed.");
             return;
         }
 
-        var solutionPlacement = HintEngine.GetSolutionPlacement(PuzzleData, reagentIndex.Value);
-        if (solutionPlacement == null)
+        switch (result.Type)
         {
-            UpdateStatus("No solution found for this reagent.");
-            return;
-        }
-
-        bool isSnapBack = _hintState.WasHinted(reagentIndex.Value);
-
-        if (!isSnapBack && !_hintState.HasHintsRemaining)
-        {
-            UpdateStatus("No hints remaining.");
-            return;
-        }
-
-        var result = HintEngine.ExecuteHint(_metaGrid, _trayReagents, reagentIndex.Value, solutionPlacement);
-
-        if (result.Type == HintResultType.BlockedByLockedReagent)
-        {
-            UpdateStatus("Hint blocked — a locked reagent occupies the target position.");
-            return;
+            case HintResultType.NoSolutionFound:
+                UpdateStatus("No solution found for this reagent.");
+                return;
+            case HintResultType.NoHintsRemaining:
+                UpdateStatus("No hints remaining.");
+                return;
+            case HintResultType.BlockedByLockedReagent:
+                UpdateStatus("Hint blocked — a locked reagent occupies the target position.");
+                return;
         }
 
         if (!result.IsSuccess)
@@ -691,22 +679,7 @@ public partial class PuzzleScreen : Control
             return;
         }
 
-        // Update budget if this was a new hint (not a snap-back)
-        if (!isSnapBack)
-        {
-            _hintState.HintsUsed++;
-            _hintState.HintedReagentIndices.Add(reagentIndex.Value);
-        }
-
-        ClearSelectionState();
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateHintButton();
-
-        var reagentName = _trayReagents[reagentIndex.Value].Definition.Name;
+        var reagentName = _trayReagents[result.ReagentIndex].Definition.Name;
         if (result.DislodgedReagentIndices.Count > 0)
         {
             UpdateStatus($"Hinted: {reagentName} placed at solution position. {result.DislodgedReagentIndices.Count} reagent(s) dislodged.");
@@ -742,13 +715,16 @@ public partial class PuzzleScreen : Control
             _hintState.HintedReagentIndices.Add(reagentIndex.Value);
         }
 
-        ClearSelectionState();
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateHintButton();
+        if (result.IsSuccess)
+        {
+            ClearSelectionState();
+            _reagentTray.RefreshDisplay();
+            _gridView.RefreshDisplay();
+            _statusBar.Refresh();
+            UpdateStatusThresholds();
+            RefreshEagleSense();
+            UpdateHintButton();
+        }
 
         return result;
     }
