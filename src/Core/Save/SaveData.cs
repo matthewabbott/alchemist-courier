@@ -30,6 +30,11 @@ public class SaveData
     public int LastCompletedDate { get; set; }
 
     /// <summary>
+    /// Maps date seed (YYYYMMDD) to the number of hints used for that daily puzzle.
+    /// </summary>
+    public Dictionary<int, int> DailyHintsUsed { get; set; } = new();
+
+    /// <summary>
     /// Record completion of a tutorial lesson.
     /// </summary>
     public void CompleteTutorialLesson(int lessonNumber)
@@ -123,6 +128,23 @@ public class SaveData
             return CurrentStreak; // Today or yesterday — streak is live
 
         return 0; // More than 1 day gap — streak is broken
+    }
+
+    /// <summary>
+    /// Record the number of hints used for a daily puzzle.
+    /// </summary>
+    public void RecordDailyHints(int dateSeed, int hintsUsed)
+    {
+        DailyHintsUsed[dateSeed] = hintsUsed;
+    }
+
+    /// <summary>
+    /// Get the number of hints used for a daily puzzle.
+    /// Returns -1 if no record exists for the given date seed.
+    /// </summary>
+    public int GetDailyHintsUsed(int dateSeed)
+    {
+        return DailyHintsUsed.TryGetValue(dateSeed, out int count) ? count : -1;
     }
 
     private static int DateToSeed(DateTime date)

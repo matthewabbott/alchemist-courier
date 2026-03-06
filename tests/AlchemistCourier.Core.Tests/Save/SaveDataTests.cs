@@ -240,4 +240,22 @@ public class SaveDataTests
         Assert.Equal(10, data.CurrentStreak);
         Assert.Equal(10, data.CompletedDailies.Count);
     }
+
+    [Fact]
+    public void RecordDailyHints_RoundTrip()
+    {
+        var data = new SaveData();
+
+        data.RecordDailyHints(20260305, 2);
+
+        Assert.Equal(2, data.GetDailyHintsUsed(20260305));
+    }
+
+    [Fact]
+    public void GetDailyHintsUsed_UnknownSeed_ReturnsNegativeOne()
+    {
+        var data = new SaveData();
+
+        Assert.Equal(-1, data.GetDailyHintsUsed(20260305));
+    }
 }
