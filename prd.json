@@ -726,7 +726,7 @@
         "HINT.4"
       ],
       "verification": "dotnet build succeeds, hint button visible in integration test screenshots",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HINT.8",

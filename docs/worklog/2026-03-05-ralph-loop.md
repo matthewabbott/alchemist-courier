@@ -236,3 +236,11 @@ CompletedDailies. Two methods: RecordDailyHints for storage, GetDailyHintsUsed f
 (-1 for unknown seeds, matching the "no record" semantics of daily completion checks). This
 enables the future hint-aware scoring layer: zero-hint completions can earn extra stars.
 Commit: ba72035
+
+## HINT.7: Hint button UI in PuzzleScreen
+The hint button UI was already wired up during HINT.4 (orchestration) — button creation,
+count label, MaxHints==0 hiding, and enable/disable logic were all in place. This task
+finalized the visual polish by adding a `disabled` StyleBox to CreateStyledButton, giving
+all styled buttons (including Hint) a properly darkened background and dimmed text when
+disabled. Small change, but it closes the visual gap in the hint system UI.
+Commit: 0560de9

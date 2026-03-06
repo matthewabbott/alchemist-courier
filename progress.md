@@ -451,3 +451,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Issues: 0
 - Added: `hint_system` integration test — validates HintEngine → PuzzleScreen pipeline end-to-end (budget, use, snap-back)
 - Notes: Hint-system phase (HINT.1–HINT.6) complete with full integration coverage. Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
+
+## HINT.7 — Hint button UI in PuzzleScreen
+- Date: 2026-03-05
+- Commit: 0560de9
+- Notes: The hint button, count label, visibility toggle (MaxHints==0), and enable/disable logic were already implemented during HINT.4. This task finalized the UI by adding a `disabled` StyleBox override to CreateStyledButton (darkened background + dimmed font color) ensuring consistent visual feedback when the hint button is disabled. All 497 tests pass.
