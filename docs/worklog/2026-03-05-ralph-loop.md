@@ -282,3 +282,9 @@ a sentence after the roadmap section pointing readers to detailed puzzle type de
 chemistry-system.md's stub "Future: Brewing and Mixing" section was replaced with a compact
 cross-reference to puzzle-design.md sections 6 and 7 where those topics are covered in depth.
 Commit: 801a640
+
+## Code Review (h)
+Reviewed ec3c12a..1efadb8 (HINT.8 test expansion + DOC.1/DOC.2 docs). Only code change was
+TestHarness.cs hint_system test enhancement — well-structured with numbered sections, good
+coverage of budget, snap-back, second hint, dislodge, and reset. One dead variable (P2) and
+one FQ type (P4) noted but not fixed. CLEAN status — no P0-P1 issues.
