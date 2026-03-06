@@ -67,6 +67,7 @@ public partial class TestHarness : Control
         await Test_GeneratedPuzzle();
         await Test_TutorialFlow();
         await Test_DailyPuzzle();
+        await Test_HintSystem();
         await Test_HighlightOverlay();
         await Test_HighlightIntegration();
         await Test_RejectionTooltip();
@@ -764,6 +765,76 @@ public partial class TestHarness : Control
         bool pass = bagsMatch && reagentsMatch && allPlaced && result == ConfirmResult.Win;
         EndTest("daily_puzzle", pass, pass ? null
             : $"bags={bagsMatch} reagents={reagentsMatch} allPlaced={allPlaced}(placed={placedCount}/{totalReagents}) result={result}");
+    }
+
+    private async Task Test_HintSystem()
+    {
+        BeginTest("hint_system");
+
+        // Generate a puzzle with hints enabled (Easy = MaxHints 3)
+        var generator = new PuzzleGenerator();
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+        var state = generator.Generate(42, difficulty);
+
+        // Load into a new PuzzleScreen
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Verify hint budget is initialized
+        int maxHints = _puzzleScreen.HintState.MaxHints;
+        int hintsUsedBefore = _puzzleScreen.HintState.HintsUsed;
+        bool budgetCorrect = maxHints == 3 && hintsUsedBefore == 0;
+        Log($"[STATE] hint_max={maxHints} hints_used={hintsUsedBefore} (expected: max=3, used=0)");
+
+        // Use a hint — should place a reagent at its solution position
+        var result1 = _puzzleScreen.UseHint();
+        bool hintSucceeded = result1 != null && result1.IsSuccess;
+        int hintsUsedAfter = _puzzleScreen.HintState.HintsUsed;
+        int placedAfterHint = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] hint1_success={hintSucceeded} hints_used={hintsUsedAfter} placed={placedAfterHint} (expected: true, 1, >0)");
+
+        // Verify the hinted reagent has IsHinted = true
+        bool reagentIsHinted = false;
+        int hintedIndex = -1;
+        if (result1 != null && result1.IsSuccess)
+        {
+            hintedIndex = result1.ReagentIndex;
+            reagentIsHinted = _puzzleScreen.TrayReagents[hintedIndex].IsHinted;
+        }
+        Log($"[STATE] hinted_index={hintedIndex} is_hinted={reagentIsHinted} (expected: >=0, true)");
+
+        await CaptureScreenshot("31_hint_used.png");
+
+        // Remove the hinted reagent to test snap-back
+        bool removed = false;
+        if (hintedIndex >= 0)
+        {
+            var hintedReagent = _puzzleScreen.TrayReagents[hintedIndex];
+            if (hintedReagent.IsPlaced && hintedReagent.PlacedPosition is Core.Grid.Vector2I pos)
+            {
+                removed = _puzzleScreen.RemoveReagentAt(pos.Col, pos.Row);
+            }
+        }
+        int hintsUsedAfterRemove = _puzzleScreen.HintState.HintsUsed;
+        Log($"[STATE] removed_hinted={removed} hints_used_after_remove={hintsUsedAfterRemove} (expected: true, 1)");
+
+        // Use hint again — should snap-back (re-place same reagent without costing budget)
+        var result2 = _puzzleScreen.UseHint();
+        bool snapBackSucceeded = result2 != null && result2.IsSuccess;
+        int hintsUsedAfterSnapBack = _puzzleScreen.HintState.HintsUsed;
+        bool snapBackFree = hintsUsedAfterSnapBack == hintsUsedAfter; // same as before removal
+        Log($"[STATE] snapback_success={snapBackSucceeded} hints_used={hintsUsedAfterSnapBack} free={snapBackFree} (expected: true, 1, true)");
+
+        await CaptureScreenshot("32_hint_snapback.png");
+
+        bool pass = budgetCorrect && hintSucceeded && hintsUsedAfter == 1
+                 && reagentIsHinted && removed
+                 && snapBackSucceeded && snapBackFree;
+        EndTest("hint_system", pass, pass ? null
+            : $"budget={budgetCorrect} hint1={hintSucceeded} used={hintsUsedAfter} hinted={reagentIsHinted} removed={removed} snapback={snapBackSucceeded} free={snapBackFree}");
     }
 
     private async Task Test_HighlightOverlay()

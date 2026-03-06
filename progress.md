@@ -442,3 +442,12 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: ba72035
 - Notes: Added DailyHintsUsed Dictionary<int, int> property to SaveData mapping date seeds (YYYYMMDD) to hint counts used. RecordDailyHints(dateSeed, hintsUsed) stores the count, GetDailyHintsUsed(dateSeed) retrieves it (returns -1 for unknown seeds). Follows the existing CompletedDailies pattern. 2 new tests: round-trip storage and unknown seed returns -1. All 497 tests pass (495 existing + 2 new).
+
+## Integration Review — 2026-03-05 (e)
+- Reviewed commits: 851ec25..HEAD (HINT.1–HINT.6)
+- Build: PASS (497/497 unit tests)
+- Harness: 23/23 tests pass, 0 failures
+- Visual: All 32 screenshots verified, no regressions
+- Issues: 0
+- Added: `hint_system` integration test — validates HintEngine → PuzzleScreen pipeline end-to-end (budget, use, snap-back)
+- Notes: Hint-system phase (HINT.1–HINT.6) complete with full integration coverage. Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
