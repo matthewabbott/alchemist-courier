@@ -932,6 +932,86 @@
       "depends_on": ["ART.1", "ART.4"],
       "verification": "art/retrodiffusion-styles.json exists with at least one approved style_id, sample sprites generated successfully",
       "status": "pending"
+    },
+    {
+      "id": "CQ.1",
+      "title": "Extract PuzzleValidator to Core",
+      "description": "Create src/Core/Puzzle/PuzzleValidator.cs -- a pure C# static class that evaluates puzzle win conditions for all three PuzzleType values. Move the ConfirmResult enum from src/Game/Inventory/PuzzleScreen.cs (lines 10-17) to src/Core/Puzzle/ConfirmResult.cs (it has zero Godot deps). Create src/Core/Puzzle/ValidationResult.cs with properties: ConfirmResult Result, IReadOnlyList<ReactionResult> Reactions, int Score (for MaximizeValue). Add static factory methods: NotAllPlaced(int unplacedCount), HasReactions(List<ReactionResult>), Win(int score). The PuzzleValidator.Evaluate(MetaGrid grid, IReadOnlyList<Reagent> trayReagents, PuzzleType puzzleType, List<ReactionRule> rules) method implements: (1) FitAllSafely: all reagents must be placed (check PlacedPosition != null on each), no reactions via ChemistryEngine.Evaluate(). (2) MaximizeValue: skip unplaced check, evaluate reactions among placed reagents only, score = sum of reagent.Definition.Value for placed reagents. (3) MeetRequirement: same as FitAllSafely for now (add TODO comment for future requirement field). Count unplaced by iterating trayReagents checking PlacedPosition != null. Add unit tests in tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleValidatorTests.cs: FitAllSafely win, FitAllSafely not-all-placed, FitAllSafely has-reactions, MaximizeValue partial-placement-win-with-score, MaximizeValue reactions-fail, MaximizeValue zero-placed-score-zero, MeetRequirement delegates-to-FitAllSafely. Use PuzzleGenerator to create test puzzles with known solutions. Reuse ChemistryEngine.Evaluate() and ReactionRuleDatabase.GetMvpRules().",
+      "priority": 85,
+      "phase": "code-quality",
+      "depends_on": [],
+      "verification": "dotnet test passes, new PuzzleValidatorTests all green, dotnet build succeeds, no Godot imports in src/Core/Puzzle/PuzzleValidator.cs or ValidationResult.cs or ConfirmResult.cs",
+      "status": "pending"
+    },
+    {
+      "id": "CQ.2",
+      "title": "Wire PuzzleScreen to PuzzleValidator",
+      "description": "Replace inline win condition logic in PuzzleScreen.ConfirmPuzzle() (src/Game/Inventory/PuzzleScreen.cs lines 595-627) with a call to PuzzleValidator.Evaluate(). Steps: (1) Delete the ConfirmResult enum from PuzzleScreen.cs (lines 10-17) -- it now lives at AlchemistCourier.Core.Puzzle.ConfirmResult. (2) Ensure 'using AlchemistCourier.Core.Puzzle;' is present (it already is). (3) Replace ConfirmPuzzle() body: call 'var result = PuzzleValidator.Evaluate(_metaGrid, _trayReagents, _puzzleType, ReactionRuleDatabase.GetMvpRules())', then set '_lastConfirmResult = result.Result', '_lastReactions = result.Reactions.ToList()'. (4) Update ShowResultOverlay calls to pass result.Score for MaximizeValue display (add score to success message when > 0). (5) Grep all files for references to the old ConfirmResult location. Key files to check: src/Game/TutorialScreen.cs (uses ConfirmResult.Win), src/Game/Testing/TestHarness.cs, src/Game/Testing/TestActions.cs. Update their using statements to reference AlchemistCourier.Core.Puzzle namespace. (6) Verify no dangling references to the old enum location.",
+      "priority": 86,
+      "phase": "code-quality",
+      "depends_on": ["CQ.1"],
+      "verification": "dotnet build succeeds, dotnet test passes (all 519+ tests), grep for 'enum ConfirmResult' finds only src/Core/Puzzle/ConfirmResult.cs, integration tests still pass",
+      "status": "pending"
+    },
+    {
+      "id": "CQ.3",
+      "title": "Add locked reagent visual feedback",
+      "description": "Fix two issues in MetaGridView.cs (src/Game/Inventory/MetaGridView.cs): (1) VISUAL INDICATOR: Add locked-reagent borders following the CreateHintedBorders() pattern (lines 306-342). Add a 'private readonly List<ColorRect> _lockedBorders = new();' field. Add CreateLockedBorders() method that iterates grid cells, finds cells occupied by locked reagents (check reagent.IsLocked), and draws border rects using a new CreateLockedBorderRect() method (copy CreateHintedBorderRect pattern, use a different color). Add 'public static readonly Color LockedBorderColor = new(0.7f, 0.6f, 0.3f);' to GridConstants.cs. Call CreateLockedBorders() at the end of RefreshDisplay() after CreateHintedBorders(). Clean up old borders at the start (same pattern as _hintedBorders). (2) REJECTION FEEDBACK: In HandleMouseClick() around the right-click removal path, check if reagent.IsLocked BEFORE calling RemoveReagent. If locked, call ShowRejectionTooltip('Cannot remove -- locked reagent', _hoverGridPos.Value) and return without emitting ReagentRemoved. If not locked, proceed with removal as before. Also check the return value of RemoveReagent as a safety net. (3) INTEGRATION TEST: Add Test_LockedReagentRemovalBlocked to TestHarness.cs: create a puzzle with a locked reagent using a PuzzleState where one reagent has IsLocked=true and is pre-placed, verify the locked reagent is placed on the grid, attempt removal at its position via TestActions, verify removal fails and reagent remains placed. Output [PASS]/[FAIL].",
+      "priority": 87,
+      "phase": "code-quality",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes, integration test Test_LockedReagentRemovalBlocked passes, locked reagents show amber border visually",
+      "status": "pending"
+    },
+    {
+      "id": "CQ.4",
+      "title": "Decompose PuzzleScreen: extract ResultOverlayPanel and HintOrchestrator",
+      "description": "Decompose PuzzleScreen (src/Game/Inventory/PuzzleScreen.cs, 865 lines) by extracting two cohesive subsystems: (1) RESULT OVERLAY: Create src/Game/Inventory/ResultOverlayPanel.cs extending PanelContainer. Move result overlay construction (the PanelContainer with StyleBoxFlat and Label for showing win/fail), ShowResultOverlay/HideResultOverlay logic, and FormatReactionType(). Constructor builds the overlay UI (PanelContainer with StyleBoxFlat and Label). Methods: ShowWin(string message, int score = 0), ShowFailure(List<ReactionResult> reactions), Hide(). FormatReactionType(ReactionResultType) becomes a public static method here. In PuzzleScreen, replace _resultOverlay/_resultLabel fields with a single '_resultOverlay = new ResultOverlayPanel()' and call its methods. (2) HINT ORCHESTRATOR: Create src/Game/Inventory/HintOrchestrator.cs as a plain C# class (NOT a Godot node). Constructor takes: PuzzleState puzzleData, HintState hintState, MetaGrid grid, List<Reagent> trayReagents. Methods: HintResult? ExecuteHint() (the UseHint logic), bool HasHintsAvailable (checks budget + snap-back availability), string FormatHintCount(). In PuzzleScreen: create _hintOrchestrator in InitializeFromPuzzleState, call _hintOrchestrator.ExecuteHint() from OnHintPressed, call FormatHintCount() from UpdateHintButton. Keep the UI refresh calls (RefreshDisplay, ClearSelectionState) in PuzzleScreen -- the orchestrator only handles domain logic. Target: PuzzleScreen drops from ~865 to ~700 lines.",
+      "priority": 88,
+      "phase": "code-quality",
+      "depends_on": ["CQ.2"],
+      "verification": "dotnet build succeeds, dotnet test passes (all existing tests), integration tests still pass (hint and confirm tests exercise the refactored code), PuzzleScreen.cs line count under 750",
+      "status": "pending"
+    },
+    {
+      "id": "GF.1",
+      "title": "Create GameFlowController",
+      "description": "Create src/Game/GameFlowController.cs -- a Godot Control node that manages screen transitions following the pattern in docs/game-architecture.md. Define a GameScreen enum (MainMenu, Tutorial, DailyPuzzle, Editor) in the same file or a separate src/Game/GameScreen.cs. The controller: (1) Extends Control, sets LayoutPreset.FullRect in _Ready. (2) In _Ready(): create SaveManager with path 'user://save.json' (Godot user:// maps to platform-appropriate location -- use Godot.ProjectSettings.GlobalizePath(\"user://save.json\")), load SaveData. Then call TransitionTo(GameScreen.MainMenu) -- or GameScreen.Tutorial if SaveData.TutorialLessonCompleted == 0. (3) TransitionTo(GameScreen screen): if _currentScreen != null, RemoveChild + QueueFree. Create the new screen, set properties (SaveData etc. as needed), AddChild. Store in _currentScreen field. CurrentScreen property tracks enum value. (4) Screen-specific creation: MainMenu -- new MainMenuScreen { SaveInfo = _saveData }, connect ScreenRequested. Tutorial -- new TutorialScreen(), connect TutorialCompleted. DailyPuzzle -- new DailyPuzzleScreen { SaveInfo = _saveData }, connect DailyCompleted and BackRequested. Editor -- new EditorScreen(). (5) Completion handlers: all save data and transition to MainMenu. (6) Public properties for testing: CurrentScreen (GameScreen), CurrentScreenNode (Control?), SaveData. Also create scenes/game.tscn as a minimal scene: Control node root, script pointing to GameFlowController.cs. Follow the same minimal format as scenes/main.tscn. Do NOT modify scenes/main.tscn yet (that is GF.4).",
+      "priority": 89,
+      "phase": "game-flow",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, scenes/game.tscn exists, GameFlowController compiles with all screen creation paths",
+      "status": "pending"
+    },
+    {
+      "id": "GF.2",
+      "title": "Create MainMenuScreen",
+      "description": "Create src/Game/MainMenuScreen.cs -- a Godot Control with procedural UI for the main menu. Pattern follows existing screens (FullRect anchors, BuildUI in _Ready). Property set before AddChild: SaveData? SaveInfo (for displaying progress context). UI layout built in BuildUI(): (1) Dark background ColorRect (same pattern as PuzzleScreen). (2) MarginContainer -> VBoxContainer (centered). (3) Title Label 'Alchemist Courier' (gold color new Color(0.9f, 0.85f, 0.7f), font size 28). (4) Spacer Control(). (5) VBoxContainer of buttons (SeparationOverride = 12): 'Daily Puzzle' button (green style, shows completed/streak info from SaveInfo if available), 'Tutorial' button (shows lesson progress), 'Editor' button (neutral color). Use a local CreateStyledButton() method similar to PuzzleScreen's pattern (create Button, set text, flat style, custom colors). (6) Footer label with streak count if SaveInfo?.CurrentStreak > 0. Emit event: 'public event Action<GameScreen>? ScreenRequested;' when any button is pressed with the corresponding GameScreen value. File: src/Game/MainMenuScreen.cs. Namespace: AlchemistCourier.Game.",
+      "priority": 90,
+      "phase": "game-flow",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, MainMenuScreen compiles, all three buttons wired to emit ScreenRequested",
+      "status": "pending"
+    },
+    {
+      "id": "GF.3",
+      "title": "Create DailyPuzzleScreen wrapper",
+      "description": "Create src/Game/DailyPuzzleScreen.cs -- a Godot Control wrapping PuzzleScreen for daily puzzle mode. Follows TutorialScreen.cs (src/Game/TutorialScreen.cs) pattern closely. Property set before AddChild: SaveData? SaveInfo. In _Ready(): (1) Set FullRect anchors. (2) Build wrapper UI: VBoxContainer with a top HBoxContainer containing a 'Back to Menu' button and day/streak labels, then a PuzzleScreen child set to ExpandFill. (3) Generate daily puzzle: var puzzle = DailyPuzzleManager.GenerateToday(). (4) Create PuzzleScreen, set PuzzleData = puzzle, set HeaderDayText (format: DateTime.UtcNow.DayOfYear.ToString()), set HeaderStreakText (format from SaveInfo.CurrentStreak). (5) AddChild(puzzleScreen). (6) Wire PuzzleScreen.PuzzleConfirmed: on ConfirmResult.Win, set _isCompleted = true, invoke DailyCompleted event. (7) Wire back button to invoke BackRequested event. Events: 'public event Action? DailyCompleted;', 'public event Action? BackRequested;'. Public properties: PuzzleScreen? CurrentPuzzleScreen, bool IsCompleted, DateTime PuzzleDate. Edge case: if SaveInfo?.IsDailyCompleted(DateTime.UtcNow.Date) == true, show 'Already completed today!' label instead of creating PuzzleScreen, with just a Back button. File: src/Game/DailyPuzzleScreen.cs. Namespace: AlchemistCourier.Game. Reuse: DailyPuzzleManager, SaveData, PuzzleScreen.",
+      "priority": 91,
+      "phase": "game-flow",
+      "depends_on": ["CQ.2"],
+      "verification": "dotnet build succeeds, DailyPuzzleScreen compiles and correctly wraps PuzzleScreen with daily puzzle data",
+      "status": "pending"
+    },
+    {
+      "id": "GF.4",
+      "title": "Wire main.tscn to GameFlowController and add screen completion events",
+      "description": "Final wiring task connecting all game flow pieces. Steps: (1) Add TutorialCompleted event to TutorialScreen (src/Game/TutorialScreen.cs): add 'public event Action? TutorialCompleted;'. In AdvanceLesson() or equivalent, after the lesson index advances past the last lesson and IsComplete becomes true, invoke TutorialCompleted?.(). This lets GameFlowController know the tutorial is finished. (2) Update scenes/main.tscn: change the script reference from PuzzleScreen.cs to GameFlowController.cs. The scene file references scripts via [ext_resource]. Update the path to point to res://src/Game/GameFlowController.cs. Use the Godot MCP get_uid tool if needed for the UID reference. (3) Wire GameFlowController completion handlers fully: OnTutorialCompleted -- update SaveData.TutorialLessonCompleted, save via SaveManager, TransitionTo(MainMenu). OnDailyCompleted -- call SaveData.CompleteDailyPuzzle(DateTime.UtcNow.Date), save, TransitionTo(MainMenu). OnBackRequested -- TransitionTo(MainMenu), no save needed. OnScreenRequested(GameScreen target) -- TransitionTo(target). (4) First-launch detection: in _Ready, check if SaveData.TutorialLessonCompleted == 0. If so, TransitionTo(Tutorial). Otherwise TransitionTo(MainMenu). (5) INTEGRATION TEST: Add Test_GameFlowStartsAtMenu to TestHarness.cs: create GameFlowController with SaveData where TutorialLessonCompleted = 5 (not first launch), add to scene tree, verify CurrentScreen == GameScreen.MainMenu. Take screenshot. Add Test_GameFlowFirstLaunchTutorial: same but TutorialLessonCompleted = 0, verify CurrentScreen == GameScreen.Tutorial.",
+      "priority": 92,
+      "phase": "game-flow",
+      "depends_on": ["GF.1", "GF.2", "GF.3"],
+      "verification": "dotnet build succeeds, dotnet test passes, running scenes/main.tscn shows MainMenu (or Tutorial for first launch), integration tests pass, all existing 519+ unit tests still pass",
+      "status": "pending"
     }
   ]
 }

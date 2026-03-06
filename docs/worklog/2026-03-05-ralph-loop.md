@@ -479,3 +479,10 @@ readability at 1x). Cross-references art-and-style.md for visual identity and ar
 for manuscript sources. This doc bridges the gap between the art vision docs and the practical
 "how do I actually replace a placeholder with a real sprite" workflow.
 Commit: 54ec509
+
+## Code Review (m) — ART.1–ART.3
+Reviewed 6 commits (e9e67a2..184d4d2) covering the RetroDiffusion MCP server, SpritePreview tool,
+and art workflow docs. Found one P1 issue: `art/generated/` was missing from `.gitignore`, meaning
+AI-generated binary PNGs could be accidentally committed. Fixed with a 1-line gitignore addition.
+Both new code files (retrodiffusion-server.js and SpritePreview.cs) are clean and well-structured.
+Commit: 04940b8
