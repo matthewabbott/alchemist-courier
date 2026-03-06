@@ -33,6 +33,9 @@ public partial class PuzzleScreen : Control
     private Button _primerButton = null!;
     private AspectLegendPanel _legendPanel = null!;
     private ItemDetailPanel _itemDetailPanel = null!;
+    private Button _hintButton = null!;
+    private Label _hintCountLabel = null!;
+    private HintState _hintState = new HintState(0);
     private PanelContainer _resultOverlay = null!;
     private Label _resultLabel = null!;
     private Label _dayLabel = null!;
@@ -47,6 +50,9 @@ public partial class PuzzleScreen : Control
     /// Set before adding to scene tree to load a generated puzzle instead of the demo.
     /// </summary>
     public PuzzleState? PuzzleData { get; set; }
+
+    /// <summary>Current hint state for testing and external access.</summary>
+    public HintState HintState => _hintState;
 
     /// <summary>
     /// Optional header text for the day indicator (e.g., "Day 42"). Set before _Ready().
@@ -103,6 +109,7 @@ public partial class PuzzleScreen : Control
         _puzzleType = state.PuzzleType;
         _metaGrid = PuzzleSolver.ReconstructGrid(state);
         _trayReagents = PuzzleSolver.ReconstructReagents(state);
+        _hintState = new HintState(state.MaxHints);
 
         // Pre-place locked reagents at their solution positions
         foreach (var placement in state.Solution)
@@ -269,6 +276,26 @@ public partial class PuzzleScreen : Control
         _resetButton = CreateStyledButton("Reset", new Color(0.35f, 0.3f, 0.28f));
         _resetButton.Pressed += OnResetPressed;
         buttonBar.AddChild(_resetButton);
+
+        // Hint button + counter
+        _hintButton = CreateStyledButton("Hint", new Color(0.4f, 0.35f, 0.55f));
+        _hintButton.Pressed += OnHintPressed;
+        buttonBar.AddChild(_hintButton);
+
+        _hintCountLabel = new Label
+        {
+            Text = FormatHintCount(),
+        };
+        _hintCountLabel.AddThemeColorOverride("font_color", new Color(0.7f, 0.65f, 0.85f));
+        _hintCountLabel.AddThemeFontSizeOverride("font_size", 12);
+        buttonBar.AddChild(_hintCountLabel);
+
+        // Hide hint button entirely when MaxHints == 0
+        if (_hintState.MaxHints == 0)
+        {
+            _hintButton.Visible = false;
+            _hintCountLabel.Visible = false;
+        }
 
         _primerButton = CreateStyledButton("Aspects", new Color(0.3f, 0.3f, 0.4f));
         _primerButton.Pressed += OnPrimerPressed;
@@ -536,12 +563,17 @@ public partial class PuzzleScreen : Control
             reagent.Rotation = 0;
         }
 
+        // Clear IsHinted on all reagents (preserve hint budget — no refund on reset)
+        foreach (var reagent in _trayReagents)
+            reagent.IsHinted = false;
+
         _lastConfirmResult = ConfirmResult.None;
         _lastReactions.Clear();
         HideResultOverlay();
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
+        UpdateHintButton();
         UpdateStatus("Puzzle reset. Select a reagent from the tray to begin.");
     }
 
@@ -617,6 +649,130 @@ public partial class PuzzleScreen : Control
     private void OnPrimerPressed()
     {
         ToggleLegend();
+    }
+
+    private void OnHintPressed()
+    {
+        if (PuzzleData == null) return;
+
+        var reagentIndex = HintEngine.PickNextHintTarget(PuzzleData, _hintState, _trayReagents);
+        if (reagentIndex == null)
+        {
+            UpdateStatus("No hint targets available — all reagents are placed.");
+            return;
+        }
+
+        var solutionPlacement = HintEngine.GetSolutionPlacement(PuzzleData, reagentIndex.Value);
+        if (solutionPlacement == null)
+        {
+            UpdateStatus("No solution found for this reagent.");
+            return;
+        }
+
+        bool isSnapBack = _hintState.WasHinted(reagentIndex.Value);
+
+        if (!isSnapBack && !_hintState.HasHintsRemaining)
+        {
+            UpdateStatus("No hints remaining.");
+            return;
+        }
+
+        var result = HintEngine.ExecuteHint(_metaGrid, _trayReagents, reagentIndex.Value, solutionPlacement);
+
+        if (result.Type == HintResultType.BlockedByLockedReagent)
+        {
+            UpdateStatus("Hint blocked — a locked reagent occupies the target position.");
+            return;
+        }
+
+        if (!result.IsSuccess)
+        {
+            UpdateStatus($"Hint failed: {result.Type}");
+            return;
+        }
+
+        // Update budget if this was a new hint (not a snap-back)
+        if (!isSnapBack)
+        {
+            _hintState.HintsUsed++;
+            _hintState.HintedReagentIndices.Add(reagentIndex.Value);
+        }
+
+        ClearSelectionState();
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateHintButton();
+
+        var reagentName = _trayReagents[reagentIndex.Value].Definition.Name;
+        if (result.DislodgedReagentIndices.Count > 0)
+        {
+            UpdateStatus($"Hinted: {reagentName} placed at solution position. {result.DislodgedReagentIndices.Count} reagent(s) dislodged.");
+        }
+        else
+        {
+            UpdateStatus($"Hinted: {reagentName} placed at solution position.");
+        }
+    }
+
+    /// <summary>Programmatic hint invocation for testing.</summary>
+    public HintResult? UseHint()
+    {
+        if (PuzzleData == null) return null;
+
+        var reagentIndex = HintEngine.PickNextHintTarget(PuzzleData, _hintState, _trayReagents);
+        if (reagentIndex == null) return null;
+
+        var solutionPlacement = HintEngine.GetSolutionPlacement(PuzzleData, reagentIndex.Value);
+        if (solutionPlacement == null)
+            return new HintResult(HintResultType.NoSolutionFound, reagentIndex.Value);
+
+        bool isSnapBack = _hintState.WasHinted(reagentIndex.Value);
+
+        if (!isSnapBack && !_hintState.HasHintsRemaining)
+            return new HintResult(HintResultType.NoHintsRemaining, reagentIndex.Value);
+
+        var result = HintEngine.ExecuteHint(_metaGrid, _trayReagents, reagentIndex.Value, solutionPlacement);
+
+        if (result.IsSuccess && !isSnapBack)
+        {
+            _hintState.HintsUsed++;
+            _hintState.HintedReagentIndices.Add(reagentIndex.Value);
+        }
+
+        ClearSelectionState();
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateHintButton();
+
+        return result;
+    }
+
+    private void UpdateHintButton()
+    {
+        _hintCountLabel.Text = FormatHintCount();
+
+        // Enable when budget remains OR any unplaced reagent was previously hinted (snap-back)
+        bool hasSnapBack = false;
+        for (int i = 0; i < _trayReagents.Count; i++)
+        {
+            if (!_trayReagents[i].IsPlaced && _hintState.WasHinted(i))
+            {
+                hasSnapBack = true;
+                break;
+            }
+        }
+        _hintButton.Disabled = !_hintState.HasHintsRemaining && !hasSnapBack;
+    }
+
+    private string FormatHintCount()
+    {
+        return $"{_hintState.HintsUsed}/{_hintState.MaxHints}";
     }
 
     public override void _UnhandledKeyInput(InputEvent @event)
