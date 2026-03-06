@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AlchemistCourier.Core.Chemistry;
@@ -23,7 +24,7 @@ public static class PuzzleValidator
             PuzzleType.FitAllSafely => EvaluateFitAllSafely(grid, trayReagents, rules),
             PuzzleType.MaximizeValue => EvaluateMaximizeValue(grid, trayReagents, rules),
             PuzzleType.MeetRequirement => EvaluateMeetRequirement(grid, trayReagents, rules),
-            _ => ValidationResult.NotAllPlaced(trayReagents.Count),
+            _ => throw new ArgumentOutOfRangeException(nameof(puzzleType), puzzleType, "Unhandled PuzzleType"),
         };
     }
 
