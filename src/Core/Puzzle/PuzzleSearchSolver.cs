@@ -70,7 +70,7 @@ public static class PuzzleSearchSolver
             });
         }
 
-        if (Backtrack(grid, reagents, rules, unlockedIndexed, 0, placements, token))
+        if (Backtrack(grid, rules, unlockedIndexed, 0, placements, token))
             return placements;
 
         return null;
@@ -115,13 +115,12 @@ public static class PuzzleSearchSolver
             .ToList();
 
         int count = 0;
-        CountBacktrack(grid, reagents, rules, unlockedIndexed, 0, maxCount, ref count, token);
+        CountBacktrack(grid, rules, unlockedIndexed, 0, maxCount, ref count, token);
         return count;
     }
 
     private static bool Backtrack(
         MetaGrid grid,
-        List<Reagent> reagents,
         List<ReactionRule> rules,
         List<(Reagent reagent, int index)> ordered,
         int depth,
@@ -165,7 +164,7 @@ public static class PuzzleSearchSolver
                         Rotation = rot,
                     });
 
-                    if (Backtrack(grid, reagents, rules, ordered, depth + 1, placements, ct))
+                    if (Backtrack(grid, rules, ordered, depth + 1, placements, ct))
                         return true;
 
                     // Backtrack
@@ -180,7 +179,6 @@ public static class PuzzleSearchSolver
 
     private static void CountBacktrack(
         MetaGrid grid,
-        List<Reagent> reagents,
         List<ReactionRule> rules,
         List<(Reagent reagent, int index)> ordered,
         int depth,
@@ -220,7 +218,7 @@ public static class PuzzleSearchSolver
 
                     grid.PlaceReagent(reagent, pos);
 
-                    CountBacktrack(grid, reagents, rules, ordered, depth + 1, maxCount, ref count, ct);
+                    CountBacktrack(grid, rules, ordered, depth + 1, maxCount, ref count, ct);
 
                     grid.RemoveReagent(reagent);
                 }

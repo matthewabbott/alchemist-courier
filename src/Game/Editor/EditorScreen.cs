@@ -23,6 +23,7 @@ public partial class EditorScreen : Control
     private MetaGridView _gridView = null!;
     private BagEditorPanel _bagEditor = null!;
     private ReagentEditorPanel _reagentEditor = null!;
+    private SolverPanel _solverPanel = null!;
     private LineEdit _nameField = null!;
     private Label _statusLabel = null!;
 
@@ -62,6 +63,7 @@ public partial class EditorScreen : Control
         {
             _bagEditor.SetBags(_currentState.Bags);
             _reagentEditor.SetReagents(_currentState.Reagents);
+            _solverPanel?.ClearResults();
             _nameField.Text = "";
             UpdateStatus("New puzzle created.");
         }
@@ -119,6 +121,7 @@ public partial class EditorScreen : Control
         RebuildMetaGrid();
         _bagEditor.SetBags(_currentState.Bags);
         _reagentEditor.SetReagents(_currentState.Reagents);
+        _solverPanel?.ClearResults();
         UpdateStatus($"Loaded: {puzzleFile.Name}");
     }
 
@@ -155,12 +158,21 @@ public partial class EditorScreen : Control
         content.AddThemeConstantOverride("separation", 12);
         vbox.AddChild(content);
 
-        // Left: MetaGridView centered
+        // Left: MetaGridView centered + SolverPanel below
+        var leftColumn = new VBoxContainer();
+        leftColumn.AddThemeConstantOverride("separation", 8);
+        content.AddChild(leftColumn);
+
         var gridCenter = new CenterContainer();
         _gridView = new MetaGridView();
         _gridView.Initialize(_metaGrid);
         gridCenter.AddChild(_gridView);
-        content.AddChild(gridCenter);
+        leftColumn.AddChild(gridCenter);
+
+        // Solver panel
+        _solverPanel = new SolverPanel();
+        _solverPanel.Initialize(_gridView, () => _currentState);
+        leftColumn.AddChild(_solverPanel);
 
         // Right: editor panels in a scrollable column
         var rightScroll = new ScrollContainer
@@ -311,6 +323,7 @@ public partial class EditorScreen : Control
         SyncStateFromEditors();
         RebuildMetaGrid();
         RefreshGridView();
+        _solverPanel?.ClearResults();
     }
 
     private void SyncStateFromEditors()
@@ -366,6 +379,8 @@ public partial class EditorScreen : Control
         _gridView = new MetaGridView();
         _gridView.Initialize(_metaGrid);
         parent?.AddChild(_gridView);
+
+        _solverPanel?.UpdateGridView(_gridView);
     }
 
     private void UpdateStatus(string message)
