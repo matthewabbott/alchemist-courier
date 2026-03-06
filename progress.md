@@ -466,3 +466,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 718631a..58a0f93 (HINT.5, HINT.6, HINT.7)
 - Findings: 4 (P0: 0, P1: 0, P2: 0, P3: 3, P4: 1)
 - Fixed: 0, Tasks created: 0
+
+## DOC.1 — Create docs/puzzle-design.md
+- Date: 2026-03-05
+- Commit: 1b300c1
+- Notes: Created comprehensive puzzle design document with all 7 required sections: (1) Design philosophy — binary pass/fail as Sudoku model, optimization for higher tiers, time+hints scoring (never move count), never punish experimentation. (2) Tier definitions mapping puzzle types to the 4 project tiers. (3) Current MVP types — FitAllSafely (implemented), MaximizeValue and MeetRequirement (enum only). (4) Post-MVP optimization types — BalanceToNeutral, MinimizeSeverity, MaximizeWithConstraints, TimedChallenge with scoring details. (5) Scoring & Stars — 3-star system (completion, no-hints, speed), par times, timer rules, hint budget impact. (6) Aspirational destruction/transmutation/forced-explosion with infrastructure requirements. (7) DLC-tier actual alchemy — alembic, multi-step brewing, potion output, equipment types. Cross-referenced from roadmap.md, mvp-specification.md, and chemistry-system.md.

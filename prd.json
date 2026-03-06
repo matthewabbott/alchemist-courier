@@ -749,7 +749,7 @@
       "phase": "documentation",
       "depends_on": [],
       "verification": "File exists at docs/puzzle-design.md with all 7 sections covering all 4 tiers",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "DOC.2",

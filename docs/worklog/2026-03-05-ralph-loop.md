@@ -261,3 +261,15 @@ at another's solution position then hinting to force it back to tray), and budge
 across puzzle reset. The dislodge test dynamically searches for overlapping solution pairs,
 gracefully skipping if no overlap exists for the generated puzzle.
 Commit: 29ed603
+
+## DOC.1: Create docs/puzzle-design.md
+First documentation-phase task: created the comprehensive puzzle design reference that
+roadmap.md has been cross-referencing as "(pending DOC.1)" throughout. The document covers
+the full taxonomy of puzzle types across all four project tiers, from the currently-shipping
+FitAllSafely through aspirational destruction/transmutation and DLC-tier actual alchemy. The
+most important section is probably the scoring philosophy — time + hints for secondary scoring,
+with move count explicitly excluded. The design pillar "never punish experimentation" has
+concrete implications here: the timer pauses when reading rules, reset is free, and hints
+reduce stars but don't prevent completion. This doc fills a real gap — several other docs
+were referencing it by name before it existed.
+Commit: 1b300c1
