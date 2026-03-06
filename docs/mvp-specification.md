@@ -37,6 +37,7 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [ ] Share result (Wordle-style grid of emojis showing your solution)
 - [ ] Aspect interaction primer / rules reference accessible from puzzle screen
 - [ ] Non-rectangular bag shapes (L-shapes, irregular)
+- [x] Hint system (budget-limited, auto-pick, snap-back for free re-hints, difficulty-scaled)
 
 ### Explicitly NOT in MVP
 
@@ -297,5 +298,6 @@ The MVP is "done" when:
 
 - `docs/core-mechanics.md` — Full specification of grid, bags, reagents
 - `docs/chemistry-system.md` — Full specification of aspects and interactions
+- `docs/puzzle-design.md` — Future puzzle types, scoring, and progression across all tiers
 - `docs/architecture.md` — Technical architecture and data models
 - `docs/art-and-style.md` — Art direction and placeholder strategy

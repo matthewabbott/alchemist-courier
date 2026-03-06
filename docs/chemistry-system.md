@@ -306,16 +306,13 @@ The Alchemical Codex tracks what the player has learned about reagents and their
 - Primarily informational — all practical benefits are already in the UI
 - May include lore text, alchemical illustrations, and flavor descriptions
 
-## Future: Brewing and Mixing (Aspirational)
+## Future: Destruction, Transmutation, and Brewing
 
-A "Mixing and Brewing" update could allow:
-- Combining reagents to create new reagents (like RE4's herb combining)
-- Using special equipment (mortar & pestle, alembic) to process reagents
-- Transmutation: changing one reagent's aspects through alchemical processes
-- This is NOT in scope for MVP or early development
+Aspirational puzzle types (destruction, transmutation, forced explosion) and DLC-tier features (alembic brewing, multi-step potion crafting) are documented in detail in `docs/puzzle-design.md` sections 6 and 7. These require infrastructure beyond the current evaluate-on-confirm model and are not in scope for MVP.
 
 ## Related Documents
 
 - `docs/core-mechanics.md` — The grid, bags, and reagents that aspects are applied to
 - `docs/mvp-specification.md` — Which aspects and interactions appear in the MVP
+- `docs/puzzle-design.md` — Future puzzle types, scoring, destruction/transmutation, and brewing
 - `docs/architecture.md` — Data structures for the chemistry engine

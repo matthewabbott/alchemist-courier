@@ -83,7 +83,7 @@ Each stage builds on the previous:
 6. **Regions & Story** — Multiple biomes, narrative, NPC interactions
 7. **Advanced Alchemy** — Multiple schools of alchemy, complex interactions, brewing/mixing
 
-See `docs/roadmap.md` for the complete feature roadmap with tier classifications and detailed cross-references.
+See `docs/roadmap.md` for the complete feature roadmap with tier classifications and detailed cross-references. For detailed puzzle type designs across all tiers (optimization types, destruction/transmutation, brewing), see `docs/puzzle-design.md`.
 
 ## Key Design Pillars
 
@@ -101,4 +101,5 @@ See `docs/roadmap.md` for the complete feature roadmap with tier classifications
 - `docs/roadmap.md` — Complete feature roadmap (MVP through DLC) with tier classifications
 - `docs/venture-and-progression.md` — Post-MVP venture loop, stamina, quests, base
 - `docs/art-and-style.md` — Visual direction, RetroDiffusion, UI, audio
+- `docs/puzzle-design.md` — Puzzle types, scoring, and progression across all tiers
 - `docs/architecture.md` — Technical architecture, data models, C# patterns
