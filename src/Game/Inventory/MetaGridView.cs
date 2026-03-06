@@ -38,6 +38,9 @@ public partial class MetaGridView : Control
     // Bag border nodes
     private readonly List<ColorRect> _bagBorders = new();
 
+    // Hinted reagent border nodes
+    private readonly List<ColorRect> _hintedBorders = new();
+
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
 
@@ -266,6 +269,9 @@ public partial class MetaGridView : Control
 
         // Draw bag borders
         CreateBagBorders(bagIndexMap);
+
+        // Draw hinted reagent borders
+        CreateHintedBorders();
     }
 
     private void CreateBagBorders(Dictionary<Bag, int> bagIndexMap)
@@ -295,6 +301,81 @@ public partial class MetaGridView : Control
                 }
             }
         }
+    }
+
+    private void CreateHintedBorders()
+    {
+        foreach (var border in _hintedBorders)
+        {
+            border.QueueFree();
+        }
+        _hintedBorders.Clear();
+
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (!cell.IsOccupied) continue;
+
+                var reagent = (Reagent)cell.OccupyingReagent!;
+                if (!reagent.IsHinted) continue;
+
+                var pos = new CoreVec(col, row);
+                var pixelPos = GridCoordinates.GridToPixel(pos);
+
+                // Draw border on edges where adjacent cell is not the same reagent
+                foreach (var dir in CoreVec.CardinalDirections)
+                {
+                    var neighborPos = pos + dir;
+                    var neighbor = _metaGrid.GetCell(neighborPos);
+                    bool isBoundary = neighbor == null || neighbor.OccupyingReagent != reagent;
+
+                    if (!isBoundary) continue;
+
+                    var border = CreateHintedBorderRect(pixelPos, dir);
+                    AddChild(border);
+                    _hintedBorders.Add(border);
+                }
+            }
+        }
+    }
+
+    private ColorRect CreateHintedBorderRect(Vector2 cellPixelPos, CoreVec direction)
+    {
+        float cs = GridConstants.CellSize;
+        const float bw = 2;
+        Vector2 pos;
+        Vector2 size;
+
+        if (direction.Row == -1)
+        {
+            pos = cellPixelPos;
+            size = new Vector2(cs, bw);
+        }
+        else if (direction.Row == 1)
+        {
+            pos = cellPixelPos + new Vector2(0, cs - bw);
+            size = new Vector2(cs, bw);
+        }
+        else if (direction.Col == -1)
+        {
+            pos = cellPixelPos;
+            size = new Vector2(bw, cs);
+        }
+        else
+        {
+            pos = cellPixelPos + new Vector2(cs - bw, 0);
+            size = new Vector2(bw, cs);
+        }
+
+        return new ColorRect
+        {
+            Position = pos,
+            Size = size,
+            Color = GridConstants.HintedBorderColor,
+            ZIndex = 2,
+        };
     }
 
     private ColorRect CreateBorderRect(Vector2 cellPixelPos, CoreVec direction)

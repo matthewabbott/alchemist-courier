@@ -18,6 +18,7 @@ public partial class ReagentTrayItem : PanelContainer
     private Label _label = null!;
     private StyleBoxFlat _normalStyle = null!;
     private StyleBoxFlat _selectedStyle = null!;
+    private ColorRect? _hintDot;
 
     [Signal]
     public delegate void ClickedEventHandler(int index);
@@ -87,6 +88,17 @@ public partial class ReagentTrayItem : PanelContainer
         _label.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.85f));
         hbox.AddChild(_label);
 
+        // Hint indicator dot (hidden by default, shown for snap-back availability)
+        _hintDot = new ColorRect
+        {
+            CustomMinimumSize = new Vector2(6, 6),
+            Color = GridConstants.HintedBorderColor,
+            Visible = false,
+        };
+        var hintDotCenter = new CenterContainer { CustomMinimumSize = new Vector2(10, 8) };
+        hintDotCenter.AddChild(_hintDot);
+        hbox.AddChild(hintDotCenter);
+
         // Aspect color dots — small colored squares showing which aspects the reagent has
         var aspectDots = BuildAspectDots(reagent);
         if (aspectDots != null)
@@ -104,6 +116,12 @@ public partial class ReagentTrayItem : PanelContainer
     {
         _isSelected = selected;
         AddThemeStyleboxOverride("panel", selected ? _selectedStyle : _normalStyle);
+    }
+
+    public void SetHintIndicator(bool wasHinted)
+    {
+        if (_hintDot == null) return;
+        _hintDot.Visible = wasHinted;
     }
 
     public override void _GuiInput(InputEvent @event)

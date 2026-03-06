@@ -23,6 +23,9 @@ public static class GridConstants
     public const int HighlightEdgeWidth = 3;
     public static readonly Color DimOverlayColor = new(0f, 0f, 0f, 0.6f);
 
+    // Hint system
+    public static readonly Color HintedBorderColor = new(0.55f, 0.45f, 0.75f);
+
     // Bag hue offsets — each placed bag gets a slightly different tint
     private static readonly Color[] BagTints = new[]
     {

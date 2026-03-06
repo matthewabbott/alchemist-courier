@@ -235,6 +235,7 @@ public partial class PuzzleScreen : Control
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
         _reagentTray = new ReagentTray();
+        _reagentTray.SetHintState(_hintState);
         _reagentTray.Initialize(_trayReagents);
         _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         trayScroll.AddChild(_reagentTray);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 
 namespace AlchemistCourier.Game.Inventory;
@@ -8,6 +9,7 @@ public partial class ReagentTray : VBoxContainer
 {
     private List<Reagent> _allReagents = new();
     private readonly List<ReagentTrayItem> _items = new();
+    private HintState? _hintState;
 
     [Signal]
     public delegate void ReagentSelectedEventHandler(int reagentIndex);
@@ -35,6 +37,12 @@ public partial class ReagentTray : VBoxContainer
         AddChild(new HSeparator());
 
         BuildItems();
+    }
+
+    /// <summary>Set the hint state for showing snap-back indicators on tray items.</summary>
+    public void SetHintState(HintState? hintState)
+    {
+        _hintState = hintState;
     }
 
     public void RefreshDisplay()
@@ -76,6 +84,11 @@ public partial class ReagentTray : VBoxContainer
             var item = new ReagentTrayItem();
             AddChild(item);
             item.Initialize(reagent, i);
+
+            // Show purple dot for previously-hinted reagents back in tray (snap-back available)
+            if (_hintState != null && _hintState.WasHinted(i))
+                item.SetHintIndicator(true);
+
             item.Clicked += OnItemClicked;
             item.Hovered += OnItemHovered;
             item.Unhovered += OnItemUnhovered;
