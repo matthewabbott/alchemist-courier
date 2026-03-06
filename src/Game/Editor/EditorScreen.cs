@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Bags;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Puzzle;
+using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Game.Inventory;
 
 namespace AlchemistCourier.Game.Editor;
@@ -13,6 +15,7 @@ namespace AlchemistCourier.Game.Editor;
 /// Left side: MetaGridView showing current puzzle state.
 /// Right side: BagEditorPanel and ReagentEditorPanel in a scrollable column.
 /// Bottom bar: New, Save, Load buttons and puzzle name field.
+/// Supports a Play mode toggle that lets the author test their puzzle interactively.
 /// </summary>
 public partial class EditorScreen : Control
 {
@@ -20,16 +23,45 @@ public partial class EditorScreen : Control
     private static readonly Color LabelColor = new(0.75f, 0.75f, 0.7f);
     private static readonly Color StatusColor = new(0.55f, 0.55f, 0.5f);
 
+    // --- Editor mode UI ---
     private MetaGridView _gridView = null!;
     private BagEditorPanel _bagEditor = null!;
     private ReagentEditorPanel _reagentEditor = null!;
     private SolverPanel _solverPanel = null!;
     private LineEdit _nameField = null!;
     private Label _statusLabel = null!;
+    private CenterContainer _gridCenter = null!;
 
+    // Editor-only containers (hidden in play mode)
+    private ScrollContainer _editorRightScroll = null!;
+    private HBoxContainer _editorBottomBar = null!;
+    private HSeparator _editorBottomSeparator = null!;
+
+    // --- Play mode UI (created lazily) ---
+    private bool _isPlayMode;
+    private Button _playToggleButton = null!;
+    private Label _headerTitle = null!;
+
+    // Play mode containers
+    private VBoxContainer? _playRightColumn;
+    private ReagentTray? _playTray;
+    private ObjectivePanel? _playObjective;
+    private StatusBarPanel? _playStatusBar;
+    private HBoxContainer? _playButtonBar;
+    private HSeparator? _playBottomSeparator;
+
+    // Play mode state
+    private MetaGrid? _playMetaGrid;
+    private List<Reagent>? _playReagents;
+    private Reagent? _playSelectedReagent;
+
+    // --- Shared state ---
     private MetaGrid _metaGrid = null!;
     private PuzzleState _currentState = new();
     private string? _currentFilePath;
+
+    /// <summary>Whether the editor is currently in play mode.</summary>
+    public bool IsPlayMode => _isPlayMode;
 
     public override void _Ready()
     {
@@ -163,11 +195,11 @@ public partial class EditorScreen : Control
         leftColumn.AddThemeConstantOverride("separation", 8);
         content.AddChild(leftColumn);
 
-        var gridCenter = new CenterContainer();
+        _gridCenter = new CenterContainer();
         _gridView = new MetaGridView();
         _gridView.Initialize(_metaGrid);
-        gridCenter.AddChild(_gridView);
-        leftColumn.AddChild(gridCenter);
+        _gridCenter.AddChild(_gridView);
+        leftColumn.AddChild(_gridCenter);
 
         // Solver panel
         _solverPanel = new SolverPanel();
@@ -175,18 +207,18 @@ public partial class EditorScreen : Control
         leftColumn.AddChild(_solverPanel);
 
         // Right: editor panels in a scrollable column
-        var rightScroll = new ScrollContainer
+        _editorRightScroll = new ScrollContainer
         {
             CustomMinimumSize = new Vector2(300, 0),
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
             SizeFlagsVertical = SizeFlags.ExpandFill,
         };
-        content.AddChild(rightScroll);
+        content.AddChild(_editorRightScroll);
 
         var rightColumn = new VBoxContainer();
         rightColumn.AddThemeConstantOverride("separation", 12);
         rightColumn.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        rightScroll.AddChild(rightColumn);
+        _editorRightScroll.AddChild(rightColumn);
 
         // Bag editor
         _bagEditor = new BagEditorPanel();
@@ -206,7 +238,8 @@ public partial class EditorScreen : Control
         rightColumn.AddChild(_reagentEditor);
 
         // ---- Bottom bar ----
-        vbox.AddChild(new HSeparator());
+        _editorBottomSeparator = new HSeparator();
+        vbox.AddChild(_editorBottomSeparator);
         BuildBottomBar(vbox);
 
         // Status label
@@ -243,45 +276,305 @@ public partial class EditorScreen : Control
         var headerHBox = new HBoxContainer();
         headerPanel.AddChild(headerHBox);
 
-        var title = new Label { Text = "Puzzle Editor" };
-        title.AddThemeColorOverride("font_color", HeaderColor);
-        title.AddThemeFontSizeOverride("font_size", 18);
-        headerHBox.AddChild(title);
+        _headerTitle = new Label { Text = "Puzzle Editor" };
+        _headerTitle.AddThemeColorOverride("font_color", HeaderColor);
+        _headerTitle.AddThemeFontSizeOverride("font_size", 18);
+        headerHBox.AddChild(_headerTitle);
+
+        // Spacer
+        headerHBox.AddChild(new Control { SizeFlagsHorizontal = SizeFlags.ExpandFill });
+
+        // Play/Edit toggle button
+        _playToggleButton = CreateStyledButton("Play", new Color(0.3f, 0.45f, 0.55f));
+        _playToggleButton.Pressed += OnPlayTogglePressed;
+        headerHBox.AddChild(_playToggleButton);
     }
 
     private void BuildBottomBar(VBoxContainer parent)
     {
-        var bar = new HBoxContainer();
-        bar.Alignment = BoxContainer.AlignmentMode.Center;
-        bar.AddThemeConstantOverride("separation", 10);
-        parent.AddChild(bar);
+        _editorBottomBar = new HBoxContainer();
+        _editorBottomBar.Alignment = BoxContainer.AlignmentMode.Center;
+        _editorBottomBar.AddThemeConstantOverride("separation", 10);
+        parent.AddChild(_editorBottomBar);
 
         // Puzzle name field
         var nameLabel = new Label { Text = "Name:" };
         nameLabel.AddThemeColorOverride("font_color", LabelColor);
         nameLabel.AddThemeFontSizeOverride("font_size", 12);
-        bar.AddChild(nameLabel);
+        _editorBottomBar.AddChild(nameLabel);
 
         _nameField = new LineEdit
         {
             PlaceholderText = "Untitled Puzzle",
             CustomMinimumSize = new Vector2(180, 0),
         };
-        bar.AddChild(_nameField);
+        _editorBottomBar.AddChild(_nameField);
 
         // Buttons
         var newBtn = CreateStyledButton("New", new Color(0.35f, 0.35f, 0.4f));
         newBtn.Pressed += OnNewPressed;
-        bar.AddChild(newBtn);
+        _editorBottomBar.AddChild(newBtn);
 
         var saveBtn = CreateStyledButton("Save", new Color(0.25f, 0.45f, 0.35f));
         saveBtn.Pressed += OnSavePressed;
-        bar.AddChild(saveBtn);
+        _editorBottomBar.AddChild(saveBtn);
 
         var loadBtn = CreateStyledButton("Load", new Color(0.3f, 0.35f, 0.45f));
         loadBtn.Pressed += OnLoadPressed;
-        bar.AddChild(loadBtn);
+        _editorBottomBar.AddChild(loadBtn);
     }
+
+    // ---- Play Mode ----
+
+    private void OnPlayTogglePressed()
+    {
+        if (_isPlayMode)
+            ExitPlayMode();
+        else
+            EnterPlayMode();
+    }
+
+    /// <summary>Enter play mode: build a playable puzzle from the current editor state.</summary>
+    public void EnterPlayMode()
+    {
+        if (_isPlayMode) return;
+
+        SyncStateFromEditors();
+
+        if (_currentState.Reagents.Count == 0)
+        {
+            UpdateStatus("Cannot play: no reagents defined.");
+            return;
+        }
+
+        _isPlayMode = true;
+        _playToggleButton.Text = "Back to Edit";
+        _headerTitle.Text = "Puzzle Editor — Play Mode";
+
+        // Build play-mode grid and reagents from current state
+        _playMetaGrid = PuzzleSolver.ReconstructGrid(_currentState);
+        _playReagents = PuzzleSolver.ReconstructReagents(_currentState);
+
+        // Replace grid view with play-mode grid
+        ReplaceGridView(_playMetaGrid);
+        _gridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
+
+        // Hide editor panels
+        _editorRightScroll.Visible = false;
+        _solverPanel.Visible = false;
+        _editorBottomBar.Visible = false;
+        _editorBottomSeparator.Visible = false;
+
+        // Build play mode UI
+        BuildPlayModeUI();
+
+        // Wire play-mode signals
+        _playTray!.ReagentSelected += OnPlayReagentSelected;
+        _gridView.ReagentPlaced += OnPlayReagentPlaced;
+        _gridView.ReagentRemoved += OnPlayReagentRemoved;
+
+        UpdateStatus("Play mode — select a reagent from the tray, then click the grid to place it.");
+    }
+
+    /// <summary>Exit play mode: discard placements and restore editor state.</summary>
+    public void ExitPlayMode()
+    {
+        if (!_isPlayMode) return;
+
+        _isPlayMode = false;
+        _playToggleButton.Text = "Play";
+        _headerTitle.Text = "Puzzle Editor";
+        _playSelectedReagent = null;
+
+        // Tear down play mode UI
+        TearDownPlayModeUI();
+
+        // Restore editor grid
+        ReplaceGridView(_metaGrid);
+
+        // Show editor panels
+        _editorRightScroll.Visible = true;
+        _solverPanel.Visible = true;
+        _editorBottomBar.Visible = true;
+        _editorBottomSeparator.Visible = true;
+
+        _solverPanel.UpdateGridView(_gridView);
+
+        // Discard play state
+        _playMetaGrid = null;
+        _playReagents = null;
+
+        UpdateStatus("Back to edit mode. Placements discarded.");
+    }
+
+    private void BuildPlayModeUI()
+    {
+        // The parent of _editorRightScroll is the content HBoxContainer
+        var contentHBox = _editorRightScroll.GetParent<HBoxContainer>();
+
+        // Right column: tray + objective
+        _playRightColumn = new VBoxContainer();
+        _playRightColumn.SizeFlagsVertical = SizeFlags.ExpandFill;
+        _playRightColumn.AddThemeConstantOverride("separation", 10);
+        contentHBox.AddChild(_playRightColumn);
+
+        // Reagent tray in a scroll container
+        var trayScroll = new ScrollContainer
+        {
+            CustomMinimumSize = new Vector2(200, 0),
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+        };
+        _playTray = new ReagentTray();
+        _playTray.Initialize(_playReagents!);
+        _playTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        trayScroll.AddChild(_playTray);
+        _playRightColumn.AddChild(trayScroll);
+
+        // Objective panel
+        _playObjective = new ObjectivePanel();
+        _playObjective.Initialize(_currentState.PuzzleType);
+        _playRightColumn.AddChild(_playObjective);
+
+        // Bottom section: separator + status bar + buttons
+        var vbox = _editorBottomSeparator.GetParent<VBoxContainer>();
+
+        _playBottomSeparator = new HSeparator();
+        // Insert before the status label (which is the last child)
+        int statusIdx = _statusLabel.GetIndex();
+        vbox.AddChild(_playBottomSeparator);
+        vbox.MoveChild(_playBottomSeparator, statusIdx);
+
+        _playStatusBar = new StatusBarPanel();
+        _playStatusBar.Initialize(_playMetaGrid!, ReactionRuleDatabase.GetMvpRules());
+        vbox.AddChild(_playStatusBar);
+        vbox.MoveChild(_playStatusBar, statusIdx + 1);
+
+        _playButtonBar = new HBoxContainer();
+        _playButtonBar.Alignment = BoxContainer.AlignmentMode.Center;
+        _playButtonBar.AddThemeConstantOverride("separation", 12);
+        vbox.AddChild(_playButtonBar);
+        vbox.MoveChild(_playButtonBar, statusIdx + 2);
+
+        var resetBtn = CreateStyledButton("Reset", new Color(0.35f, 0.3f, 0.28f));
+        resetBtn.Pressed += OnPlayResetPressed;
+        _playButtonBar.AddChild(resetBtn);
+    }
+
+    private void TearDownPlayModeUI()
+    {
+        if (_playRightColumn != null)
+        {
+            _playRightColumn.QueueFree();
+            _playRightColumn = null;
+            _playTray = null;
+            _playObjective = null;
+        }
+
+        if (_playStatusBar != null)
+        {
+            _playStatusBar.QueueFree();
+            _playStatusBar = null;
+        }
+
+        if (_playButtonBar != null)
+        {
+            _playButtonBar.QueueFree();
+            _playButtonBar = null;
+        }
+
+        if (_playBottomSeparator != null)
+        {
+            _playBottomSeparator.QueueFree();
+            _playBottomSeparator = null;
+        }
+    }
+
+    private void OnPlayReagentSelected(int index)
+    {
+        if (_playReagents == null || index < 0 || index >= _playReagents.Count) return;
+
+        _playSelectedReagent = _playReagents[index];
+        _playSelectedReagent.Rotation = 0;
+        _gridView.SetSelectedReagent(_playSelectedReagent);
+        _playTray!.HighlightIndex(index);
+        UpdateStatus($"Placing: {_playSelectedReagent.Definition.Name}  |  Right-click = rotate  |  Left-click = place  |  Esc = cancel");
+    }
+
+    private void OnPlayReagentPlaced()
+    {
+        var name = _playSelectedReagent?.Definition.Name ?? "Reagent";
+        ClearPlaySelection();
+        _playTray!.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _playStatusBar!.Refresh();
+
+        int remaining = CountPlayUnplaced();
+        if (remaining == 0)
+            UpdateStatus($"Placed {name}. All reagents placed!");
+        else
+            UpdateStatus($"Placed {name}. {remaining} remaining.");
+    }
+
+    private void OnPlayReagentRemoved()
+    {
+        _playTray!.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _playStatusBar!.Refresh();
+        UpdateStatus("Removed reagent. Select one from the tray to place it.");
+    }
+
+    private void OnPlayResetPressed()
+    {
+        if (_playMetaGrid == null || _playReagents == null) return;
+
+        ClearPlaySelection();
+
+        // Remove all placed reagents
+        for (int i = _playMetaGrid.PlacedReagents.Count - 1; i >= 0; i--)
+        {
+            var reagent = _playMetaGrid.PlacedReagents[i];
+            _playMetaGrid.RemoveReagent(reagent);
+            reagent.Rotation = 0;
+        }
+
+        _playTray!.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _playStatusBar!.Refresh();
+        UpdateStatus("Puzzle reset. Select a reagent from the tray.");
+    }
+
+    private void ClearPlaySelection()
+    {
+        _playSelectedReagent = null;
+        _gridView.SetSelectedReagent(null);
+        _playTray?.ClearSelection();
+    }
+
+    private int CountPlayUnplaced()
+    {
+        if (_playReagents == null) return 0;
+        int count = 0;
+        foreach (var r in _playReagents)
+        {
+            if (!r.IsPlaced) count++;
+        }
+        return count;
+    }
+
+    public override void _UnhandledKeyInput(InputEvent @event)
+    {
+        if (!_isPlayMode) return;
+        if (@event is InputEventKey { Pressed: true } keyEvent)
+        {
+            if (keyEvent.Keycode == Key.Escape && _playSelectedReagent != null)
+            {
+                ClearPlaySelection();
+                UpdateStatus("Cancelled. Select a reagent from the tray.");
+            }
+        }
+    }
+
+    // ---- Editor mode handlers ----
 
     private void OnNewPressed()
     {
@@ -364,22 +657,23 @@ public partial class EditorScreen : Control
         }
     }
 
-    private void RefreshGridView()
+    private void ReplaceGridView(MetaGrid grid)
     {
-        if (_gridView == null) return;
-
-        // Re-create the grid view with the new MetaGrid
-        var parent = _gridView.GetParent();
-        if (parent != null)
+        if (_gridView != null)
         {
-            parent.RemoveChild(_gridView);
+            _gridCenter.RemoveChild(_gridView);
             _gridView.QueueFree();
         }
 
         _gridView = new MetaGridView();
-        _gridView.Initialize(_metaGrid);
-        parent?.AddChild(_gridView);
+        _gridView.Initialize(grid);
+        _gridCenter.AddChild(_gridView);
+    }
 
+    private void RefreshGridView()
+    {
+        if (_gridView == null) return;
+        ReplaceGridView(_metaGrid);
         _solverPanel?.UpdateGridView(_gridView);
     }
 
