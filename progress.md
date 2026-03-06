@@ -496,3 +496,17 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - GDScript score: 100/100
 - Total open issues: 93 (C#) + 0 (GDScript)
 - P0 issues: 0
+
+## Integration Review — 2026-03-05 (f)
+- Reviewed commits: 1efadb8..1c7cdcc (T.1, highlight system H.1-H.14, hint system HINT.1-HINT.8, R-8, DOC.1-DOC.2)
+- Build: PASS (497/497 unit tests)
+- Harness: 23/23 tests pass, 0 failures
+- Visual: 34 screenshots verified, no game-facing regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Coverage gaps: 10 features (B.1-B.4 bag mechanics, A.1-A.6 aspect mechanics) lack integration tests — all have comprehensive unit tests but are excluded from the Easy-difficulty test path. Recommend future Test_MediumDifficultyPuzzle.
+- Notes: Full highlight system (constraint, interaction, eagle sense, legend, item detail, rejection tooltip, ghost constraint) and hint system (budget, auto-pick, snap-back, dislodge, visual indicators) all working correctly end-to-end. 208 new unit tests since last integration review (289→497). Test harness grew from 13→23 integration tests.
+
+## T.2 — Update review-code prompt with desloppify step
+- Date: 2026-03-05
+- Commit: acf41ab
+- Notes: Added step 5 (desloppify scan/next/fix) to scripts/ralph/prompts/review-code.md. The new step runs `desloppify scan` for baseline score, `desloppify next` for highest-priority issue, fixes P0-P1 issues if quick, and re-scans to verify. Renumbered subsequent steps (5→6 through 11→12). Added Desloppify section to the report template for before/after score tracking. The qualitative deslop.md review (step 4) is preserved for architectural and game-specific concerns that desloppify cannot catch.

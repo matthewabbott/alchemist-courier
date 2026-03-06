@@ -300,3 +300,11 @@ review dimensions haven't been assessed yet. No P0 issues. The `update-skill cla
 hits a Windows cp1252 encoding bug (non-blocking). Added `.desloppify/` state files to git
 and `.bak` files to `.gitignore`.
 Commit: 4249356
+
+## T.2: Update review-code prompt with desloppify step
+Added mechanical code scanning to the review agent's workflow. The new step 5 runs
+`desloppify scan` for a baseline score, `desloppify next` for the highest-priority issue,
+fixes any P0-P1 quick wins, and re-scans to verify. The qualitative deslop.md review
+stays as the human-insight complement — desloppify handles naming/formatting/dead code,
+while the manual review catches architectural drift and game-specific design concerns.
+Commit: acf41ab

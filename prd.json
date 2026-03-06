@@ -781,7 +781,7 @@
       "phase": "tooling",
       "depends_on": ["T.1"],
       "verification": "scripts/ralph/prompts/review-code.md contains desloppify scan/next/fix steps",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "T.3",
