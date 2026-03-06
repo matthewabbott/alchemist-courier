@@ -321,3 +321,14 @@ memory), the placeholder-to-real-art pipeline, the select-then-place input archi
 and the three-layer testing strategy. Every pattern references actual codebase files and
 methods so it stays grounded, not aspirational.
 Commit: 861a1d0
+
+## E.1: Auto-solver — PuzzleSearchSolver with backtracking
+First post-MVP task: a pure C# backtracking solver that can find valid solutions for any
+puzzle. The solver treats each puzzle as a constraint-satisfaction problem — assign each
+reagent a (position, rotation) tuple such that nothing overlaps, everything sits in a bag,
+and ChemistryEngine reports zero reactions. Uses the same MRV heuristic as PuzzleGenerator
+(Heavy first, then Sharp, then largest) to minimize dead-end exploration. Reuses
+PuzzleSolver's grid/reagent reconstruction and handles locked reagents by pre-placing them
+before the search begins. CancellationToken support enables timeout for the editor's
+solve-on-demand feature. This is the foundation for E.7 (editor solve integration).
+Commit: dafa8ea

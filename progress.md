@@ -520,3 +520,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 5d3c5d4..7ed6878
 - Findings: 1 (P0: 0, P1: 0, P2: 1)
 - Fixed: 1, Tasks created: 0
+
+## E.1 — Auto-solver: PuzzleSearchSolver with backtracking
+- Date: 2026-03-05
+- Commit: dafa8ea
+- Notes: Pure C# backtracking constraint-satisfaction solver. Solve() finds one valid solution, CountSolutions() enumerates up to N solutions. Uses MRV heuristic from PuzzleGenerator (Heavy → Sharp → largest first). Reuses PuzzleSolver.ReconstructGrid/ReconstructReagents for setup, ChemistryEngine.EvaluateProspective for chemistry validation. Supports locked reagent pre-placement and CancellationToken for timeout. 12 new tests covering solvable/unsolvable/timeout/cancelled/reactive/multi-seed scenarios, plus CountSolutions edge cases. All 509 tests pass (497 existing + 12 new).
