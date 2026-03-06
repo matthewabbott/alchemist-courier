@@ -39,16 +39,16 @@ This means the complexity tier isn't just about difficulty -- it's about **conte
 
 #### Simple (Tutorial, Daily Easy/Medium/Hard -- MVP Target)
 
-- **Aspects (6)**: Hot, Cold, Volatile, Stable, Heavy, Toxic
-- **Interactions**: Cumulative thresholds (Hot/Cold/Toxic), Hot+Cold neutralization, Volatile net-hot explosion, Stable buffering, Heavy falling
+- **Aspects (8)**: Hot, Cold, Volatile, Stable, Heavy, Toxic, Sharp, Fragile
+- **Interactions**: Cumulative thresholds (Hot/Cold/Toxic), Hot+Cold neutralization, Volatile net-hot explosion, Stable buffering, Heavy falling, Sharp edge restriction, Sharp+Fragile breakage, Fragile vulnerability to adjacent reactions, Fragile thermal stress (Hot+Cold), Heavy crushing Fragile
 - **Bag types**: Normal, Null, Gravity, Locked
-- **Philosophy**: Few mechanics, complexity from puzzle size. A player who understands 6 aspects and 4 bag types can face endlessly varied spatial challenges. All standalone/one-off puzzles should use this tier.
+- **Philosophy**: Few mechanics, complexity from puzzle size. The per-puzzle complexity budget (~5-6 elements) ensures no single puzzle uses all 8 aspects + 4 bag types simultaneously. All standalone/one-off puzzles should use this tier.
 
 #### Intermediate (Roguelite Mid-Game, Curated Campaigns)
 
-- **Adds aspects (4)**: Sharp, Fragile, Catalytic, Medicinal
+- **Adds aspects (2)**: Catalytic, Medicinal
 - **Adds bag types**: Insulated, Reinforced, Fragile
-- **Adds interactions**: Sharp edge constraint, Sharp+Fragile breakage, Catalytic threshold lowering, Fragile universal vulnerability, Medicinal threshold relief
+- **Adds interactions**: Catalytic threshold lowering, Medicinal threshold relief
 - **Philosophy**: Meaningful new constraints that interact with existing mechanics. Each new aspect has a primary mechanic that matters on its own (not just in combination with one specific partner). Only used in modes that build up to it sequentially.
 
 #### Advanced (Roguelite Late-Game, Special Events)
@@ -70,7 +70,7 @@ The budget counts distinct interaction types: unique aspects + unique bag specia
 | **Intermediate (sequential)** | Higher, TBD during balancing | Could include 8-10 elements after gradual introduction |
 | **Advanced (late roguelite)** | Full mechanical depth | All unlocked mechanics available |
 
-**Rationale:** Even though the Simple tier defines ~10 elements (6 aspects + 4 bag types), using all of them in a single puzzle would overwhelm a player encountering it cold. The budget ensures puzzles are graspable: the legend and tooltips stay manageable, and the player can internalize the active rules before solving.
+**Rationale:** Even though the Simple tier defines 12 elements (8 aspects + 4 bag types), using all of them in a single puzzle would overwhelm a player encountering it cold. The budget ensures puzzles are graspable: the legend and tooltips stay manageable, and the player can internalize the active rules before solving.
 
 The generator should select a subset of available mechanics per puzzle, keeping the total within budget. Scale (puzzle size, reagent count) provides difficulty independently of mechanical depth.
 
@@ -100,8 +100,8 @@ Every aspect has a **primary mechanic** that makes it relevant on its own (non-p
 | **Toxic** | Simple | Cumulative poisoning threshold; Toxic+Toxic same-bag = cloud | Toxic spread within bag (Intermediate) |
 | **Heavy** | Simple | Falls as low as possible in ALL bags (not just Gravity). Descends until bottom-most cells hit the bag floor or another reagent. In Normal bags "bottom" is down; Gravity bags may redefine "bottom" direction | Crushes Fragile directly below (Intermediate); can't protrude (Advanced) |
 | **Stable** | Simple | Raises thresholds of adjacent reactions (universal buffer) | Cancels Catalytic (Advanced) |
-| **Sharp** | Intermediate | Can't place on edge cells of non-reinforced bags | +Fragile adjacent = breakage; pierces Null suppression (Advanced) |
-| **Fragile** | Intermediate | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; Hot+Cold adjacent simultaneously = thermal stress fracture; crushed by Heavy directly above; higher value to compensate vulnerability |
+| **Sharp** | Simple | Can't place on edge cells of non-reinforced bags | +Fragile adjacent = breakage; pierces Null suppression (Advanced) |
+| **Fragile** | Simple | Breaks from ANY adjacent reaction; can't be in gravity bags | +Sharp = breakage; Hot+Cold adjacent simultaneously = thermal stress fracture; crushed by Heavy directly above; higher value to compensate vulnerability |
 | **Catalytic** | Intermediate | Lowers thresholds of adjacent reactions (inverse of Stable) | Universal amplifier -- makes mild interactions dangerous |
 | **Medicinal** | Intermediate | Passively reduces cumulative thresholds when carried | Consume to clear status effects (roguelite) |
 | **Magnetic** | Advanced | Must be placed adjacent to another Magnetic item (forced clustering) | Creates adjacency pressure with everything near the cluster |
