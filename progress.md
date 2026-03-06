@@ -427,3 +427,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 82eb71b
 - Notes: Wired HintEngine and HintState into PuzzleScreen. New HintState field initialized from PuzzleState.MaxHints in InitializeFromPuzzleState(). OnHintPressed() handler: calls PickNextHintTarget for auto-pick, checks snap-back status (free re-hint vs budget cost), calls ExecuteHint, updates budget and UI. UseHint() public method for programmatic/testing access. Hint button with purple styling and "N/M" budget counter label; hidden entirely when MaxHints==0. UpdateHintButton() disables when budget exhausted AND no snap-back candidates available. ResetPuzzle() clears IsHinted on all reagents but preserves hint budget (no refund). All 495 unit tests pass, no new Core tests needed (this is a Game-layer wiring task).
+
+## Code Review (f) — 2026-03-05
+- Reviewed commits: e6ddc8e..f8e4117 (HINT.3, HINT.4, docs)
+- Findings: 2 (P0: 0, P1: 1, P2: 0, P3: 1)
+- Fixed: 1 (DRY: OnHintPressed/UseHint 40-line duplication → OnHintPressed delegates to UseHint), Tasks created: 0

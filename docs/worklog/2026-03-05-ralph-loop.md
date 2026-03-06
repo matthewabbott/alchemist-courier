@@ -213,3 +213,9 @@ entirely when MaxHints==0 (old puzzles, demo mode), and disabled when budget is 
 unless a snap-back candidate exists. ResetPuzzle clears IsHinted on all reagents but preserves
 the hint budget — no refunds.
 Commit: 82eb71b
+
+## Code Review (f)
+Reviewed HINT.3–HINT.4 (e6ddc8e..f8e4117). Found one P1 DRY violation: OnHintPressed and UseHint
+duplicated ~40 lines of identical hint orchestration logic with a subtle behavioral inconsistency
+(UseHint refreshed UI on failure, OnHintPressed didn't). Fixed by making OnHintPressed delegate to
+UseHint and only refreshing UI on success. Net -24 lines. 495 tests pass.
