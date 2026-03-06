@@ -1,6 +1,5 @@
 using Godot;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
-using AlchemistCourier.Game.Inventory;
 
 namespace AlchemistCourier.Game.Editor;
 
@@ -95,8 +94,6 @@ public partial class ShapeEditorWidget : Control
         }
         return result;
     }
-
-    public bool[,] GetShapeRaw() => (bool[,])_shape.Clone();
 
     public void Clear()
     {

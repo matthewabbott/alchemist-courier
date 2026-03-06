@@ -32,7 +32,6 @@ public partial class EditorScreen : Control
 
     public override void _Ready()
     {
-        AnchorsPreset = (int)LayoutPreset.FullRect;
         SetAnchorsPreset(LayoutPreset.FullRect);
 
         NewPuzzle();
@@ -96,7 +95,17 @@ public partial class EditorScreen : Control
     /// <summary>Load a puzzle from a file path using PuzzleFile.</summary>
     public void LoadPuzzle(string path)
     {
-        var puzzleFile = PuzzleFile.Load(path);
+        PuzzleFile? puzzleFile;
+        try
+        {
+            puzzleFile = PuzzleFile.Load(path);
+        }
+        catch (Exception ex)
+        {
+            UpdateStatus($"Load failed: {ex.Message}");
+            return;
+        }
+
         if (puzzleFile == null)
         {
             UpdateStatus("Load failed: invalid puzzle file.");
