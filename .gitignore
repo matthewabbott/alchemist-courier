@@ -48,3 +48,6 @@ nul
 .idea/
 *.user
 *.suo
+
+# Environment
+.env
