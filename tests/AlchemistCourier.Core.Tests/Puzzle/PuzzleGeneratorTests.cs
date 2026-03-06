@@ -528,6 +528,47 @@ public class PuzzleGeneratorTests
         return reagents;
     }
 
+    [Theory]
+    [InlineData(DifficultyLevel.Tutorial1, 3)]
+    [InlineData(DifficultyLevel.Tutorial2, 3)]
+    [InlineData(DifficultyLevel.Tutorial3, 3)]
+    [InlineData(DifficultyLevel.Tutorial4, 3)]
+    [InlineData(DifficultyLevel.Tutorial5, 3)]
+    [InlineData(DifficultyLevel.Easy, 3)]
+    [InlineData(DifficultyLevel.Medium, 2)]
+    [InlineData(DifficultyLevel.Hard, 1)]
+    public void Generate_MaxHints_MatchesDifficultyLevel(DifficultyLevel level, int expectedHints)
+    {
+        var difficulty = DifficultyParams.ForLevel(level);
+        var puzzle = _generator.Generate(42, difficulty);
+
+        Assert.Equal(expectedHints, puzzle.MaxHints);
+    }
+
+    [Fact]
+    public void Generate_CustomDifficultyParams_PreservesMaxHints()
+    {
+        var difficulty = new DifficultyParams(
+            bagCount: 1,
+            bagMinSize: 9,
+            bagMaxSize: 9,
+            reagentCount: 2,
+            maxAspectCount: 0,
+            spareSpacePercent: 0.5f,
+            allowSpecialBags: false,
+            maxHints: 5);
+        var puzzle = _generator.Generate(99, difficulty);
+
+        Assert.Equal(5, puzzle.MaxHints);
+    }
+
+    [Fact]
+    public void DifficultyParams_DefaultMaxHints_IsZero()
+    {
+        var difficulty = new DifficultyParams();
+        Assert.Equal(0, difficulty.MaxHints);
+    }
+
     private static void AssertShapesEqual(bool[][] a, bool[][] b)
     {
         Assert.Equal(a.Length, b.Length);

@@ -29,6 +29,9 @@ public class DifficultyParams
     /// <summary>Whether bags with special properties (Null, Insulated, etc.) are allowed.</summary>
     public bool AllowSpecialBags { get; set; }
 
+    /// <summary>Maximum number of hints allowed for puzzles generated with these params.</summary>
+    public int MaxHints { get; set; }
+
     /// <summary>
     /// Controls mechanical depth — which aspects, bag types, and reaction rules are available.
     /// All standalone/daily puzzles use Simple regardless of difficulty level.
@@ -45,7 +48,8 @@ public class DifficultyParams
         int maxAspectCount,
         float spareSpacePercent,
         bool allowSpecialBags,
-        ComplexityLevel complexityLevel = ComplexityLevel.Simple)
+        ComplexityLevel complexityLevel = ComplexityLevel.Simple,
+        int maxHints = 0)
     {
         BagCount = bagCount;
         BagMinSize = bagMinSize;
@@ -55,6 +59,7 @@ public class DifficultyParams
         SpareSpacePercent = spareSpacePercent;
         AllowSpecialBags = allowSpecialBags;
         ComplexityLevel = complexityLevel;
+        MaxHints = maxHints;
     }
 
     /// <summary>
@@ -63,14 +68,14 @@ public class DifficultyParams
     /// </summary>
     public static DifficultyParams ForLevel(DifficultyLevel level) => level switch
     {
-        DifficultyLevel.Tutorial1 => new DifficultyParams(1, 9, 9, 2, 0, 0.5f, false, ComplexityLevel.Simple),
-        DifficultyLevel.Tutorial2 => new DifficultyParams(1, 9, 9, 3, 1, 0.3f, false, ComplexityLevel.Simple),
-        DifficultyLevel.Tutorial3 => new DifficultyParams(2, 6, 9, 4, 2, 0.3f, false, ComplexityLevel.Simple),
-        DifficultyLevel.Tutorial4 => new DifficultyParams(2, 6, 12, 5, 2, 0.3f, true, ComplexityLevel.Simple),
-        DifficultyLevel.Tutorial5 => new DifficultyParams(2, 6, 12, 5, 2, 0.3f, false, ComplexityLevel.Simple),
-        DifficultyLevel.Easy => new DifficultyParams(2, 6, 12, 6, 2, 0.3f, false, ComplexityLevel.Simple),
-        DifficultyLevel.Medium => new DifficultyParams(3, 6, 12, 8, 3, 0.2f, true, ComplexityLevel.Simple),
-        DifficultyLevel.Hard => new DifficultyParams(4, 6, 12, 12, 4, 0.1f, true, ComplexityLevel.Simple),
-        _ => new DifficultyParams(1, 9, 9, 2, 0, 0.5f, false, ComplexityLevel.Simple),
+        DifficultyLevel.Tutorial1 => new DifficultyParams(1, 9, 9, 2, 0, 0.5f, false, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Tutorial2 => new DifficultyParams(1, 9, 9, 3, 1, 0.3f, false, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Tutorial3 => new DifficultyParams(2, 6, 9, 4, 2, 0.3f, false, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Tutorial4 => new DifficultyParams(2, 6, 12, 5, 2, 0.3f, true, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Tutorial5 => new DifficultyParams(2, 6, 12, 5, 2, 0.3f, false, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Easy => new DifficultyParams(2, 6, 12, 6, 2, 0.3f, false, ComplexityLevel.Simple, maxHints: 3),
+        DifficultyLevel.Medium => new DifficultyParams(3, 6, 12, 8, 3, 0.2f, true, ComplexityLevel.Simple, maxHints: 2),
+        DifficultyLevel.Hard => new DifficultyParams(4, 6, 12, 12, 4, 0.1f, true, ComplexityLevel.Simple, maxHints: 1),
+        _ => new DifficultyParams(1, 9, 9, 2, 0, 0.5f, false, ComplexityLevel.Simple, maxHints: 3),
     };
 }

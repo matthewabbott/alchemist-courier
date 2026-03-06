@@ -28,7 +28,8 @@ public static class TutorialData
                 reagentCount: 2,
                 maxAspectCount: 0,
                 spareSpacePercent: 0.5f,
-                allowSpecialBags: false),
+                allowSpecialBags: false,
+                maxHints: 3),
             RequiredPuzzleType = PuzzleType.FitAllSafely,
         },
 
@@ -47,7 +48,8 @@ public static class TutorialData
                 reagentCount: 3,
                 maxAspectCount: 0,
                 spareSpacePercent: 0.3f,
-                allowSpecialBags: false),
+                allowSpecialBags: false,
+                maxHints: 3),
             RequiredPuzzleType = PuzzleType.FitAllSafely,
         },
 
@@ -66,7 +68,8 @@ public static class TutorialData
                 reagentCount: 4,
                 maxAspectCount: 0,
                 spareSpacePercent: 0.1f,
-                allowSpecialBags: false),
+                allowSpecialBags: false,
+                maxHints: 3),
             RequiredPuzzleType = PuzzleType.FitAllSafely,
         },
 
@@ -84,7 +87,8 @@ public static class TutorialData
                 reagentCount: 3,
                 maxAspectCount: 1,
                 spareSpacePercent: 0.3f,
-                allowSpecialBags: false),
+                allowSpecialBags: false,
+                maxHints: 3),
             RequiredPuzzleType = PuzzleType.FitAllSafely,
         },
 
@@ -102,7 +106,8 @@ public static class TutorialData
                 reagentCount: 4,
                 maxAspectCount: 1,
                 spareSpacePercent: 0.3f,
-                allowSpecialBags: false),
+                allowSpecialBags: false,
+                maxHints: 3),
             RequiredPuzzleType = PuzzleType.FitAllSafely,
         },
     };

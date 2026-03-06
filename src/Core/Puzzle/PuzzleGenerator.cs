@@ -220,6 +220,7 @@ public class PuzzleGenerator
         // Step 9: Lock some reagents in place as pre-placed constraints
         LockSolutionReagents(rng, difficulty, state);
 
+        state.MaxHints = difficulty.MaxHints;
         state.Placements = new List<Placement>();
         return state;
     }
