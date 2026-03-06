@@ -434,3 +434,12 @@ reagent on the play grid (via internal test accessors), exits play mode, and ver
 editor state is unchanged through before/after file comparison. The internal PlayGrid and
 PlayReagentList properties were the only production code additions — minimal surface for testing.
 Commit: 376dcbb
+
+## Code Review (l) — E.7-E.9
+Reviewed E.7 SolverPanel, E.8 Play mode, E.9 Editor tests (9a6d751..2bdeeb8). Found one P1:
+SolverPanel's background solver task could CallDeferred on a freed node if the panel is removed
+while solving. Fixed with `_ExitTree` override calling `CancelSolving()` and `IsInstanceValid`
+guard in the task continuation. Three P3 notes: CreateStyledButton 3-way duplication (different
+margins per context), internal test accessors (pragmatic), test setup repetition (DAMP over DRY).
+519 tests pass.
+Commit: a2cc0ea

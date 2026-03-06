@@ -592,3 +592,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-05
 - Commit: 376dcbb
 - Notes: Added three editor integration tests to TestHarness. Test_EditorCreateAndSave: builds a PuzzleState with 2 bags and 3 reagents, saves to file, loads into EditorScreen, saves from editor, loads back via PuzzleFile.Load, verifies bag/reagent counts and shape dimensions survive the round-trip. Test_EditorSolver: loads a known-solvable puzzle (3x3 bag, two 1x1 reagents) into editor and verifies PuzzleSearchSolver.Solve returns 2 placements; loads an unsolvable puzzle (1x1 bag, two reagents) and verifies solver returns null. Test_EditorPlayMode: loads puzzle with reagents, enters play mode (verified IsPlayMode=true), places a reagent directly on PlayGrid, exits play mode, saves state and compares with pre-play state to verify bags/reagents unchanged. Added internal PlayGrid/PlayReagentList test accessors to EditorScreen. All 27 integration tests pass (24 existing + 3 new), 519 unit tests pass.
+
+## Code Review (l) — 2026-03-05
+- Reviewed commits: 9a6d751..2bdeeb8 (E.7 SolverPanel, E.8 Play mode, E.9 Editor tests)
+- Findings: 4 (P0: 0, P1: 1, P2: 0, P3: 2, P4: 1)
+- Fixed: 1 (SolverPanel missing _ExitTree cleanup for background solver tasks), Tasks created: 0
