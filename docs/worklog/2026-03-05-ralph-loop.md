@@ -466,3 +466,16 @@ color toggles between dark gray, white, and checkerboard for transparency testin
 no sprites exist yet, it currently shows a placeholder message — but once the RetroDiffusion
 pipeline starts producing art (ART.5), this becomes the go-to tool for reviewing the results.
 Commit: f1d3089
+
+## ART.3: Art workflow documentation
+Documented the full art pipeline end-to-end in docs/art-workflow.md. Five sections covering
+the placeholder-to-final-sprite journey: overview of the four-stage pipeline, Godot's built-in
+tools (SpriteFrames editor, Theme editor, Remote Inspector, resource hot-swapping), the
+RetroDiffusion MCP pipeline (server setup, prompt guidelines, human-in-the-loop style
+creation), sprite replacement process (naming conventions like reagent_NAME.png, Godot import
+settings for pixel art, runtime texture loading via GD.Load<Texture2D>()), and a quality
+checklist (32x32 alignment, transparent background, aspect color coding, bold outlines,
+readability at 1x). Cross-references art-and-style.md for visual identity and art-references.md
+for manuscript sources. This doc bridges the gap between the art vision docs and the practical
+"how do I actually replace a placeholder with a real sprite" workflow.
+Commit: 54ec509
