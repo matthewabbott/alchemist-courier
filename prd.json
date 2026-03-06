@@ -871,7 +871,7 @@
       "phase": "editor",
       "depends_on": ["E.6"],
       "verification": "dotnet build succeeds, can toggle between edit and play modes, placements work in play mode",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "E.9",

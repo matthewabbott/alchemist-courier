@@ -408,3 +408,16 @@ CancellationToken, and results marshal back to Godot's main thread via CallDefer
 result fields. The panel auto-clears when bags or reagents change, preventing stale solutions from
 lingering. Also cleaned up unused parameters in PuzzleSearchSolver's private backtrack methods.
 Commit: 9a6d751
+
+## E.8: Play mode toggle in editor
+The puzzle editor can now be played — a "Play" button in the header bar switches the entire
+screen from edit mode to play mode. The implementation builds a fresh MetaGrid and reagent list
+from the current editor PuzzleState using PuzzleSolver.ReconstructGrid/ReconstructReagents,
+swaps the grid view, hides editor panels, and shows a ReagentTray with ObjectivePanel and
+StatusBarPanel. Reagent selection, placement, and removal work identically to PuzzleScreen via
+MetaGridView's existing signals. The key design choice was stateless play mode: when you click
+"Back to Edit," all placements are discarded and the editor state is fully restored. This
+avoids any state synchronization complexity between edit and play modes. Refactored the grid
+view replacement into a shared ReplaceGridView(MetaGrid) method, which simplified both the
+editor's OnEditorDataChanged flow and the play mode transitions.
+Commit: 3d233b9
