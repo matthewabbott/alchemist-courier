@@ -53,5 +53,8 @@ nul
 .desloppify/*.bak
 scorecard.png
 
+# Node.js
+node_modules/
+
 # Environment
 .env

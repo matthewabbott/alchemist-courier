@@ -8,6 +8,12 @@
       "env": {
         "GODOT_PATH": "D:/Program Files/Godot_v4.6.1-stable_mono_win64/Godot_v4.6.1-stable_mono_win64.exe"
       }
+    },
+    "retrodiffusion": {
+      "command": "node",
+      "args": [
+        "scripts/mcp/retrodiffusion-server.js"
+      ]
     }
   }
 }
