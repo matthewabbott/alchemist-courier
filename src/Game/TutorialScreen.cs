@@ -29,6 +29,9 @@ public partial class TutorialScreen : Control
     public bool IsComplete => _currentLessonIndex >= _lessons.Count;
     public string HintText => _hintLabel?.Text ?? string.Empty;
 
+    /// <summary>Emitted when all tutorial lessons are completed.</summary>
+    public event System.Action? TutorialCompleted;
+
     public override void _Ready()
     {
         AnchorsPreset = (int)LayoutPreset.FullRect;
@@ -184,5 +187,10 @@ public partial class TutorialScreen : Control
     {
         _currentLessonIndex++;
         LoadCurrentLesson();
+
+        if (IsComplete)
+        {
+            TutorialCompleted?.Invoke();
+        }
     }
 }
