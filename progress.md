@@ -627,3 +627,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: ae7ff2a
 - Notes: Extracted puzzle win-condition evaluation from PuzzleScreen to pure C# in src/Core/Puzzle/. Created ConfirmResult.cs (moved enum from PuzzleScreen.cs), ValidationResult.cs (with static factories NotAllPlaced/HasReactions/Win), and PuzzleValidator.cs (static Evaluate method handling FitAllSafely, MaximizeValue, MeetRequirement). Removed duplicate ConfirmResult enum from PuzzleScreen.cs — all Game-side files already had `using AlchemistCourier.Core.Puzzle;` so resolution was seamless. Key gotcha: test setup initially used Fire/Ice aspects which don't exist in the MVP rule set; switched to Hot+Cold (SameBag Neutralization rule). Also learned that Sharp reagents can't be placed on edge cells of non-Reinforced bags, which blocked Sharp+Fragile adjacency tests in small bags. 7 new tests, 526 total pass.
+
+## CQ.2 — Wire PuzzleScreen to PuzzleValidator
+- Date: 2026-03-06
+- Commit: 2f5167b
+- Notes: Replaced inline win condition logic in PuzzleScreen.ConfirmPuzzle() with a single call to PuzzleValidator.Evaluate(). The method now handles all three PuzzleType modes via the validator, and adds score display in the success message for MaximizeValue puzzles. The ConfirmResult enum was already fully extracted in CQ.1, so no duplicate deletion was needed — all consumer files (TutorialScreen, TestHarness) already had the correct using directive. Clean refactor: 20 insertions, 22 deletions. All 526 tests pass.
+
+## Code Review — 2026-03-06
+- Reviewed commits: 8c56f06..2f5167b (ART.4, CQ.1, CQ.2)
+- Findings: 3 (P0: 0, P1: 1, P2: 0, P3: 2)
+- Fixed: 1, Tasks created: 0

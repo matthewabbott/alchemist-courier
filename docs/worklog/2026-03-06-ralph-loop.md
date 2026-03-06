@@ -7,3 +7,11 @@ Commit: 8c56f06
 ## CQ.1: Extract PuzzleValidator to Core
 Moved puzzle win-condition logic out of PuzzleScreen (Godot-dependent) into a pure C# PuzzleValidator in src/Core/Puzzle/. This is the first step of a two-part refactor (CQ.1 extracts, CQ.2 wires PuzzleScreen to use it). The ConfirmResult enum moved cleanly since all consumer files already had the Core.Puzzle using directive. ValidationResult wraps the enum with reaction details and score, using static factory methods for each outcome. PuzzleValidator.Evaluate dispatches on PuzzleType — FitAllSafely checks all-placed + no-reactions, MaximizeValue skips the unplaced check and sums placed reagent values, MeetRequirement delegates to FitAllSafely with a TODO for future requirements.
 Commit: ae7ff2a
+
+## CQ.2: Wire PuzzleScreen to PuzzleValidator
+Completed the second half of the validator refactor — PuzzleScreen.ConfirmPuzzle() now delegates entirely to PuzzleValidator.Evaluate() instead of reimplementing win-condition logic inline. The switch statement maps each ConfirmResult to the appropriate UI response (overlay + status message), and MaximizeValue wins now display the score. This shrinks ConfirmPuzzle from 32 lines of branching logic to a clean evaluate-then-display pattern, and means any future PuzzleType additions only need changes in the Core validator.
+Commit: 2f5167b
+
+## Code Review
+Reviewed the PuzzleValidator extraction (CQ.1, CQ.2) and art reference curation (ART.4). One P1 finding: the default branch in PuzzleValidator.Evaluate's switch silently returned NotAllPlaced for unknown PuzzleType values instead of throwing. Fixed by replacing with ArgumentOutOfRangeException (fail-fast). Two P3 notes: unused `unplacedCount` parameter on ValidationResult.NotAllPlaced, and `List<ReactionRule>` parameter type on the public API. Overall the extraction is clean — good Core/Game separation, solid test coverage, and the refactored ConfirmPuzzle is more readable than the original.
+Commit: fef7e61
