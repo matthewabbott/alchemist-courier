@@ -228,3 +228,11 @@ hinted reagents that have been removed show a small purple dot next to their nam
 snap-back is available at no budget cost. Wired HintState from PuzzleScreen into ReagentTray via
 a SetHintState() setter so BuildItems() can query hint history for each reagent index.
 Commit: 25298b2
+
+## HINT.6: SaveData hint tracking
+Tiny but necessary persistence addition — added DailyHintsUsed dictionary to SaveData so hint
+usage survives sessions. Maps date seeds to hint counts, following the same pattern as
+CompletedDailies. Two methods: RecordDailyHints for storage, GetDailyHintsUsed for retrieval
+(-1 for unknown seeds, matching the "no record" semantics of daily completion checks). This
+enables the future hint-aware scoring layer: zero-hint completions can earn extra stars.
+Commit: ba72035
