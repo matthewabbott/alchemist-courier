@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Chemistry;
@@ -588,32 +589,29 @@ public partial class PuzzleScreen : Control
     {
         ClearSelectionState();
 
-        if (CountUnplaced() > 0)
+        var result = PuzzleValidator.Evaluate(_metaGrid, _trayReagents, _puzzleType, ReactionRuleDatabase.GetMvpRules());
+        _lastConfirmResult = result.Result;
+        _lastReactions = result.Reactions.ToList();
+
+        switch (_lastConfirmResult)
         {
-            _lastConfirmResult = ConfirmResult.NotAllPlaced;
-            _lastReactions.Clear();
-            HideResultOverlay();
-            UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
-            PuzzleConfirmed?.Invoke(_lastConfirmResult);
-            return _lastConfirmResult;
+            case ConfirmResult.NotAllPlaced:
+                HideResultOverlay();
+                UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
+                break;
+            case ConfirmResult.HasReactions:
+                ShowResultOverlay(false, _lastReactions);
+                UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
+                break;
+            case ConfirmResult.Win:
+                ShowResultOverlay(true, _lastReactions);
+                if (result.Score > 0)
+                    UpdateStatus($"All reagents placed safely! Puzzle complete! Score: {result.Score}");
+                else
+                    UpdateStatus("All reagents placed safely! Puzzle complete!");
+                break;
         }
 
-        // Evaluate chemistry
-        var rules = ReactionRuleDatabase.GetMvpRules();
-        _lastReactions = ChemistryEngine.Evaluate(_metaGrid, rules);
-
-        if (_lastReactions.Count > 0)
-        {
-            _lastConfirmResult = ConfirmResult.HasReactions;
-            ShowResultOverlay(false, _lastReactions);
-            UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
-            PuzzleConfirmed?.Invoke(_lastConfirmResult);
-            return _lastConfirmResult;
-        }
-
-        _lastConfirmResult = ConfirmResult.Win;
-        ShowResultOverlay(true, _lastReactions);
-        UpdateStatus("All reagents placed safely! Puzzle complete!");
         PuzzleConfirmed?.Invoke(_lastConfirmResult);
         return _lastConfirmResult;
     }
