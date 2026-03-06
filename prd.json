@@ -762,6 +762,176 @@
       ],
       "verification": "All three docs contain accurate cross-references to puzzle-design.md",
       "status": "pending"
+    },
+    {
+      "id": "T.1",
+      "title": "Install desloppify and run baseline scan",
+      "description": "Install the desloppify code quality tool and establish a baseline score. Run: pip install --upgrade 'desloppify[full]' && desloppify update-skill claude. Then run desloppify scan --path . from the project root. Record the baseline score in progress.md under a new '## Desloppify Baseline' section. If any P0 issues are found, fix them immediately. Commit the desloppify config files if any are created.",
+      "priority": 68,
+      "phase": "tooling",
+      "depends_on": [],
+      "verification": "desloppify scan runs without errors, baseline score recorded in progress.md",
+      "status": "pending"
+    },
+    {
+      "id": "T.2",
+      "title": "Update review-code prompt with desloppify step",
+      "description": "Add a desloppify step to scripts/ralph/prompts/review-code.md. After the existing 'Review recent changes' step, add: (1) Run desloppify scan --path . to get current quality score. (2) Run desloppify next to get the highest-priority mechanical issue. (3) If the issue is P0-P1 severity and a quick fix (<20 lines), fix it. (4) Re-run desloppify scan to verify score held or improved. (5) Record the before/after scores in the review report. Keep the existing deslop.md qualitative review for architectural and game-specific concerns that desloppify cannot catch (Core/ purity, game design alignment, etc.).",
+      "priority": 69,
+      "phase": "tooling",
+      "depends_on": ["T.1"],
+      "verification": "scripts/ralph/prompts/review-code.md contains desloppify scan/next/fix steps",
+      "status": "pending"
+    },
+    {
+      "id": "T.3",
+      "title": "Create game architecture guidelines doc",
+      "description": "Create docs/game-architecture.md covering game-specific structural patterns for Alchemist Courier as it grows beyond MVP. Six sections: (1) Scene Management -- state machine for game flow (menu -> tutorial -> daily -> editor -> venture), how to add new screens using the PuzzleScreen procedural pattern, when to use .tscn vs procedural C#. (2) Godot Scene-Tree Patterns -- signal conventions (use [Signal] attribute, connect in _Ready), node naming, when to AddChild vs scene instantiation. (3) Performance Budgets for Web Export -- WASM memory limits, draw call budgets (pixel art is cheap but many small sprites add up), GC pressure (avoid per-frame allocations in _Process, prefer pooled/cached objects). (4) Asset Pipeline -- how sprites flow from RetroDiffusion generation to art/sprites/ to Godot import settings to runtime Texture2D loading. Document the placeholder -> real art replacement workflow. (5) Input Handling -- document the drag-and-drop patterns from MetaGridView.cs and ReagentTray.cs, establish conventions for mouse/keyboard/touch (web export). (6) Testing Strategy -- document the three layers: xUnit unit tests (Core/), Godot integration test harness (Game/Testing/), manual playtesting. What each layer covers and when to use which. Reference existing patterns from the codebase. Add cross-reference to docs/roadmap.md.",
+      "priority": 70,
+      "phase": "tooling",
+      "depends_on": [],
+      "verification": "File exists at docs/game-architecture.md with all 6 sections, references real codebase patterns",
+      "status": "pending"
+    },
+    {
+      "id": "E.1",
+      "title": "Auto-solver: PuzzleSearchSolver with backtracking",
+      "description": "Create src/Core/Puzzle/PuzzleSearchSolver.cs -- a pure C# backtracking solver for puzzles. The puzzle is a constraint satisfaction problem: each reagent needs a (position, rotation) assignment such that no overlaps, all cells within bags, and zero negative chemistry reactions. Algorithm: constrained backtracking with pruning. (1) Solve(PuzzleState state, CancellationToken? ct = null) -> List<Placement>? -- finds one valid solution or null. (2) CountSolutions(PuzzleState state, int maxCount, CancellationToken? ct = null) -> int -- counts solutions up to maxCount. Implementation: use MRV heuristic (pick reagent with fewest valid placements first, largest/most-aspected first for tie-breaking -- same pattern as PuzzleGenerator.PlaceReagentsValidly line ~441). For each reagent, enumerate valid (position, rotation) pairs using MetaGrid.CanPlaceReagent(). For each valid placement, run ChemistryEngine.EvaluateProspective() to verify zero negative reactions. If valid, place and recurse. On failure, backtrack (remove and try next). Forward checking: CanPlaceReagent already handles overlap detection. Add configurable timeout (default 5 seconds) via CancellationToken. Reuse PuzzleSolver.ReconstructGrid(), PuzzleSolver.ReconstructReagents() for setup from PuzzleState. MUST have zero Godot dependencies. Add comprehensive unit tests: (a) known-solvable puzzle returns valid solution, (b) known-unsolvable puzzle returns null, (c) timeout returns null, (d) every returned solution passes PuzzleSolver.ValidateSolution, (e) CountSolutions matches expected count for small puzzles.",
+      "priority": 71,
+      "phase": "editor",
+      "depends_on": [],
+      "verification": "dotnet test -- all PuzzleSearchSolver tests pass, no Godot imports in file",
+      "status": "pending"
+    },
+    {
+      "id": "E.2",
+      "title": "PuzzleFile wrapper with editor metadata",
+      "description": "Create src/Core/Puzzle/PuzzleFile.cs -- a wrapper around PuzzleState that adds editor/authoring metadata. Properties: Name (string, required), Description (string?, optional), Author (string?, optional), CreatedAt (DateTime), Puzzle (PuzzleState, required). Add static methods: Save(PuzzleFile, string path) and Load(string path) -> PuzzleFile? using the same System.Text.Json pattern as SaveManager.cs (WriteIndented, graceful fallback on error). Also add SaveToString/LoadFromString for in-memory serialization. PuzzleState stays focused on gameplay data; PuzzleFile adds authoring context. MUST have zero Godot dependencies. Add unit tests: round-trip serialization, null optional fields, invalid JSON returns null.",
+      "priority": 72,
+      "phase": "editor",
+      "depends_on": [],
+      "verification": "dotnet test -- PuzzleFile serialization round-trip tests pass",
+      "status": "pending"
+    },
+    {
+      "id": "E.3",
+      "title": "ShapeEditorWidget reusable control",
+      "description": "Create src/Game/Editor/ShapeEditorWidget.cs -- a Godot Control for visually editing bool[,] shape matrices. The widget displays an NxN grid of clickable cells (ColorRect nodes). Clicking a cell toggles it on/off. Properties: MaxRows (int, default 6), MaxCols (int, default 6), CellPixelSize (int, default 24). Signal: ShapeChanged(bool[,] shape). Methods: SetShape(bool[,]) to load existing shape, GetShape() -> bool[,] to read current shape, Clear() to reset all cells to false. Visual: active cells use a configurable color (default white), inactive cells use dark gray, grid lines between cells. Build UI procedurally in _Ready() following the same pattern as MetaGridView (ColorRect grid). This widget is reusable for both bag shape editing and reagent shape editing.",
+      "priority": 73,
+      "phase": "editor",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, widget renders a toggleable cell grid",
+      "status": "pending"
+    },
+    {
+      "id": "E.4",
+      "title": "BagEditorPanel",
+      "description": "Create src/Game/Editor/BagEditorPanel.cs -- a Godot Control panel for editing bags in the puzzle editor. Layout (procedural, VBoxContainer): (1) 'Bags' header label. (2) HBoxContainer with 'Add Bag' button and bag count label. (3) ScrollContainer with VBoxContainer listing current bags, each as a collapsible panel showing: ShapeEditorWidget (from E.3) for the bag shape, SpinBox for PositionCol and PositionRow on meta-grid, CheckBoxes for properties (Null, Gravity, Locked, Insulated, Reinforced, Fragile), a 'Remove' button. (4) Signal: BagsChanged() emitted on any modification. Methods: GetBags() -> List<PuzzleBag>, SetBags(List<PuzzleBag>) for loading. Follow the procedural UI pattern from PuzzleScreen.cs (AddChild, theme overrides, etc.).",
+      "priority": 74,
+      "phase": "editor",
+      "depends_on": ["E.3"],
+      "verification": "dotnet build succeeds, panel renders with add/remove/edit bag controls",
+      "status": "pending"
+    },
+    {
+      "id": "E.5",
+      "title": "ReagentEditorPanel",
+      "description": "Create src/Game/Editor/ReagentEditorPanel.cs -- a Godot Control panel for editing reagents in the puzzle editor. Layout (procedural, VBoxContainer): (1) 'Reagents' header label. (2) HBoxContainer with 'Add Reagent' button and reagent count label. (3) ScrollContainer with VBoxContainer listing current reagents, each as a collapsible panel showing: ShapeEditorWidget (from E.3) for the reagent shape, per-cell aspect assignment (for each true cell in the shape, show a row with cell index and an OptionButton dropdown of available aspects from AspectMetadata.AllAspects), SpinBox for Weight and Value, CheckBox for IsLocked, a 'Remove' button. (4) Signal: ReagentsChanged() emitted on any modification. Methods: GetReagents() -> List<PuzzleReagent>, SetReagents(List<PuzzleReagent>). The aspect dropdown should include a 'None' option. When the shape changes, update the per-cell aspect list (add/remove rows to match true cell count).",
+      "priority": 75,
+      "phase": "editor",
+      "depends_on": ["E.3"],
+      "verification": "dotnet build succeeds, panel renders with add/remove/edit reagent controls including per-cell aspect pickers",
+      "status": "pending"
+    },
+    {
+      "id": "E.6",
+      "title": "EditorScreen main layout and file I/O",
+      "description": "Create src/Game/Editor/EditorScreen.cs -- the main puzzle editor screen, following PuzzleScreen.cs's procedural UI pattern. Layout: (1) Header bar with 'Puzzle Editor' title. (2) HBoxContainer: left side = MetaGridView (reused from src/Game/Inventory/) showing current puzzle state, right side = VBoxContainer with tabs/sections for BagEditorPanel (E.4) and ReagentEditorPanel (E.5). (3) Bottom bar with: 'New' button (creates empty puzzle), 'Save' button (saves PuzzleFile to user://puzzles/), 'Load' button (loads PuzzleFile), puzzle name TextEdit field. (4) Wire BagsChanged/ReagentsChanged signals to rebuild the MetaGrid and refresh MetaGridView. Create scenes/editor.tscn as a minimal wrapper (same pattern as scenes/main.tscn). Methods: NewPuzzle(), SavePuzzle(string path), LoadPuzzle(string path). Use PuzzleFile (E.2) for serialization. Start with a default 6x6 meta-grid and one 3x3 Normal bag.",
+      "priority": 76,
+      "phase": "editor",
+      "depends_on": ["E.2", "E.4", "E.5"],
+      "verification": "dotnet build succeeds, editor scene launches, can create/save/load puzzle files",
+      "status": "pending"
+    },
+    {
+      "id": "E.7",
+      "title": "SolverPanel with auto-solve integration",
+      "description": "Create src/Game/Editor/SolverPanel.cs -- a panel in the editor that integrates PuzzleSearchSolver (E.1). Layout: (1) 'Solve' button that runs PuzzleSearchSolver.Solve() on the current puzzle state. (2) 'Count Solutions' button that runs CountSolutions(maxCount: 100). (3) Status label showing: 'Solvable (N solutions found)' or 'No solution found' or 'Solving...' (4) 'Show Solution' toggle button that overlays the solution placements on the MetaGridView using ghost/highlight rendering. Run solving on a background thread (Task.Run with CancellationToken) to avoid freezing the UI. Wire into EditorScreen (E.6): add SolverPanel below the MetaGridView. When bags or reagents change, clear the solver status.",
+      "priority": 77,
+      "phase": "editor",
+      "depends_on": ["E.1", "E.6"],
+      "verification": "dotnet build succeeds, solver finds solutions for valid puzzles and reports unsolvable for invalid ones",
+      "status": "pending"
+    },
+    {
+      "id": "E.8",
+      "title": "Play mode toggle in editor",
+      "description": "Add a 'Play' / 'Edit' toggle to EditorScreen (E.6). When in Play mode: (1) hide the editor panels (BagEditorPanel, ReagentEditorPanel, SolverPanel, file controls), (2) show a ReagentTray with the current puzzle's reagents, (3) enable interactive placement on the MetaGridView (same mouse handling as PuzzleScreen), (4) show StatusBarPanel and ObjectivePanel, (5) add a 'Back to Edit' button. Implementation: create a PuzzleState from the current editor state, instantiate the same placement logic used by PuzzleScreen (SelectReagent, PlaceSelectedAt, RemoveReagentAt, etc.). The MetaGridView instance can be reused. When switching back to Edit mode, discard any placements made during play. This lets the puzzle author test their creation without leaving the editor.",
+      "priority": 78,
+      "phase": "editor",
+      "depends_on": ["E.6"],
+      "verification": "dotnet build succeeds, can toggle between edit and play modes, placements work in play mode",
+      "status": "pending"
+    },
+    {
+      "id": "E.9",
+      "title": "Editor integration tests",
+      "description": "Add editor integration tests to src/Game/Testing/TestHarness.cs. Tests: (1) Test_EditorCreateAndSave: create EditorScreen, add 2 bags via BagEditorPanel, add 3 reagents via ReagentEditorPanel, save as PuzzleFile, load the file back, verify bags and reagents match. (2) Test_EditorSolver: create a known-solvable puzzle in the editor, press Solve, verify solution found. Create a known-unsolvable puzzle, press Solve, verify 'No solution'. (3) Test_EditorPlayMode: create a puzzle, toggle to Play mode, place a reagent, toggle back to Edit, verify placement was discarded. Take screenshots at key states. Output [PASS]/[FAIL] markers.",
+      "priority": 79,
+      "phase": "editor",
+      "depends_on": ["E.7", "E.8"],
+      "verification": "Test harness reports all editor tests PASS",
+      "status": "pending"
+    },
+    {
+      "id": "ART.1",
+      "title": "RetroDiffusion MCP server",
+      "description": "Create scripts/mcp/retrodiffusion-server.js -- a Node.js MCP server wrapping the RetroDiffusion API (https://api.retrodiffusion.ai/v1/inferences). Load API key from .env file (RETRODIFFUSION_API_KEY) using dotenv package. Tools: (1) generate_sprite(prompt, width, height, style, seed?, num_images?, remove_bg?) -- POST to /v1/inferences, save generated images to art/generated/{timestamp}-{prompt_hash}.png with metadata sidecar JSON (prompt, style, seed, model, cost). Return file paths and remaining balance. (2) list_styles(model?) -- return available prompt_style identifiers grouped by model (RD_PRO, RD_FAST, RD_PLUS). (3) create_custom_style(name, reference_image_paths[]) -- POST to /v1/styles with base64-encoded reference images, return style_id. Save to art/retrodiffusion-styles.json. CRITICAL: Credit exhaustion guard -- after every API call, check remaining_balance in response. If balance < 1.0, return an error 'Credit balance low (remaining: X). Refusing further generation. Please top up your account.' and set a flag to refuse all subsequent generate calls until balance is confirmed above threshold. Add to .mcp.json alongside existing godot server. Create package.json in scripts/mcp/ with dependencies (dotenv, @modelcontextprotocol/sdk or equivalent). Do NOT add .env to git (verify it's in .gitignore).",
+      "priority": 80,
+      "phase": "art",
+      "depends_on": [],
+      "verification": "MCP server starts, list_styles returns results, generate_sprite creates an image file (manual test with small generation)",
+      "status": "pending"
+    },
+    {
+      "id": "ART.2",
+      "title": "Sprite preview scene",
+      "description": "Create a sprite preview tool for viewing all game sprites. Either src/Game/Tools/SpritePreview.cs (procedural) or scenes/sprite_preview.tscn. The tool: (1) scans art/sprites/ directory recursively for all .png files, (2) displays them in a scrollable grid at 1x (32px) and 2x (64px) zoom with labels showing filenames, (3) has a background color toggle (dark gray / white / checkerboard) for transparency testing, (4) groups sprites by subdirectory (reagents/, bags/, icons/, etc.), (5) shows a total count. Build procedurally following the TestHarness pattern. Runnable via: mcp__godot__run_project(projectPath, scene='scenes/sprite_preview.tscn'). If no sprites exist yet in art/sprites/, show a placeholder message. This scene is a development tool, not a player-facing feature.",
+      "priority": 81,
+      "phase": "art",
+      "depends_on": [],
+      "verification": "Scene launches without errors, displays any sprites found in art/sprites/ or shows placeholder message",
+      "status": "pending"
+    },
+    {
+      "id": "ART.3",
+      "title": "Art workflow documentation",
+      "description": "Create docs/art-workflow.md documenting the complete art pipeline for Alchemist Courier. Sections: (1) Overview -- placeholder rectangles (current) -> RetroDiffusion generation -> human curation -> Godot import -> runtime. (2) Godot Built-in Tools -- SpriteFrames editor for animations, Theme editor for UI styling, Remote Inspector for runtime modification, resource override for hot-swapping textures. (3) RetroDiffusion Pipeline -- how to use the MCP server (A.1), prompt guidelines from docs/art-and-style.md, style creation workflow (human-in-the-loop), where generated images land (art/generated/). (4) Sprite Replacement Process -- naming conventions in art/sprites/ (reagent_NAME.png, bag_TYPE.png, icon_ASPECT.png), Godot import settings (.import files), how the game loads textures at runtime. (5) Quality Checklist -- 32x32 grid alignment, transparent background, aspect color coding, readability at 1x zoom, bold outlines. Cross-reference docs/art-and-style.md for visual identity guidelines.",
+      "priority": 82,
+      "phase": "art",
+      "depends_on": [],
+      "verification": "File exists at docs/art-workflow.md with all 5 sections",
+      "status": "pending"
+    },
+    {
+      "id": "ART.4",
+      "title": "Manuscript reference curation",
+      "description": "Create docs/art-references.md documenting historical manuscript sources for the game's visual identity. Sections: (1) Overview -- why historical alchemy/herbal manuscripts inspire the game's art direction (connection to 'earnest lore' design pillar from game-overview.md). (2) Source Catalog -- for each source, list: name, date, origin, illustration count, access URL, license/public domain status. Sources: Vienna Dioscurides (6th century, 400+ botanical illustrations, Wikimedia Commons 162 files + PICRYL, public domain), Badianus Codex (1552, 204 herb illustrations, INAH digitization 2021), Splendor Solis (1582, 22 alchemical illustrations, Internet Archive, public domain), Rosarium Philosophorum (16th century, 20 alchemical woodcuts, various institutional), Apuleius Herbarium (medieval, botanical illustrations, various digitizations). (3) Mapping to Game Elements -- which sources inspire which game elements: botanical illustrations -> reagent sprites, alchemical diagrams -> UI backdrops and codex art, woodcuts -> menu art and chapter headers. (4) Style Translation Notes -- what to preserve (hand-drawn quality, earth tone palettes, botanical accuracy, alchemical symbolism) vs what to adapt (pixel-art-ify at 32x32, modernize for readability, cute-ify for cozy tone). (5) RetroDiffusion Integration -- how to use these as reference_images for custom style creation (links to A.1 and A.5). NOTE: This task scaffolds the document. Human creative direction will curate specific reference images later.",
+      "priority": 83,
+      "phase": "art",
+      "depends_on": [],
+      "verification": "File exists at docs/art-references.md with all 5 sections and accurate source URLs",
+      "status": "pending"
+    },
+    {
+      "id": "ART.5",
+      "title": "Custom RetroDiffusion style creation",
+      "description": "HUMAN-IN-THE-LOOP TASK. This task cannot be fully automated. Using the RetroDiffusion MCP server (ART.1) and manuscript references (ART.4): (1) Human selects 5-9 reference images from the curated manuscripts that best represent the desired pixel art style. (2) Human + agent use the create_custom_style MCP tool to create a custom RetroDiffusion style from these references. (3) Human reviews generated sample sprites (test with 3-5 reagent prompts like 'mushroom', 'crystal', 'flame herb'). (4) Iterate on reference image selection and prompts until the style produces satisfactory results. (5) Record the approved style_id and its reference images in art/retrodiffusion-styles.json. (6) Document the approved style parameters and example outputs in docs/art-references.md. The agent's role is to facilitate the generation and organize outputs, but the human makes all aesthetic decisions.",
+      "priority": 84,
+      "phase": "art",
+      "depends_on": ["ART.1", "ART.4"],
+      "verification": "art/retrodiffusion-styles.json exists with at least one approved style_id, sample sprites generated successfully",
+      "status": "pending"
     }
   ]
 }
