@@ -173,7 +173,8 @@ public class PuzzleGenerator
 
         var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes, availableAspects);
 
-        // Step 6: Create runtime objects, using catalog entries where possible
+        // Step 6: Create runtime objects, using catalog for naming where possible
+        // Always use the generator's shape and aspects (catalog only provides metadata)
         var reagentDefs = new List<ReagentDefinition>();
         var reagents = new List<Reagent>();
         for (int i = 0; i < reagentShapes.Count; i++)
@@ -181,11 +182,12 @@ public class PuzzleGenerator
             var (shape, _) = reagentShapes[i];
             var aspects = aspectAssignments[i];
             var catalogDef = TryFindCatalogMatch(shape, aspects);
-            var def = catalogDef ?? new ReagentDefinition(
-                id: $"reagent_{i}",
-                name: $"Reagent {i}",
+            var def = new ReagentDefinition(
+                id: catalogDef?.Id ?? $"reagent_{i}",
+                name: catalogDef?.Name ?? $"Reagent {i}",
                 shape: shape,
-                aspectsPerCell: aspects);
+                aspectsPerCell: aspects,
+                flavorText: catalogDef?.FlavorText);
             reagentDefs.Add(def);
             reagents.Add(new Reagent(def));
         }

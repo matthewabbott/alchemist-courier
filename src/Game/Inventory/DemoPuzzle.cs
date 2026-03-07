@@ -34,7 +34,7 @@ public static class DemoPuzzle
             flavorText: "A smoldering pebble that radiates intense heat."
         ));
 
-        var iceShard = new Reagent(ReagentCatalog.Get("snowflower", "domino")!);
+        var iceShard = new Reagent(ReagentCatalog.GetById("snowflower")!);
 
         var poisonFang = new Reagent(new ReagentDefinition(
             "poison_fang", "Poison Fang",
@@ -71,7 +71,7 @@ public static class DemoPuzzle
             flavorText: "Unstable gelatinous compound that detonates near heat."
         ));
 
-        var inertCrystal = new Reagent(ReagentCatalog.Get("nullflower", "domino")!);
+        var inertCrystal = new Reagent(ReagentCatalog.GetById("nullflower")!);
 
         var cinnabarBlock = new Reagent(new ReagentDefinition(
             "cinnabar_block", "Cinnabar Block",

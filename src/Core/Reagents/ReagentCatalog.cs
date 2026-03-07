@@ -5,8 +5,8 @@ using AlchemistCourier.Core.Chemistry;
 namespace AlchemistCourier.Core.Reagents;
 
 /// <summary>
-/// Canonical reagent catalog: 8 species × 9 shapes = 72 single-aspect reagent definitions.
-/// Each species maps to exactly one aspect. Each shape is a standard polyomino variant.
+/// Canonical reagent catalog: ~24 unique items, each with one natural polyomino shape.
+/// Each item maps to exactly one aspect. Items are designed art-first with unique identities.
 /// </summary>
 public static class ReagentCatalog
 {
@@ -17,53 +17,61 @@ public static class ReagentCatalog
     };
 
     /// <summary>Standard shape matrices matching ShapeNames order.</summary>
-    private static readonly bool[][,] ShapeMatrices =
+    private static readonly Dictionary<string, bool[,]> ShapeMatricesByName = new()
     {
-        // monomino (1 cell)
-        new bool[,] { { true } },
-        // domino (2 cells)
-        new bool[,] { { true, true } },
-        // i_tri - I-bar triomino (3 cells)
-        new bool[,] { { true, true, true } },
-        // l_tri - L-bend triomino (3 cells)
-        new bool[,] { { true, false }, { true, true } },
-        // i_tet - I tetromino (4 cells)
-        new bool[,] { { true }, { true }, { true }, { true } },
-        // o_tet - O tetromino / square (4 cells)
-        new bool[,] { { true, true }, { true, true } },
-        // t_tet - T tetromino (4 cells)
-        new bool[,] { { true, true, true }, { false, true, false } },
-        // s_tet - S tetromino (4 cells)
-        new bool[,] { { false, true }, { true, true }, { true, false } },
-        // l_tet - L tetromino (4 cells)
-        new bool[,] { { true, false }, { true, false }, { true, true } },
+        ["monomino"] = new bool[,] { { true } },
+        ["domino"]   = new bool[,] { { true, true } },
+        ["i_tri"]    = new bool[,] { { true, true, true } },
+        ["l_tri"]    = new bool[,] { { true, false }, { true, true } },
+        ["i_tet"]    = new bool[,] { { true }, { true }, { true }, { true } },
+        ["o_tet"]    = new bool[,] { { true, true }, { true, true } },
+        ["t_tet"]    = new bool[,] { { true, true, true }, { false, true, false } },
+        ["s_tet"]    = new bool[,] { { false, true }, { true, true }, { true, false } },
+        ["l_tet"]    = new bool[,] { { true, false }, { true, false }, { true, true } },
     };
 
-    /// <summary>Species definitions: (speciesId, displayName, aspectId, flavorText).</summary>
-    private static readonly (string id, string name, string aspectId, string flavor)[] Species =
+    /// <summary>Item definitions: (id, displayName, shapeName, aspectId, flavorText).</summary>
+    private static readonly (string id, string name, string shape, string aspectId, string flavor)[] Items =
     {
-        ("firevine",   "Firevine",       AspectIds.Hot,      "A climbing vine that perpetually smolders."),
-        ("snowflower", "Snowflower",     AspectIds.Cold,     "A blue snowflake-shaped bloom that never thaws."),
-        ("burstbloom", "Burstbloom",     AspectIds.Volatile, "A heat-sensitive alchemical bloom from foothills."),
-        ("creeper",    "Purple Creeper", AspectIds.Toxic,    "A venomous trailing plant with poisonous sap."),
-        ("leadingot",  "Lead Ingot",     AspectIds.Heavy,    "Dense alchemical metal, prized for its weight."),
-        ("nullflower", "Nullflower",     AspectIds.Stable,   "A calm, dampening blossom that soothes reactions."),
-        ("sharpstone", "Sharpstone",     AspectIds.Sharp,    "Jagged crystalline mineral with cutting edges."),
-        ("glass",      "Glasswork",      AspectIds.Fragile,  "Delicate blown glass, beautiful but vulnerable."),
-    };
+        // Hot (3 items)
+        ("ember_seed",     "Ember Seed",      "monomino", AspectIds.Hot,      "A smoldering seed that radiates gentle warmth. Handle with tongs."),
+        ("firevine",       "Firevine",         "domino",   AspectIds.Hot,      "A climbing vine that perpetually smolders, leaving scorch marks wherever it grows."),
+        ("magma_slug",     "Magma Slug",       "l_tri",    AspectIds.Hot,      "A slow-moving alchemical slug whose trail glows like cooling lava."),
 
-    /// <summary>Display names for shapes (for UI/tooltip use).</summary>
-    private static readonly Dictionary<string, string> ShapeDisplayNames = new()
-    {
-        ["monomino"] = "Monomino",
-        ["domino"]   = "Domino",
-        ["i_tri"]    = "I-Bar",
-        ["l_tri"]    = "L-Bend",
-        ["i_tet"]    = "I-Piece",
-        ["o_tet"]    = "Square",
-        ["t_tet"]    = "T-Piece",
-        ["s_tet"]    = "S-Piece",
-        ["l_tet"]    = "L-Piece",
+        // Cold (3 items)
+        ("frozen_teardrop","Frozen Teardrop",  "monomino", AspectIds.Cold,     "A tear shed by a frost spirit, permanently frozen mid-fall."),
+        ("snowflower",     "Snowflower",       "domino",   AspectIds.Cold,     "A blue snowflake-shaped bloom that never thaws, even in summer."),
+        ("frost_fern",     "Frost Fern",       "i_tri",    AspectIds.Cold,     "Delicate frozen fronds that grow along windowpanes in alchemist's workshops."),
+
+        // Volatile (3 items)
+        ("spark_petal",    "Spark Petal",      "monomino", AspectIds.Volatile, "A single petal that sparks when disturbed. Keep away from heat sources."),
+        ("burstbloom",     "Burstbloom",       "l_tri",    AspectIds.Volatile, "A bloom from the foothills that detonates when warmed. Prized for controlled demolition."),
+        ("thunder_egg",    "Thunder Egg",      "o_tet",    AspectIds.Volatile, "A mineral egg that cracks with tremendous force when its internal pressure is released."),
+
+        // Toxic (3 items)
+        ("venom_drop",     "Venom Drop",       "monomino", AspectIds.Toxic,    "Concentrated essence from a venomous bloom. One drop is enough."),
+        ("purple_creeper", "Purple Creeper",   "domino",   AspectIds.Toxic,    "A venomous trailing plant with poisonous sap that stains everything purple."),
+        ("blight_moss",    "Blight Moss",      "t_tet",    AspectIds.Toxic,    "A creeping moss that poisons the soil wherever it takes root. Spreads aggressively."),
+
+        // Heavy (3 items)
+        ("lead_nugget",    "Lead Nugget",      "monomino", AspectIds.Heavy,    "A small lump of alchemical lead, deceptively heavy for its size."),
+        ("lead_ingot",     "Lead Ingot",       "domino",   AspectIds.Heavy,    "Dense alchemical metal, prized for its weight in counterbalancing reactions."),
+        ("anvil_shard",    "Anvil Shard",      "l_tet",    AspectIds.Heavy,    "A broken piece of an alchemist's anvil. Still useful as ballast."),
+
+        // Stable (3 items)
+        ("calm_stone",     "Calm Stone",       "monomino", AspectIds.Stable,   "A river stone imbued with stabilizing essence. Soothes nearby reactions."),
+        ("nullflower",     "Nullflower",       "domino",   AspectIds.Stable,   "A calm blossom that absorbs reactive energy from its surroundings."),
+        ("ironbark_root",  "Ironbark Root",    "i_tri",    AspectIds.Stable,   "A section of ironbark tree root. Its steadiness dampens chemical volatility."),
+
+        // Sharp (3 items)
+        ("glass_shard",    "Glass Shard",      "monomino", AspectIds.Sharp,    "A razor-sharp sliver of alchemical glass. Cuts through almost anything."),
+        ("sharpstone",     "Sharpstone",       "domino",   AspectIds.Sharp,    "Jagged crystalline mineral with cutting edges that never dull."),
+        ("razor_fern",     "Razor Fern",       "s_tet",    AspectIds.Sharp,    "A fern whose fronds are edged like saw blades. Even the wind avoids it."),
+
+        // Fragile (3 items)
+        ("crystal_tear",   "Crystal Tear",     "monomino", AspectIds.Fragile,  "A hollow crystal that shatters at the slightest pressure. Beautiful but doomed."),
+        ("glasswork",      "Glasswork",        "domino",   AspectIds.Fragile,  "Delicate blown glass containing trapped starlight. Handle with extreme care."),
+        ("gossamer_thread","Gossamer Thread",  "i_tet",    AspectIds.Fragile,  "Spun from spider silk and moonlight. Stronger than it looks, but not by much."),
     };
 
     private static readonly Dictionary<string, ReagentDefinition> _byId;
@@ -78,70 +86,61 @@ public static class ReagentCatalog
         _byShape = new Dictionary<string, List<ReagentDefinition>>();
         _all = new List<ReagentDefinition>();
 
-        foreach (var (speciesId, speciesName, aspectId, flavor) in Species)
+        foreach (var (itemId, displayName, shapeName, aspectId, flavor) in Items)
         {
-            for (int i = 0; i < ShapeNames.Length; i++)
-            {
-                string shapeName = ShapeNames[i];
-                string id = $"{speciesId}_{shapeName}";
-                string displayName = $"{speciesName} {ShapeDisplayNames[shapeName]}";
-                bool[,] shape = CloneShape(ShapeMatrices[i]);
+            bool[,] shape = CloneShape(ShapeMatricesByName[shapeName]);
 
-                int cellCount = ShapeUtil.CellCount(shape);
-                var aspect = Aspect.FromId(aspectId);
-                var aspectSet = new AspectSet(new[] { aspect });
-                var aspectsPerCell = new List<AspectSet>();
-                for (int c = 0; c < cellCount; c++)
-                    aspectsPerCell.Add(aspectSet);
+            int cellCount = ShapeUtil.CellCount(shape);
+            var aspect = Aspect.FromId(aspectId);
+            var aspectSet = new AspectSet(new[] { aspect });
+            var aspectsPerCell = new List<AspectSet>();
+            for (int c = 0; c < cellCount; c++)
+                aspectsPerCell.Add(aspectSet);
 
-                var def = new ReagentDefinition(
-                    id: id,
-                    name: displayName,
-                    shape: shape,
-                    weight: cellCount,
-                    value: cellCount,
-                    rarity: cellCount <= 2 ? Rarity.Common : Rarity.Uncommon,
-                    aspectsPerCell: aspectsPerCell,
-                    flavorText: flavor
-                );
+            var rarity = cellCount <= 2 ? Rarity.Common
+                       : cellCount == 3 ? Rarity.Uncommon
+                       : Rarity.Rare;
 
-                _byId[id] = def;
-                _all.Add(def);
+            var def = new ReagentDefinition(
+                id: itemId,
+                name: displayName,
+                shape: shape,
+                weight: cellCount,
+                value: cellCount,
+                rarity: rarity,
+                aspectsPerCell: aspectsPerCell,
+                flavorText: flavor
+            );
 
-                if (!_byAspect.ContainsKey(aspectId))
-                    _byAspect[aspectId] = new List<ReagentDefinition>();
-                _byAspect[aspectId].Add(def);
+            _byId[itemId] = def;
+            _all.Add(def);
 
-                if (!_byShape.ContainsKey(shapeName))
-                    _byShape[shapeName] = new List<ReagentDefinition>();
-                _byShape[shapeName].Add(def);
-            }
+            if (!_byAspect.ContainsKey(aspectId))
+                _byAspect[aspectId] = new List<ReagentDefinition>();
+            _byAspect[aspectId].Add(def);
+
+            if (!_byShape.ContainsKey(shapeName))
+                _byShape[shapeName] = new List<ReagentDefinition>();
+            _byShape[shapeName].Add(def);
         }
     }
 
-    /// <summary>Get all 72 catalog definitions.</summary>
+    /// <summary>Get all catalog definitions.</summary>
     public static IReadOnlyList<ReagentDefinition> GetAll() => _all;
 
-    /// <summary>Get a specific definition by species and shape name. Returns null if not found.</summary>
-    public static ReagentDefinition? Get(string speciesId, string shapeName)
-    {
-        string id = $"{speciesId}_{shapeName}";
-        return _byId.TryGetValue(id, out var def) ? def : null;
-    }
-
-    /// <summary>Get a definition by its full ID (e.g., "firevine_domino"). Returns null if not found.</summary>
+    /// <summary>Get a definition by its full ID (e.g., "firevine"). Returns null if not found.</summary>
     public static ReagentDefinition? GetById(string id)
     {
         return _byId.TryGetValue(id, out var def) ? def : null;
     }
 
-    /// <summary>Get all definitions for a given aspect (e.g., AspectIds.Hot returns all 9 Firevine shapes).</summary>
+    /// <summary>Get all definitions for a given aspect.</summary>
     public static IReadOnlyList<ReagentDefinition> GetByAspect(string aspectId)
     {
         return _byAspect.TryGetValue(aspectId, out var list) ? list : new List<ReagentDefinition>();
     }
 
-    /// <summary>Get all definitions for a given shape name (e.g., "domino" returns 8 species).</summary>
+    /// <summary>Get all definitions for a given shape name.</summary>
     public static IReadOnlyList<ReagentDefinition> GetByShape(string shapeName)
     {
         return _byShape.TryGetValue(shapeName, out var list) ? list : new List<ReagentDefinition>();
@@ -150,8 +149,7 @@ public static class ReagentCatalog
     /// <summary>Get the shape matrix for a given shape name. Returns null if not found.</summary>
     public static bool[,]? GetShapeMatrix(string shapeName)
     {
-        int idx = System.Array.IndexOf(ShapeNames, shapeName);
-        return idx >= 0 ? CloneShape(ShapeMatrices[idx]) : null;
+        return ShapeMatricesByName.TryGetValue(shapeName, out var shape) ? CloneShape(shape) : null;
     }
 
     /// <summary>Look up the matching catalog entry for a given aspect and shape matrix. Returns null if no match.</summary>
@@ -178,6 +176,31 @@ public static class ReagentCatalog
                 return def;
         }
 
+        return null;
+    }
+
+    /// <summary>
+    /// Get the shape name for a given item definition.
+    /// Looks up by matching the definition's shape matrix against known shapes.
+    /// Returns null if the shape doesn't match any standard shape.
+    /// </summary>
+    public static string? GetShapeName(ReagentDefinition def)
+    {
+        foreach (var shapeName in ShapeNames)
+        {
+            var canonical = ShapeMatricesByName[shapeName];
+            if (canonical.GetLength(0) != def.ShapeRows || canonical.GetLength(1) != def.ShapeCols)
+                continue;
+
+            bool match = true;
+            for (int r = 0; r < def.ShapeRows && match; r++)
+                for (int c = 0; c < def.ShapeCols && match; c++)
+                    if (canonical[r, c] != def.Shape[r, c])
+                        match = false;
+
+            if (match)
+                return shapeName;
+        }
         return null;
     }
 

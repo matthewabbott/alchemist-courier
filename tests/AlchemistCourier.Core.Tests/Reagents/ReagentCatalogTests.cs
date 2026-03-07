@@ -9,10 +9,10 @@ namespace AlchemistCourier.Core.Tests.Reagents;
 public class ReagentCatalogTests
 {
     [Fact]
-    public void GetAll_Returns72Definitions()
+    public void GetAll_Returns24Definitions()
     {
         var all = ReagentCatalog.GetAll();
-        Assert.Equal(72, all.Count);
+        Assert.Equal(24, all.Count);
     }
 
     [Fact]
@@ -20,19 +20,19 @@ public class ReagentCatalogTests
     {
         var all = ReagentCatalog.GetAll();
         var ids = all.Select(d => d.Id).ToHashSet();
-        Assert.Equal(72, ids.Count);
+        Assert.Equal(24, ids.Count);
     }
 
     [Theory]
-    [InlineData(AspectIds.Hot, 9)]
-    [InlineData(AspectIds.Cold, 9)]
-    [InlineData(AspectIds.Volatile, 9)]
-    [InlineData(AspectIds.Toxic, 9)]
-    [InlineData(AspectIds.Heavy, 9)]
-    [InlineData(AspectIds.Stable, 9)]
-    [InlineData(AspectIds.Sharp, 9)]
-    [InlineData(AspectIds.Fragile, 9)]
-    public void GetByAspect_Returns9PerSpecies(string aspectId, int expected)
+    [InlineData(AspectIds.Hot, 3)]
+    [InlineData(AspectIds.Cold, 3)]
+    [InlineData(AspectIds.Volatile, 3)]
+    [InlineData(AspectIds.Toxic, 3)]
+    [InlineData(AspectIds.Heavy, 3)]
+    [InlineData(AspectIds.Stable, 3)]
+    [InlineData(AspectIds.Sharp, 3)]
+    [InlineData(AspectIds.Fragile, 3)]
+    public void GetByAspect_Returns3PerAspect(string aspectId, int expected)
     {
         var defs = ReagentCatalog.GetByAspect(aspectId);
         Assert.Equal(expected, defs.Count);
@@ -40,62 +40,53 @@ public class ReagentCatalogTests
 
     [Theory]
     [InlineData("monomino", 8)]
-    [InlineData("domino", 8)]
-    [InlineData("i_tri", 8)]
-    [InlineData("l_tri", 8)]
-    [InlineData("i_tet", 8)]
-    [InlineData("o_tet", 8)]
-    [InlineData("t_tet", 8)]
-    [InlineData("s_tet", 8)]
-    [InlineData("l_tet", 8)]
-    public void GetByShape_Returns8PerShape(string shapeName, int expected)
+    [InlineData("domino", 7)]
+    [InlineData("i_tri", 2)]
+    [InlineData("l_tri", 2)]
+    [InlineData("i_tet", 1)]
+    [InlineData("o_tet", 1)]
+    [InlineData("t_tet", 1)]
+    [InlineData("s_tet", 1)]
+    [InlineData("l_tet", 1)]
+    public void GetByShape_ReturnsExpectedCount(string shapeName, int expected)
     {
         var defs = ReagentCatalog.GetByShape(shapeName);
         Assert.Equal(expected, defs.Count);
     }
 
     [Theory]
-    [InlineData("firevine", "domino", AspectIds.Hot)]
-    [InlineData("snowflower", "monomino", AspectIds.Cold)]
-    [InlineData("burstbloom", "t_tet", AspectIds.Volatile)]
-    [InlineData("creeper", "l_tri", AspectIds.Toxic)]
-    [InlineData("leadingot", "i_tet", AspectIds.Heavy)]
-    [InlineData("nullflower", "o_tet", AspectIds.Stable)]
-    [InlineData("sharpstone", "s_tet", AspectIds.Sharp)]
-    [InlineData("glass", "l_tet", AspectIds.Fragile)]
-    public void Get_ReturnsCorrectDefinition(string speciesId, string shapeName, string expectedAspect)
+    [InlineData("ember_seed", AspectIds.Hot)]
+    [InlineData("firevine", AspectIds.Hot)]
+    [InlineData("magma_slug", AspectIds.Hot)]
+    [InlineData("frozen_teardrop", AspectIds.Cold)]
+    [InlineData("snowflower", AspectIds.Cold)]
+    [InlineData("frost_fern", AspectIds.Cold)]
+    [InlineData("spark_petal", AspectIds.Volatile)]
+    [InlineData("burstbloom", AspectIds.Volatile)]
+    [InlineData("thunder_egg", AspectIds.Volatile)]
+    [InlineData("venom_drop", AspectIds.Toxic)]
+    [InlineData("purple_creeper", AspectIds.Toxic)]
+    [InlineData("blight_moss", AspectIds.Toxic)]
+    [InlineData("lead_nugget", AspectIds.Heavy)]
+    [InlineData("lead_ingot", AspectIds.Heavy)]
+    [InlineData("anvil_shard", AspectIds.Heavy)]
+    [InlineData("calm_stone", AspectIds.Stable)]
+    [InlineData("nullflower", AspectIds.Stable)]
+    [InlineData("ironbark_root", AspectIds.Stable)]
+    [InlineData("glass_shard", AspectIds.Sharp)]
+    [InlineData("sharpstone", AspectIds.Sharp)]
+    [InlineData("razor_fern", AspectIds.Sharp)]
+    [InlineData("crystal_tear", AspectIds.Fragile)]
+    [InlineData("glasswork", AspectIds.Fragile)]
+    [InlineData("gossamer_thread", AspectIds.Fragile)]
+    public void GetById_ReturnsCorrectAspect(string id, string expectedAspect)
     {
-        var def = ReagentCatalog.Get(speciesId, shapeName);
+        var def = ReagentCatalog.GetById(id);
         Assert.NotNull(def);
-        Assert.Equal($"{speciesId}_{shapeName}", def!.Id);
-
-        // All cells should have the expected aspect
-        foreach (var aspectSet in def.AspectsPerCell)
+        foreach (var aspectSet in def!.AspectsPerCell)
         {
             Assert.True(aspectSet.Has(expectedAspect));
         }
-    }
-
-    [Fact]
-    public void Get_UnknownSpecies_ReturnsNull()
-    {
-        var def = ReagentCatalog.Get("unknown_species", "domino");
-        Assert.Null(def);
-    }
-
-    [Fact]
-    public void Get_UnknownShape_ReturnsNull()
-    {
-        var def = ReagentCatalog.Get("firevine", "pentomino");
-        Assert.Null(def);
-    }
-
-    [Fact]
-    public void GetById_ReturnsCorrectDefinition()
-    {
-        var def = ReagentCatalog.GetById("sharpstone_t_tet");
-        Assert.NotNull(def);
-        Assert.Equal("Sharpstone T-Piece", def!.Name);
     }
 
     [Fact]
@@ -154,7 +145,7 @@ public class ReagentCatalogTests
         {
             foreach (var aspectSet in def.AspectsPerCell)
             {
-                Assert.Equal(1, aspectSet.Aspects.Count);
+                Assert.Single(aspectSet.Aspects);
             }
         }
     }
@@ -181,7 +172,7 @@ public class ReagentCatalogTests
         var dominoShape = new bool[,] { { true, true } };
         var match = ReagentCatalog.FindMatch(AspectIds.Hot, dominoShape);
         Assert.NotNull(match);
-        Assert.Equal("firevine_domino", match!.Id);
+        Assert.Equal("firevine", match!.Id);
     }
 
     [Fact]
@@ -229,5 +220,48 @@ public class ReagentCatalogTests
         var shape1 = ReagentCatalog.GetShapeMatrix("monomino");
         var shape2 = ReagentCatalog.GetShapeMatrix("monomino");
         Assert.NotSame(shape1, shape2);
+    }
+
+    [Fact]
+    public void AllNineShapes_AreCoveredInCatalog()
+    {
+        var coveredShapes = new HashSet<string>();
+        foreach (var def in ReagentCatalog.GetAll())
+        {
+            var shapeName = ReagentCatalog.GetShapeName(def);
+            if (shapeName != null)
+                coveredShapes.Add(shapeName);
+        }
+
+        foreach (var shapeName in ReagentCatalog.ShapeNames)
+        {
+            Assert.Contains(shapeName, coveredShapes);
+        }
+    }
+
+    [Fact]
+    public void Rarity_MatchesCellCount()
+    {
+        foreach (var def in ReagentCatalog.GetAll())
+        {
+            if (def.CellCount <= 2)
+                Assert.Equal(Rarity.Common, def.Rarity);
+            else if (def.CellCount == 3)
+                Assert.Equal(Rarity.Uncommon, def.Rarity);
+            else
+                Assert.Equal(Rarity.Rare, def.Rarity);
+        }
+    }
+
+    [Fact]
+    public void GetShapeName_ReturnsCorrectShape()
+    {
+        var firevine = ReagentCatalog.GetById("firevine");
+        Assert.NotNull(firevine);
+        Assert.Equal("domino", ReagentCatalog.GetShapeName(firevine!));
+
+        var thunderEgg = ReagentCatalog.GetById("thunder_egg");
+        Assert.NotNull(thunderEgg);
+        Assert.Equal("o_tet", ReagentCatalog.GetShapeName(thunderEgg!));
     }
 }
