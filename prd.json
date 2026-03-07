@@ -1085,7 +1085,7 @@
       "phase": "visual-systems",
       "depends_on": [],
       "verification": "dotnet test passes with action history tests",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.5",

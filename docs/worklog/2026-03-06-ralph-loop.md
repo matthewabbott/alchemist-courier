@@ -46,3 +46,7 @@ Commit: a3dbd20
 ## VS.2: Create ReagentCatalog with canonical single-aspect reagents
 Built the canonical reagent catalog — 72 named reagent definitions covering all 8 Simple-tier species (Firevine, Snowflower, etc.) across 9 standard polyomino shapes from monomino to L-tetromino. This replaces anonymous "reagent_0" identifiers with proper names like "Firevine Domino" and "Sharpstone T-Piece", each with flavor text from the design docs. The catalog is a static lookup table with indices by ID, aspect, and shape, plus a FindMatch() method that VS.3 will use to wire generated puzzles to named catalog entries. Pure Core code, zero Godot deps.
 Commit: 197a10f
+
+## VS.4: Implement ActionHistory (undo/redo) in Core
+Built the command-pattern undo/redo infrastructure — IGridAction interface with PlaceReagentAction and RemoveReagentAction implementations, managed by an ActionHistory class with dual undo/redo stacks. The key design decision was tracking rotation state: PlaceReagentAction captures and restores the previous rotation on undo, while RemoveReagentAction snapshots position and rotation at construction time so they survive any player modifications while the reagent is unplaced. Failed operations leave stacks unchanged for consistency. VS.5 will wire this into PuzzleScreen with Ctrl+Z/Ctrl+Y shortcuts.
+Commit: a04612c
