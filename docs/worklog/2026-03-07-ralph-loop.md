@@ -72,3 +72,29 @@ Full integration test run verifying the game works end-to-end after the catalog 
 
 ### Conclusion
 No regressions from the 72→24 item catalog refactor. All systems working correctly with new catalog.
+
+## HF.1 — HoverFrameResolver + frame texture generation
+
+### What changed
+Two-part task:
+
+**Part 1 — Core resolver** (`src/Core/Highlight/HoverFrameResolver.cs`):
+- `GetFrameKey(Reagent)` → `"{aspect}_{shape}_r{rotation}"` for texture lookup
+- `GetPerimeterEdges(Reagent)` → boundary edges per cell, internal edges excluded
+- `GetPerimeterEdges(bool[,])` → shape-only overload for texture generation
+
+**Part 2 — Frame texture generation** (`DevSpriteGenerator.cs`):
+- Extended to generate 72 frame PNGs (8 aspects × 9 shapes) at `art/sprites/frames/dev/`
+- Each frame: 4px aspect-colored outline on perimeter edges, 1px white inner edge, transparent interior
+- Rotation 0 only — rotation handled at runtime
+
+### Files created
+- `src/Core/Highlight/HoverFrameResolver.cs` — pure C# resolver
+- `tests/AlchemistCourier.Core.Tests/Highlight/HoverFrameResolverTests.cs` — 12 tests
+- `art/sprites/frames/dev/` — 72 frame PNGs
+
+### Files modified
+- `src/Game/Tools/DevSpriteGenerator.cs` — added `GenerateFrameTextures()` + `DrawFrameEdges()`
+
+### Test results
+All 667 tests pass (655 existing + 12 new).

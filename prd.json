@@ -1268,7 +1268,7 @@
       "phase": "hover-frames",
       "depends_on": ["CR.4"],
       "verification": "dotnet test — HoverFrameResolver tests pass. Frame PNGs generated in art/sprites/frames/dev/",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HF.2",

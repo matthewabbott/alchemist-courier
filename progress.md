@@ -800,3 +800,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-07
 - Commit: (checkpoint, no code changes)
 - Notes: Full integration test run after catalog refactor (CR.1-CR.4). Build: 0 errors. Unit tests: 655/655 pass. Integration harness: 31/31 pass ([HARNESS_DONE] passed=31 failed=0). Screenshots visually verified — grid rendering, reagent placement, aspect colors, status bars, puzzle generation, tutorials, hints, editor, undo/redo all working correctly. No regressions from the 72→24 item catalog refactor.
+
+## HF.1 — HoverFrameResolver (Core) + dev frame texture generation
+- Date: 2026-03-07
+- Commit: 966e9f0
+- Notes: Created src/Core/Highlight/HoverFrameResolver.cs — pure C# static class with three methods: GetFrameKey(Reagent) returns "{aspect}_{shape}_r{rotation}" keys for texture lookup (falls back to "custom{N}" for non-catalog shapes), GetPerimeterEdges(Reagent) returns per-cell boundary edges using ContiguousBoundary (internal edges excluded), GetPerimeterEdges(bool[,]) shape-only overload for texture generation. Extended DevSpriteGenerator to produce 72 frame PNGs (8 aspects × 9 shapes) at art/sprites/frames/dev/{aspect}_{shape}.png — each with 4px colored outline on perimeter edges only, 1px white inner edge, transparent interior. Rotation 0 only (rotate at runtime). 12 new unit tests: frame key format (catalog/non-catalog/rotated/no-aspect), perimeter edges (monomino all 4 edges, domino shared edge excluded, l_tri corner edges, o_tet internal edges fully excluded, rotated domino, shape overload equivalence). All 667 tests pass (655 + 12 new).
