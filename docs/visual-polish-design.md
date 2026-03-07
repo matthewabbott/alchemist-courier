@@ -412,3 +412,92 @@ Bags cycle through these tints to remain visually distinct:
 - **Aspect colors are saturated**: High saturation makes small icon badges readable against the muted bag/cell backgrounds.
 - **UI chrome is desaturated**: Backgrounds and borders use near-neutral grays so that colored highlights pop.
 - **Alpha layering**: Highlights use translucent overlays so reagent art is always visible beneath them.
+
+---
+
+## 13. Hover Frames (Aspect-Themed Shape Overlays)
+
+Hover frames communicate the exact polyomino shape of a reagent when the player hovers or selects it. They are NOT permanent — the reagent art speaks for itself during normal play.
+
+### Concept
+
+Each reagent has an associated **frame texture** that appears as a translucent overlay on hover/selection:
+- **Perimeter only** — internal edges between cells of the same reagent are NOT drawn. Only the convex hull boundary of the polyomino gets the frame outline.
+- **Aspect-themed** — each aspect gets a distinct frame style (e.g., frosty crystalline border for Cold, ember-vine border for Hot)
+- **Two adjacent reagents** with the same aspect are visually distinct because their frames have a gap between them (perimeter-only means no shared edges)
+
+### Visual Treatment
+
+| State | Alpha | Behavior |
+|-------|-------|----------|
+| **Default** | 0% (hidden) | No frame visible. Art + aspect badges only. |
+| **Hover** | Pulsing 0.25–0.55 | Frame fades in, then pulses. 1.5s period, sinusoidal. |
+| **Selected** | Pulsing 0.35–0.65 | Slightly more opaque than hover. Still pulses. |
+| **Dragging** | Steady 0.50 | No pulse during active drag. Clean readability. |
+
+### Frame Texture Design
+
+**Dev art (procedural):**
+- 4px colored outline on perimeter edges only
+- Interior is fully transparent
+- Aspect color from `GridConstants.GetAspectColor()` with white inner edge (1px) for contrast
+- Generated per shape by `DevSpriteGenerator`
+
+**Production art (RetroDiffusion, future):**
+- Aspect-themed decorative borders (Celtic knotwork for general, ice crystals for Cold, vine tendrils for Hot, etc.)
+- Generated at 128x128 per shape, downsampled to 32x32 per cell
+- Must maintain clear perimeter edges for shape readability
+
+### Implementation Architecture
+
+```
+src/Core/Highlight/HoverFrameResolver.cs    — Pure C#. Given a Reagent, returns frame key
+                                               (shape name + rotation + aspect ID).
+src/Game/Inventory/HoverFrameOverlay.cs      — Godot node. TextureRect positioned over
+                                               hovered/selected reagent. Manages fade-in,
+                                               pulse animation (Tween), and fade-out.
+src/Game/Tools/DevSpriteGenerator.cs         — Extended to generate frame textures
+                                               (perimeter-only outlines per shape).
+src/Game/Inventory/MetaGridView.cs           — Wires HoverFrameOverlay to hover/selection
+                                               state changes.
+src/Game/Inventory/GridConstants.cs           — Frame pulse parameters (alpha min/max,
+                                               period, fade duration).
+```
+
+### Frame Texture Organization
+
+```
+art/sprites/frames/
+  dev/                    # Procedural dev art frames
+    hot_monomino.png
+    hot_domino.png
+    cold_monomino.png
+    ...
+  production/             # RetroDiffusion frames (future)
+    hot_monomino.png
+    ...
+```
+
+### Boundary Computation
+
+Frame perimeters use the same `ContiguousBoundary.Compute()` logic as the existing highlight system:
+- Input: list of cell positions occupied by the reagent
+- Output: per-cell `CellEdge` flags indicating which edges are on the perimeter
+- For frame textures: edges with the `CellEdge` flag get the 4px outline; edges without it are transparent
+
+### Relationship to Other Highlights
+
+Hover frames are a **separate rendering layer** from the highlight overlay. They do not use `HighlightLayer` — instead, they are rendered as a `TextureRect` directly in MetaGridView's scene tree, positioned between the reagent sprites and the highlight overlay:
+
+```
+Z-order:
+  0: Cell backgrounds
+  1: Grid lines
+  2: Reagent sprites (SpriteStateRenderer)
+  3: Hover frame overlay (HoverFrameOverlay)  ← NEW
+  4: Ghost cells (placement preview)
+  5: Highlight overlay (constraint/interaction edges)
+  10: Rejection tooltip
+```
+
+This ensures the frame is visible but doesn't interfere with constraint/interaction highlights, which are more important for gameplay feedback.

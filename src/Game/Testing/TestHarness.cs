@@ -82,6 +82,7 @@ public partial class TestHarness : Control
         await Test_EditorCreateAndSave();
         await Test_EditorSolver();
         await Test_EditorPlayMode();
+        await Test_UndoRedo();
         await Test_LockedReagentRemovalBlocked();
         await Test_GameFlowStartsAtMenu();
         await Test_GameFlowFirstLaunchTutorial();
@@ -1616,6 +1617,68 @@ public partial class TestHarness : Control
         bool pass = inPlay && placed && backToEdit && bagsPreserved && reagentsPreserved;
         EndTest("editor_play_mode", pass, pass ? null
             : $"play={inPlay} placed={placed} edit={backToEdit} bags={bagsPreserved} reagents={reagentsPreserved}");
+    }
+
+    private async Task Test_UndoRedo()
+    {
+        BeginTest("undo_redo");
+
+        // Reset puzzle to a clean state
+        _puzzleScreen.ResetPuzzle();
+        await WaitFrames(2);
+
+        var history = _puzzleScreen.ActionHistory;
+        bool canUndoInitial = history.CanUndo;
+        bool canRedoInitial = history.CanRedo;
+        Log($"[STATE] undo_initial={canUndoInitial} redo_initial={canRedoInitial} (expected=false, false)");
+
+        // Place two reagents
+        bool placed1 = TestActions.SelectAndPlace(_puzzleScreen, 0, 2, 2); // Fire Pebble
+        bool canUndoAfter1 = history.CanUndo;
+        int undoCount1 = history.UndoCount;
+        Log($"[STATE] placed1={placed1} can_undo={canUndoAfter1} undo_count={undoCount1} (expected=true, true, 1)");
+
+        bool placed2 = TestActions.SelectAndPlace(_puzzleScreen, 1, 5, 1); // Ice Shard
+        int placedCount = _puzzleScreen.Grid.PlacedReagents.Count;
+        int undoCount2 = history.UndoCount;
+        Log($"[STATE] placed2={placed2} placed_count={placedCount} undo_count={undoCount2} (expected=true, 2, 2)");
+
+        // Undo last placement — Ice Shard should be removed
+        bool undone1 = _puzzleScreen.Undo();
+        int placedAfterUndo1 = _puzzleScreen.Grid.PlacedReagents.Count;
+        bool canRedo = history.CanRedo;
+        Log($"[STATE] undone1={undone1} placed_after_undo={placedAfterUndo1} can_redo={canRedo} (expected=true, 1, true)");
+
+        // Undo again — Fire Pebble should be removed
+        bool undone2 = _puzzleScreen.Undo();
+        int placedAfterUndo2 = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] undone2={undone2} placed_after_undo2={placedAfterUndo2} (expected=true, 0)");
+
+        // Can't undo further
+        bool canUndoEmpty = history.CanUndo;
+        Log($"[STATE] can_undo_empty={canUndoEmpty} (expected=false)");
+
+        // Redo — Fire Pebble should come back
+        bool redone1 = _puzzleScreen.Redo();
+        int placedAfterRedo1 = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] redone1={redone1} placed_after_redo={placedAfterRedo1} (expected=true, 1)");
+
+        // Redo again — Ice Shard should come back
+        bool redone2 = _puzzleScreen.Redo();
+        int placedAfterRedo2 = _puzzleScreen.Grid.PlacedReagents.Count;
+        Log($"[STATE] redone2={redone2} placed_after_redo2={placedAfterRedo2} (expected=true, 2)");
+
+        await CaptureScreenshot("40_undo_redo.png");
+
+        bool pass = !canUndoInitial && !canRedoInitial
+                 && placed1 && placed2
+                 && undone1 && placedAfterUndo1 == 1
+                 && undone2 && placedAfterUndo2 == 0
+                 && !canUndoEmpty
+                 && redone1 && placedAfterRedo1 == 1
+                 && redone2 && placedAfterRedo2 == 2;
+        EndTest("undo_redo", pass, pass ? null
+            : $"init_undo={canUndoInitial} init_redo={canRedoInitial} p1={placed1} p2={placed2} u1={undone1} u1_count={placedAfterUndo1} u2={undone2} u2_count={placedAfterUndo2} empty={canUndoEmpty} r1={redone1} r1_count={placedAfterRedo1} r2={redone2} r2_count={placedAfterRedo2}");
     }
 
     private async Task Test_LockedReagentRemovalBlocked()

@@ -1181,6 +1181,136 @@
       "source": "code-review-2026-03-06e"
     },
     {
+      "id": "IA.1",
+      "title": "Update art-and-style.md with item-first art direction",
+      "description": "Add an 'Item-First Art Direction' section to docs/art-and-style.md covering: (1) Item = One Shape paradigm — each reagent has ONE natural shape, not species x shapes. (2) Golden generation recipe — kells-alchemy style, rd_fast, 128x128, loose evocative prompts. (3) The three canonical golden prompts (snowflower, firevine, sharpstone). (4) Art tiers: inventory sprites (32x32) vs codex art (128x128). (5) Hover frame concept: aspect-themed translucent perimeter frames on hover/selection only. Reference docs/item-catalog-design.md and docs/visual-polish-design.md Section 13.",
+      "priority": 71,
+      "phase": "item-art-direction",
+      "depends_on": [],
+      "verification": "File updated, content matches the item-first paradigm described in docs/item-catalog-design.md",
+      "status": "done"
+    },
+    {
+      "id": "IA.2",
+      "title": "Create item-catalog-design.md with ~24 unique items",
+      "description": "Create docs/item-catalog-design.md documenting: (1) Item-first design philosophy — art-first process, generate then assess shape. (2) Shape coverage targets — all 9 standard polyomino shapes across 8 aspects. (3) Starter catalog of ~24 items (3 per aspect: monomino + domino + one larger piece), each with name, aspect, suggested shape, visual concept, flavor text. (4) Evolution strategy — items are provisional, will change as RetroDiffusion art is generated. (5) Generation workflow — loose prompts, many variants, curate close-enough matches.",
+      "priority": 72,
+      "phase": "item-art-direction",
+      "depends_on": [],
+      "verification": "File exists at docs/item-catalog-design.md with ~24 items covering all 9 shapes",
+      "status": "done"
+    },
+    {
+      "id": "IA.3",
+      "title": "Update core-mechanics.md and visual-polish-design.md",
+      "description": "Two doc updates: (1) In docs/core-mechanics.md, replace the 'Canonical Reagent Catalog' section (8 species x 9 shapes = 72) with the item-first model referencing docs/item-catalog-design.md. Keep naming convention, puzzle generation rules, and visual states sections. (2) In docs/visual-polish-design.md, add Section 13: Hover Frames specification — perimeter-only aspect-themed overlays, pulse animation (alpha 0.25-0.55, 1.5s period), implementation architecture (HoverFrameResolver, HoverFrameOverlay, DevSpriteGenerator extension), Z-order placement, frame texture organization.",
+      "priority": 73,
+      "phase": "item-art-direction",
+      "depends_on": ["IA.2"],
+      "verification": "Both files updated, core-mechanics.md references item-catalog-design.md, visual-polish-design.md has Section 13",
+      "status": "done"
+    },
+    {
+      "id": "CR.1",
+      "title": "Refactor ReagentCatalog to item-first model (~24 unique items)",
+      "description": "Replace the 8 species x 9 shapes (72 entries) catalog in src/Core/Reagents/ReagentCatalog.cs with ~24 unique items as defined in docs/item-catalog-design.md. Each item has ONE shape. Keep the same public API surface (GetAll, GetById, GetByAspect, GetByShape, FindMatch) but with fewer entries. Update the internal data model: remove the nested species x shape loops, replace with individual item definitions. Item IDs use snake_case (e.g., 'ember_seed', 'firevine', 'frozen_teardrop'). All cells in each item still have the same single aspect (same as before). Weight = cellCount, Value = cellCount, Rarity based on size (1-2 cells = Common, 3 = Uncommon, 4 = Rare). Preserve GetByShape() functionality — it returns all items with that shape. Preserve FindMatch(aspectId, shape) — returns items matching aspect + shape matrix.",
+      "priority": 74,
+      "phase": "catalog-refactor",
+      "depends_on": ["IA.2"],
+      "verification": "dotnet build succeeds, ReagentCatalog.GetAll() returns ~24 items, all items have correct aspects and shapes",
+      "status": "pending"
+    },
+    {
+      "id": "CR.2",
+      "title": "Update all unit tests for new catalog structure",
+      "description": "Update tests in tests/AlchemistCourier.Core.Tests/ that reference the old 72-entry catalog. Key changes: (1) ReagentCatalogTests: update expected counts (GetAll = ~24, GetByAspect = 2-3 per aspect, GetByShape = varies), update specific ID references (e.g., 'firevine_domino' stays, 'firevine_monomino' becomes 'ember_seed'). (2) Any tests using hardcoded reagent IDs from the old catalog need updating to new IDs. (3) The test AllDefinitions_HaveConsistentAspectAcrossCells should still pass (all cells same aspect). (4) Add a new test verifying all 9 shapes are covered across the catalog. (5) Search all test files for old species_shape IDs and update.",
+      "priority": 75,
+      "phase": "catalog-refactor",
+      "depends_on": ["CR.1"],
+      "verification": "dotnet test — all tests pass with new catalog",
+      "status": "pending"
+    },
+    {
+      "id": "CR.3",
+      "title": "Update PuzzleGenerator, tutorial, and save/load for new catalog",
+      "description": "Update game systems that reference specific catalog entries: (1) src/Core/Puzzle/PuzzleGenerator.cs — update reagent selection logic. GetByAspect now returns 2-3 items per aspect instead of 9. Ensure shape selection still works (may need to pick from what's available rather than requesting specific shapes). (2) Tutorial puzzles — search for hardcoded reagent IDs in tutorial/puzzle data and update to new catalog IDs. (3) Save/load — if SaveData references reagent IDs, ensure old saves gracefully handle missing IDs. (4) PuzzleSearchSolver — verify it works with the reduced catalog. (5) EditorScreen/ReagentEditorPanel — update any catalog browsing UI.",
+      "priority": 76,
+      "phase": "catalog-refactor",
+      "depends_on": ["CR.1"],
+      "verification": "dotnet build && dotnet test pass, tutorial generates valid puzzles with new catalog items",
+      "status": "pending"
+    },
+    {
+      "id": "CR.4",
+      "title": "Regenerate dev sprites for new catalog items",
+      "description": "Update src/Game/Tools/DevSpriteGenerator.cs to generate sprite sheets for the new ~24 catalog items (instead of 72). Run the generator to produce new sprite PNGs in art/sprites/reagents/. Each item gets a sprite sheet (7 visual state rows x up to 4 frames). Remove old sprite files that no longer have catalog entries. Update art/sprites/reagents/sprite_specs.json. Naming: {item_id}_{shape}.png (e.g., ember_seed_monomino.png, firevine_domino.png).",
+      "priority": 77,
+      "phase": "catalog-refactor",
+      "depends_on": ["CR.1"],
+      "verification": "dotnet build, run DevSpriteGenerator, art/sprites/reagents/ contains ~24 sprite PNGs matching new catalog",
+      "status": "pending"
+    },
+    {
+      "id": "CR.5",
+      "title": "Integration test: run test harness, verify game works with new catalog",
+      "description": "Run the full integration test harness to verify the game works end-to-end with the new 24-item catalog. Steps: (1) dotnet build (2) dotnet test — all unit tests pass (3) Run scenes/test_harness.tscn via Godot MCP (4) Parse structured output — all tests should pass (5) Read screenshots to verify visual correctness (6) If any tests fail, fix the issues and re-run. This is a checkpoint task — its purpose is to catch integration issues after the catalog refactor.",
+      "priority": 78,
+      "phase": "catalog-refactor",
+      "depends_on": ["CR.2", "CR.3", "CR.4"],
+      "verification": "All integration tests pass ([HARNESS_DONE passed=N failed=0]), screenshots show correct rendering",
+      "status": "pending"
+    },
+    {
+      "id": "HF.1",
+      "title": "HoverFrameResolver (Core) + dev frame texture generation",
+      "description": "Two parts: (1) Create src/Core/Highlight/HoverFrameResolver.cs — a pure C# static class. Method: GetFrameKey(Reagent reagent) returns a string key like 'hot_monomino_r0' (aspect + shape + rotation). Uses ContiguousBoundary.Compute() to determine perimeter edges. Also: GetPerimeterEdges(Reagent reagent) returns Dictionary<Vector2I, CellEdge> for the reagent's cells, with only external (perimeter) edges flagged. Internal edges between cells of the same reagent are NOT flagged. (2) Extend src/Game/Tools/DevSpriteGenerator.cs to generate frame textures: for each unique shape in the catalog, generate a PNG with a 4px colored outline on perimeter edges only, transparent interior. Output to art/sprites/frames/dev/{aspect}_{shape}.png. Use aspect color from GridConstants with a white 1px inner edge for contrast. Generate for all 4 rotations (or just rotation 0 and rotate at runtime). Add unit tests for HoverFrameResolver: verify perimeter edges for monomino (all 4 edges), domino (shared edge excluded), l_tri (corner edges correct).",
+      "priority": 79,
+      "phase": "hover-frames",
+      "depends_on": ["CR.4"],
+      "verification": "dotnet test — HoverFrameResolver tests pass. Frame PNGs generated in art/sprites/frames/dev/",
+      "status": "pending"
+    },
+    {
+      "id": "HF.2",
+      "title": "HoverFrameOverlay rendering with pulse animation",
+      "description": "Create src/Game/Inventory/HoverFrameOverlay.cs — a Godot Control node that renders a frame texture over a reagent. API: ShowFrame(Reagent reagent, Vector2 gridPixelPosition) — loads the appropriate frame texture, positions it, starts pulse animation. HideFrame() — fades out and hides. Pulse: uses Godot Tween to oscillate Modulate alpha between 0.25 and 0.55 with 1.5s period (sinusoidal). On selection: alpha range shifts to 0.35-0.65. On drag: steady 0.50, no pulse. Add constants to GridConstants.cs: FramePulseAlphaMin=0.25f, FramePulseAlphaMax=0.55f, FramePulsePeriod=1.5f, FrameSelectedAlphaMin=0.35f, FrameSelectedAlphaMax=0.65f, FrameDragAlpha=0.50f, FrameFadeDuration=0.15f.",
+      "priority": 80,
+      "phase": "hover-frames",
+      "depends_on": ["HF.1"],
+      "verification": "dotnet build succeeds, HoverFrameOverlay compiles with correct API",
+      "status": "pending"
+    },
+    {
+      "id": "HF.3",
+      "title": "Wire HoverFrameOverlay into MetaGridView + integration test",
+      "description": "Wire the hover frame system into the game: (1) In MetaGridView, add a HoverFrameOverlay child node at Z-index 3 (between sprite renderers and ghost cells). (2) In UpdateHoveredReagent(): when _hoveredPlacedReagent changes, call HoverFrameOverlay.ShowFrame() for the new reagent or HideFrame() if null. (3) When _selectedReagent is set (during placement), show frame on the selected reagent with selection alpha. (4) Add a test to TestHarness: place a reagent, programmatically set hover, verify HoverFrameOverlay is visible. (5) Run full integration test harness via Godot MCP to verify no regressions.",
+      "priority": 81,
+      "phase": "hover-frames",
+      "depends_on": ["HF.2"],
+      "verification": "dotnet build && dotnet test pass. Integration harness passes. Hover frames visible when hovering placed reagents.",
+      "status": "pending"
+    },
+    {
+      "id": "AP.1",
+      "title": "Generate RetroDiffusion hover frame textures per aspect",
+      "description": "BLOCKED: Requires human-in-the-loop RetroDiffusion art generation. Generate aspect-themed frame textures (Celtic knotwork for general, ice crystals for Cold, vine tendrils for Hot, etc.) at 128x128 per shape, downsampled to 32x32 per cell. Must maintain clear perimeter edges for shape readability.",
+      "priority": 90,
+      "phase": "art-pipeline",
+      "depends_on": ["HF.3"],
+      "verification": "Frame textures in art/sprites/frames/production/, visually distinct per aspect",
+      "status": "blocked"
+    },
+    {
+      "id": "AP.2",
+      "title": "Generate item sprites via RetroDiffusion",
+      "description": "BLOCKED: Requires human-in-the-loop RetroDiffusion art generation. For each aspect, generate loose-prompted item art at 128x128. Curate variants that naturally conform to needed polyomino shapes. Workflow: (1) identify which shapes need coverage per aspect, (2) write loose prompts with gentle shape suggestions, (3) generate many variants, (4) curate close-enough matches, (5) assign shapes based on what art naturally suggests.",
+      "priority": 91,
+      "phase": "art-pipeline",
+      "depends_on": ["CR.4"],
+      "verification": "Item sprites in art/sprites/reagents/ replacing dev art, each loosely matching its assigned polyomino shape",
+      "status": "blocked"
+    },
+    {
       "id": "SB.1",
       "title": "Create SandboxScreen with catalog mode",
       "description": "Create src/Game/Tools/SandboxScreen.cs + scenes/sandbox.tscn. Catalog view: scrollable grid showing all 72 reagent sprites grouped by species (8 rows, 9 shapes each). Filter by aspect and shape. Visual state toggle radio buttons (cycle through Normal/Heated/Cooled/ThermalStress/Crushed/Breaking/Exploding). Each sprite cell shows the reagent at current visual state using ReagentSpriteSheet + SpriteStateRenderer. Falls back to colored rectangles if no sprite PNGs exist. Species headers with aspect icon. Tab bar at top: Catalog | Playground.",

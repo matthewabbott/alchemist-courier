@@ -179,38 +179,34 @@ Examples of the aesthetic: giggle mushroom, star jelly, flame sprite essence, cl
 
 ## Canonical Reagent Catalog
 
-Each Simple-tier aspect has a canonical single-aspect reagent species. These are the baseline reagents that appear in standalone/daily puzzles. Each species exists in multiple polyomino shape variants.
+The catalog uses an **item-first model**: each reagent is a unique item with ONE natural polyomino shape (not "8 species x 9 shapes"). This produces better art, clearer visual identity, and a more authentic alchemist's inventory.
 
-### Reagent Species
+See `docs/item-catalog-design.md` for the full item list, design philosophy, and evolution strategy.
 
-| Aspect | Species | Flavor | Visual Notes |
-|--------|---------|--------|-------------|
-| **Hot** | Firevine | A climbing vine that perpetually smolders | Warm reds/oranges, curling tendrils |
-| **Cold** | Snowflower | A blue snowflake-shaped bloom that never thaws | Icy blues, crystalline petals |
-| **Volatile** | Burstbloom | A heat-sensitive alchemical bloom from foothills | Orange/yellow, swollen pods |
-| **Toxic** | Purple Creeper | A venomous trailing plant with poisonous sap | Deep purples/greens, thorny |
-| **Heavy** | Lead Ingot | Dense alchemical metal, prized for its weight | Earthy browns/grays, blocky |
-| **Stable** | Nullflower | A calm, dampening blossom that soothes reactions | Soft grays, serene |
-| **Sharp** | Sharpstone | Jagged crystalline mineral with cutting edges | Steel grays, angular facets |
-| **Fragile** | Glasswork | Delicate blown glass, beautiful but vulnerable | Pale lavender/clear, smooth curves |
+### Design Principle
 
-### Shape Variants
+Items are designed **art-first**: generate beautiful freeform art, then assess which polyomino shape it naturally maps to. If a needed shape has no good art, invent a new item — don't force an existing item into an unnatural shape.
 
-Each species has sprite variants for all standard polyomino sizes:
+### Starter Catalog (~24 items)
 
-| Size | Shapes | Count |
-|------|--------|-------|
-| Monomino (1 cell) | Single | 1 |
-| Domino (2 cells) | Horizontal pair | 1 |
-| Triomino (3 cells) | I-bar, L-bend | 2 |
-| Tetromino (4 cells) | I, O, T, S, L | 5 |
-| **Total per species** | | **9** |
+Each Simple-tier aspect has 2-3 unique items across different shapes:
 
-Total: 8 species × 9 shapes = **72 canonical reagent definitions**.
+| Aspect | Items | Shapes |
+|--------|-------|--------|
+| **Hot** | Ember Seed, Firevine, Magma Slug | monomino, domino, l_tri |
+| **Cold** | Frozen Teardrop, Snowflower, Frost Fern | monomino, domino, i_tri |
+| **Volatile** | Spark Petal, Burstbloom, Thunder Egg | monomino, l_tri, o_tet |
+| **Toxic** | Venom Drop, Purple Creeper, Blight Moss | monomino, domino, t_tet |
+| **Heavy** | Lead Nugget, Lead Ingot, Anvil Shard | monomino, domino, l_tet |
+| **Stable** | Calm Stone, Nullflower, Ironbark Root | monomino, domino, i_tri |
+| **Sharp** | Glass Shard, Sharpstone, Razor Fern | monomino, domino, s_tet |
+| **Fragile** | Crystal Tear, Glasswork, Gossamer Thread | monomino, domino, i_tet |
 
-Reagent rotation is handled by the engine — each shape needs only one sprite, rendered at 0°/90°/180°/270° by the rotation system.
+All 9 standard polyomino shapes are represented. Items and shape assignments are provisional — they evolve as art is generated and curated.
 
-**Naming convention:** `{species}_{shape}` (e.g., `sharpstone_t`, `firevine_domino`, `glass_monomino`)
+Reagent rotation is handled by the engine — each shape needs only one sprite, rendered at 0/90/180/270 degrees by the rotation system.
+
+**Naming convention:** `{item_id}` (e.g., `ember_seed`, `firevine`, `frozen_teardrop`). Item IDs are snake_case, unique across the catalog.
 
 ### Puzzle Generation Rules
 

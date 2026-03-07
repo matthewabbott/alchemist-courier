@@ -237,6 +237,67 @@ The codex is NOT a separate screen that players must navigate to. Instead, its k
 4. Venture music and SFX
 5. Full soundtrack and environmental audio
 
+## Item-First Art Direction
+
+### Core Principle: Item = One Shape
+
+Each reagent item in the catalog has **ONE natural shape** (or at most two). Instead of 8 species x 9 shapes = 72 entries, the catalog contains ~20-30 unique items, each with a shape that naturally fits its visual design.
+
+If we need an L-triomino cold reagent, we don't make a weirdly bent snowflower — we invent a different cold item like "frost fern" or "magma slug." This is:
+- **More authentic** to the game concept (a real alchemist's inventory has diverse items)
+- **More visually distinguishable** (each item looks genuinely different)
+- **Better for art generation** (freeform prompts produce gorgeous results; shape-forced prompts degrade quality)
+
+See `docs/item-catalog-design.md` for the full item list and design philosophy.
+
+### Art Tiers
+
+1. **Inventory sprites** (32x32 per cell): In-game art. Generated freeform, loosely matching the item's natural shape. Not perfectly grid-aligned but close enough to suggest the shape at a glance.
+2. **Codex art** (128x128): Higher-detail versions for lore/tooltip/catalog entries. The "true" beautiful depiction. These are the starting point — beautiful art first, shape assessment after.
+
+### Golden Generation Recipe
+
+The best results come from loose, evocative prompts with no grid/shape demands:
+
+```
+Style:     kells-alchemy (user_style_f1887992a9e54751ba878b8c5a0ef3b8)
+Model:     rd_fast
+Size:      128x128
+Remove BG: true
+
+Pattern:   "[item name] alchemical reagent, [evocative visual description],
+            [color palette], single item centered"
+```
+
+**Canonical examples (produced the best art to date):**
+
+| Item | Prompt |
+|------|--------|
+| Snowflower | "A snowflower alchemical reagent, a crystalline frost flower with ice-blue petals and silver stems, delicate frozen botanical specimen, cool blues and whites with hints of pale violet, single item centered" |
+| Firevine | "A firevine alchemical reagent, a curling smoldering vine with glowing embers and small flame-like leaves, warm reds and oranges with gold highlights, botanical illustration style, single item centered" |
+| Sharpstone | "A sharpstone alchemical reagent, an angular mineral crystal with sharp faceted edges, deep purple and grey with metallic glints, gemstone specimen style, single item centered" |
+
+### Generation Workflow
+
+1. **Generate freeform** — beautiful items at 128x128 with loose prompts
+2. **For multi-cell items** — add gentle shape suggestions without demanding compliance (e.g., "branching fronds in a line" for an I-tri, "a stem splitting into two blooms" for an L-tri)
+3. **Generate many variants** — curate the ones that naturally conform close-enough to a needed polyomino
+4. **Assess shape mapping after** — look at the result and decide what polyomino it best maps to
+5. **If a shape doesn't work** — invent a NEW item for that aspect+shape combo, or keep the art and assign it to whatever shape it naturally suggests
+
+The goal: **pretty reagent art that is a loose match for a polyomino + hover frames that show the true shape.**
+
+### Hover Frames (Shape Communication)
+
+Frames are NOT permanent backgrounds. They appear on **hover and selection only**:
+- A ghostly, aspect-themed translucent frame appears on the perimeter of the polyomino
+- **Perimeter only** — internal edges between cells of the same reagent are NOT drawn. Only the convex hull boundary gets the frame.
+- **Pulse animation** — on hover, the frame pulses (alpha oscillation). On selection, it stays visible at slightly higher opacity, still pulsing.
+- **Aspect-themed** — each aspect gets a distinct frame style (generated via RetroDiffusion; dev art uses colored outlines)
+- This clearly shows exact cell occupancy when the player needs it, without cluttering the default view
+
+See `docs/visual-polish-design.md` Section 13 for the full hover frame specification.
+
 ## Reagent Visual Design Philosophy
 
 Reagents should be **visually readable at 32x32**. This means:
