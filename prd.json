@@ -779,7 +779,9 @@
       "description": "Add a desloppify step to scripts/ralph/prompts/review-code.md. After the existing 'Review recent changes' step, add: (1) Run desloppify scan --path . to get current quality score. (2) Run desloppify next to get the highest-priority mechanical issue. (3) If the issue is P0-P1 severity and a quick fix (<20 lines), fix it. (4) Re-run desloppify scan to verify score held or improved. (5) Record the before/after scores in the review report. Keep the existing deslop.md qualitative review for architectural and game-specific concerns that desloppify cannot catch (Core/ purity, game design alignment, etc.).",
       "priority": 69,
       "phase": "tooling",
-      "depends_on": ["T.1"],
+      "depends_on": [
+        "T.1"
+      ],
       "verification": "scripts/ralph/prompts/review-code.md contains desloppify scan/next/fix steps",
       "status": "done"
     },
@@ -829,7 +831,9 @@
       "description": "Create src/Game/Editor/BagEditorPanel.cs -- a Godot Control panel for editing bags in the puzzle editor. Layout (procedural, VBoxContainer): (1) 'Bags' header label. (2) HBoxContainer with 'Add Bag' button and bag count label. (3) ScrollContainer with VBoxContainer listing current bags, each as a collapsible panel showing: ShapeEditorWidget (from E.3) for the bag shape, SpinBox for PositionCol and PositionRow on meta-grid, CheckBoxes for properties (Null, Gravity, Locked, Insulated, Reinforced, Fragile), a 'Remove' button. (4) Signal: BagsChanged() emitted on any modification. Methods: GetBags() -> List<PuzzleBag>, SetBags(List<PuzzleBag>) for loading. Follow the procedural UI pattern from PuzzleScreen.cs (AddChild, theme overrides, etc.).",
       "priority": 74,
       "phase": "editor",
-      "depends_on": ["E.3"],
+      "depends_on": [
+        "E.3"
+      ],
       "verification": "dotnet build succeeds, panel renders with add/remove/edit bag controls",
       "status": "done"
     },
@@ -839,7 +843,9 @@
       "description": "Create src/Game/Editor/ReagentEditorPanel.cs -- a Godot Control panel for editing reagents in the puzzle editor. Layout (procedural, VBoxContainer): (1) 'Reagents' header label. (2) HBoxContainer with 'Add Reagent' button and reagent count label. (3) ScrollContainer with VBoxContainer listing current reagents, each as a collapsible panel showing: ShapeEditorWidget (from E.3) for the reagent shape, per-cell aspect assignment (for each true cell in the shape, show a row with cell index and an OptionButton dropdown of available aspects from AspectMetadata.AllAspects), SpinBox for Weight and Value, CheckBox for IsLocked, a 'Remove' button. (4) Signal: ReagentsChanged() emitted on any modification. Methods: GetReagents() -> List<PuzzleReagent>, SetReagents(List<PuzzleReagent>). The aspect dropdown should include a 'None' option. When the shape changes, update the per-cell aspect list (add/remove rows to match true cell count).",
       "priority": 75,
       "phase": "editor",
-      "depends_on": ["E.3"],
+      "depends_on": [
+        "E.3"
+      ],
       "verification": "dotnet build succeeds, panel renders with add/remove/edit reagent controls including per-cell aspect pickers",
       "status": "done"
     },
@@ -849,7 +855,11 @@
       "description": "Create src/Game/Editor/EditorScreen.cs -- the main puzzle editor screen, following PuzzleScreen.cs's procedural UI pattern. Layout: (1) Header bar with 'Puzzle Editor' title. (2) HBoxContainer: left side = MetaGridView (reused from src/Game/Inventory/) showing current puzzle state, right side = VBoxContainer with tabs/sections for BagEditorPanel (E.4) and ReagentEditorPanel (E.5). (3) Bottom bar with: 'New' button (creates empty puzzle), 'Save' button (saves PuzzleFile to user://puzzles/), 'Load' button (loads PuzzleFile), puzzle name TextEdit field. (4) Wire BagsChanged/ReagentsChanged signals to rebuild the MetaGrid and refresh MetaGridView. Create scenes/editor.tscn as a minimal wrapper (same pattern as scenes/main.tscn). Methods: NewPuzzle(), SavePuzzle(string path), LoadPuzzle(string path). Use PuzzleFile (E.2) for serialization. Start with a default 6x6 meta-grid and one 3x3 Normal bag.",
       "priority": 76,
       "phase": "editor",
-      "depends_on": ["E.2", "E.4", "E.5"],
+      "depends_on": [
+        "E.2",
+        "E.4",
+        "E.5"
+      ],
       "verification": "dotnet build succeeds, editor scene launches, can create/save/load puzzle files",
       "status": "done"
     },
@@ -859,7 +869,10 @@
       "description": "Create src/Game/Editor/SolverPanel.cs -- a panel in the editor that integrates PuzzleSearchSolver (E.1). Layout: (1) 'Solve' button that runs PuzzleSearchSolver.Solve() on the current puzzle state. (2) 'Count Solutions' button that runs CountSolutions(maxCount: 100). (3) Status label showing: 'Solvable (N solutions found)' or 'No solution found' or 'Solving...' (4) 'Show Solution' toggle button that overlays the solution placements on the MetaGridView using ghost/highlight rendering. Run solving on a background thread (Task.Run with CancellationToken) to avoid freezing the UI. Wire into EditorScreen (E.6): add SolverPanel below the MetaGridView. When bags or reagents change, clear the solver status.",
       "priority": 77,
       "phase": "editor",
-      "depends_on": ["E.1", "E.6"],
+      "depends_on": [
+        "E.1",
+        "E.6"
+      ],
       "verification": "dotnet build succeeds, solver finds solutions for valid puzzles and reports unsolvable for invalid ones",
       "status": "done"
     },
@@ -869,7 +882,9 @@
       "description": "Add a 'Play' / 'Edit' toggle to EditorScreen (E.6). When in Play mode: (1) hide the editor panels (BagEditorPanel, ReagentEditorPanel, SolverPanel, file controls), (2) show a ReagentTray with the current puzzle's reagents, (3) enable interactive placement on the MetaGridView (same mouse handling as PuzzleScreen), (4) show StatusBarPanel and ObjectivePanel, (5) add a 'Back to Edit' button. Implementation: create a PuzzleState from the current editor state, instantiate the same placement logic used by PuzzleScreen (SelectReagent, PlaceSelectedAt, RemoveReagentAt, etc.). The MetaGridView instance can be reused. When switching back to Edit mode, discard any placements made during play. This lets the puzzle author test their creation without leaving the editor.",
       "priority": 78,
       "phase": "editor",
-      "depends_on": ["E.6"],
+      "depends_on": [
+        "E.6"
+      ],
       "verification": "dotnet build succeeds, can toggle between edit and play modes, placements work in play mode",
       "status": "done"
     },
@@ -879,7 +894,10 @@
       "description": "Add editor integration tests to src/Game/Testing/TestHarness.cs. Tests: (1) Test_EditorCreateAndSave: create EditorScreen, add 2 bags via BagEditorPanel, add 3 reagents via ReagentEditorPanel, save as PuzzleFile, load the file back, verify bags and reagents match. (2) Test_EditorSolver: create a known-solvable puzzle in the editor, press Solve, verify solution found. Create a known-unsolvable puzzle, press Solve, verify 'No solution'. (3) Test_EditorPlayMode: create a puzzle, toggle to Play mode, place a reagent, toggle back to Edit, verify placement was discarded. Take screenshots at key states. Output [PASS]/[FAIL] markers.",
       "priority": 79,
       "phase": "editor",
-      "depends_on": ["E.7", "E.8"],
+      "depends_on": [
+        "E.7",
+        "E.8"
+      ],
       "verification": "Test harness reports all editor tests PASS",
       "status": "done"
     },
@@ -929,7 +947,10 @@
       "description": "HUMAN-IN-THE-LOOP TASK. This task cannot be fully automated. Using the RetroDiffusion MCP server (ART.1) and manuscript references (ART.4): (1) Human selects 5-9 reference images from the curated manuscripts that best represent the desired pixel art style. (2) Human + agent use the create_custom_style MCP tool to create a custom RetroDiffusion style from these references. (3) Human reviews generated sample sprites (test with 3-5 reagent prompts like 'mushroom', 'crystal', 'flame herb'). (4) Iterate on reference image selection and prompts until the style produces satisfactory results. (5) Record the approved style_id and its reference images in art/retrodiffusion-styles.json. (6) Document the approved style parameters and example outputs in docs/art-references.md. The agent's role is to facilitate the generation and organize outputs, but the human makes all aesthetic decisions.",
       "priority": 84,
       "phase": "art",
-      "depends_on": ["ART.1", "ART.4"],
+      "depends_on": [
+        "ART.1",
+        "ART.4"
+      ],
       "verification": "art/retrodiffusion-styles.json exists with at least one approved style_id, sample sprites generated successfully",
       "status": "blocked",
       "blocked_reason": "Human-in-the-loop task: requires human aesthetic decisions for reference image selection and style approval"
@@ -950,7 +971,9 @@
       "description": "Replace inline win condition logic in PuzzleScreen.ConfirmPuzzle() (src/Game/Inventory/PuzzleScreen.cs lines 595-627) with a call to PuzzleValidator.Evaluate(). Steps: (1) Delete the ConfirmResult enum from PuzzleScreen.cs (lines 10-17) -- it now lives at AlchemistCourier.Core.Puzzle.ConfirmResult. (2) Ensure 'using AlchemistCourier.Core.Puzzle;' is present (it already is). (3) Replace ConfirmPuzzle() body: call 'var result = PuzzleValidator.Evaluate(_metaGrid, _trayReagents, _puzzleType, ReactionRuleDatabase.GetMvpRules())', then set '_lastConfirmResult = result.Result', '_lastReactions = result.Reactions.ToList()'. (4) Update ShowResultOverlay calls to pass result.Score for MaximizeValue display (add score to success message when > 0). (5) Grep all files for references to the old ConfirmResult location. Key files to check: src/Game/TutorialScreen.cs (uses ConfirmResult.Win), src/Game/Testing/TestHarness.cs, src/Game/Testing/TestActions.cs. Update their using statements to reference AlchemistCourier.Core.Puzzle namespace. (6) Verify no dangling references to the old enum location.",
       "priority": 86,
       "phase": "code-quality",
-      "depends_on": ["CQ.1"],
+      "depends_on": [
+        "CQ.1"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes (all 519+ tests), grep for 'enum ConfirmResult' finds only src/Core/Puzzle/ConfirmResult.cs, integration tests still pass",
       "status": "done"
     },
@@ -970,7 +993,9 @@
       "description": "Decompose PuzzleScreen (src/Game/Inventory/PuzzleScreen.cs, 865 lines) by extracting two cohesive subsystems: (1) RESULT OVERLAY: Create src/Game/Inventory/ResultOverlayPanel.cs extending PanelContainer. Move result overlay construction (the PanelContainer with StyleBoxFlat and Label for showing win/fail), ShowResultOverlay/HideResultOverlay logic, and FormatReactionType(). Constructor builds the overlay UI (PanelContainer with StyleBoxFlat and Label). Methods: ShowWin(string message, int score = 0), ShowFailure(List<ReactionResult> reactions), Hide(). FormatReactionType(ReactionResultType) becomes a public static method here. In PuzzleScreen, replace _resultOverlay/_resultLabel fields with a single '_resultOverlay = new ResultOverlayPanel()' and call its methods. (2) HINT ORCHESTRATOR: Create src/Game/Inventory/HintOrchestrator.cs as a plain C# class (NOT a Godot node). Constructor takes: PuzzleState puzzleData, HintState hintState, MetaGrid grid, List<Reagent> trayReagents. Methods: HintResult? ExecuteHint() (the UseHint logic), bool HasHintsAvailable (checks budget + snap-back availability), string FormatHintCount(). In PuzzleScreen: create _hintOrchestrator in InitializeFromPuzzleState, call _hintOrchestrator.ExecuteHint() from OnHintPressed, call FormatHintCount() from UpdateHintButton. Keep the UI refresh calls (RefreshDisplay, ClearSelectionState) in PuzzleScreen -- the orchestrator only handles domain logic. Target: PuzzleScreen drops from ~865 to ~700 lines.",
       "priority": 88,
       "phase": "code-quality",
-      "depends_on": ["CQ.2"],
+      "depends_on": [
+        "CQ.2"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes (all existing tests), integration tests still pass (hint and confirm tests exercise the refactored code), PuzzleScreen.cs line count under 750",
       "status": "done"
     },
@@ -1000,7 +1025,9 @@
       "description": "Create src/Game/DailyPuzzleScreen.cs -- a Godot Control wrapping PuzzleScreen for daily puzzle mode. Follows TutorialScreen.cs (src/Game/TutorialScreen.cs) pattern closely. Property set before AddChild: SaveData? SaveInfo. In _Ready(): (1) Set FullRect anchors. (2) Build wrapper UI: VBoxContainer with a top HBoxContainer containing a 'Back to Menu' button and day/streak labels, then a PuzzleScreen child set to ExpandFill. (3) Generate daily puzzle: var puzzle = DailyPuzzleManager.GenerateToday(). (4) Create PuzzleScreen, set PuzzleData = puzzle, set HeaderDayText (format: DateTime.UtcNow.DayOfYear.ToString()), set HeaderStreakText (format from SaveInfo.CurrentStreak). (5) AddChild(puzzleScreen). (6) Wire PuzzleScreen.PuzzleConfirmed: on ConfirmResult.Win, set _isCompleted = true, invoke DailyCompleted event. (7) Wire back button to invoke BackRequested event. Events: 'public event Action? DailyCompleted;', 'public event Action? BackRequested;'. Public properties: PuzzleScreen? CurrentPuzzleScreen, bool IsCompleted, DateTime PuzzleDate. Edge case: if SaveInfo?.IsDailyCompleted(DateTime.UtcNow.Date) == true, show 'Already completed today!' label instead of creating PuzzleScreen, with just a Back button. File: src/Game/DailyPuzzleScreen.cs. Namespace: AlchemistCourier.Game. Reuse: DailyPuzzleManager, SaveData, PuzzleScreen.",
       "priority": 91,
       "phase": "game-flow",
-      "depends_on": ["CQ.2"],
+      "depends_on": [
+        "CQ.2"
+      ],
       "verification": "dotnet build succeeds, DailyPuzzleScreen compiles and correctly wraps PuzzleScreen with daily puzzle data",
       "status": "done"
     },
@@ -1010,9 +1037,126 @@
       "description": "Final wiring task connecting all game flow pieces. Steps: (1) Add TutorialCompleted event to TutorialScreen (src/Game/TutorialScreen.cs): add 'public event Action? TutorialCompleted;'. In AdvanceLesson() or equivalent, after the lesson index advances past the last lesson and IsComplete becomes true, invoke TutorialCompleted?.(). This lets GameFlowController know the tutorial is finished. (2) Update scenes/main.tscn: change the script reference from PuzzleScreen.cs to GameFlowController.cs. The scene file references scripts via [ext_resource]. Update the path to point to res://src/Game/GameFlowController.cs. Use the Godot MCP get_uid tool if needed for the UID reference. (3) Wire GameFlowController completion handlers fully: OnTutorialCompleted -- update SaveData.TutorialLessonCompleted, save via SaveManager, TransitionTo(MainMenu). OnDailyCompleted -- call SaveData.CompleteDailyPuzzle(DateTime.UtcNow.Date), save, TransitionTo(MainMenu). OnBackRequested -- TransitionTo(MainMenu), no save needed. OnScreenRequested(GameScreen target) -- TransitionTo(target). (4) First-launch detection: in _Ready, check if SaveData.TutorialLessonCompleted == 0. If so, TransitionTo(Tutorial). Otherwise TransitionTo(MainMenu). (5) INTEGRATION TEST: Add Test_GameFlowStartsAtMenu to TestHarness.cs: create GameFlowController with SaveData where TutorialLessonCompleted = 5 (not first launch), add to scene tree, verify CurrentScreen == GameScreen.MainMenu. Take screenshot. Add Test_GameFlowFirstLaunchTutorial: same but TutorialLessonCompleted = 0, verify CurrentScreen == GameScreen.Tutorial.",
       "priority": 92,
       "phase": "game-flow",
-      "depends_on": ["GF.1", "GF.2", "GF.3"],
+      "depends_on": [
+        "GF.1",
+        "GF.2",
+        "GF.3"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes, running scenes/main.tscn shows MainMenu (or Tutorial for first launch), integration tests pass, all existing 519+ unit tests still pass",
       "status": "done"
+    },
+    {
+      "id": "VS.1",
+      "title": "Fix ComplexityFilter: promote Sharp/Fragile to Simple tier",
+      "description": "Move Sharp and Fragile from IntermediateAspects to SimpleAspects in src/Core/Puzzle/ComplexityFilter.cs. SimpleAspects should be: Hot, Cold, Volatile, Stable, Heavy, Toxic, Sharp, Fragile. IntermediateAspects becomes: Catalytic, Medicinal. Update any tests that assert aspect counts per tier.",
+      "priority": 93,
+      "phase": "visual-systems",
+      "depends_on": [],
+      "verification": "dotnet test passes, Simple-tier puzzles can include Sharp/Fragile",
+      "status": "pending"
+    },
+    {
+      "id": "VS.2",
+      "title": "Create ReagentCatalog with canonical single-aspect reagents",
+      "description": "Create src/Core/Reagents/ReagentCatalog.cs with 8 species x 9 shapes = 72 definitions. Species: Firevine(Hot), Snowflower(Cold), Burstbloom(Volatile), PurpleCreeper(Toxic), LeadIngot(Heavy), Nullflower(Stable), Sharpstone(Sharp), Glasswork(Fragile). Each species has monomino, domino, 2 triominoes (I-bar, L-bend), 5 free tetrominoes (I, O, T, S, L). ID format: species_shape (e.g. firevine_domino, glass_t). All single-aspect: every cell gets the same AspectSet. See docs/core-mechanics.md Canonical Reagent Catalog section. Add query methods: GetByAspect(aspectId), GetByShape(shapeName), Get(speciesId, shapeName). Add unit tests verifying 72 definitions, 9 per species, query correctness.",
+      "priority": 94,
+      "phase": "visual-systems",
+      "depends_on": [],
+      "verification": "dotnet test passes, 72 definitions verified, query methods work",
+      "status": "pending"
+    },
+    {
+      "id": "VS.3",
+      "title": "Wire PuzzleGenerator to use ReagentCatalog",
+      "description": "Modify src/Core/Puzzle/PuzzleGenerator.cs to use ReagentCatalog entries instead of anonymous reagent_0 definitions. After choosing aspects for each shape, look up matching catalog entry (aspect + shape). Use catalog definition with proper name, ID, flavor text. Fall back to anonymous definitions for multi-aspect reagents. Update src/Game/Inventory/DemoPuzzle.cs to use catalog entries. Add tests verifying generated puzzles contain named catalog reagents.",
+      "priority": 95,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.2"
+      ],
+      "verification": "dotnet test passes, generated puzzles have named reagents from catalog",
+      "status": "pending"
+    },
+    {
+      "id": "VS.4",
+      "title": "Implement ActionHistory (undo/redo) in Core",
+      "description": "Create undo/redo infrastructure in src/Core/Puzzle/. IGridAction interface with Execute(MetaGrid) and Undo(MetaGrid). PlaceReagentAction: stores reagent, position, rotation. Execute places reagent, Undo removes it. RemoveReagentAction: stores reagent, previous position, previous rotation. Execute removes, Undo restores. ActionHistory class: _undoStack/_redoStack (Stack<IGridAction>). Execute(action) runs Execute, pushes to undo, clears redo. Undo() pops undo, runs Undo, pushes to redo. Redo() pops redo, runs Execute, pushes to undo. Clear() empties both. CanUndo/CanRedo bool properties. Pure C#, no Godot. Unit tests for all operations.",
+      "priority": 94,
+      "phase": "visual-systems",
+      "depends_on": [],
+      "verification": "dotnet test passes with action history tests",
+      "status": "pending"
+    },
+    {
+      "id": "VS.5",
+      "title": "Wire undo/redo into PuzzleScreen UI",
+      "description": "Integrate ActionHistory into src/Game/Inventory/PuzzleScreen.cs. Wrap all PlaceReagent/RemoveReagent calls in PlaceReagentAction/RemoveReagentAction routed through ActionHistory.Execute(). Add Undo/Redo buttons to controls area, grayed when CanUndo/CanRedo is false. Add Ctrl+Z (Undo) and Ctrl+Y (Redo) keyboard shortcuts in _UnhandledInput. ResetPuzzle() calls ActionHistory.Clear(). Locked reagents never added to history. Hinted reagents ARE added to history (player can undo hints). After undo/redo, refresh grid and tray displays. See docs/visual-polish-design.md Section 11.",
+      "priority": 95,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.4"
+      ],
+      "verification": "dotnet build succeeds, undo/redo works in puzzle gameplay",
+      "status": "pending"
+    },
+    {
+      "id": "VS.6",
+      "title": "Create VisualStateResolver in Core",
+      "description": "Create src/Core/Visual/VisualState.cs enum (Normal, Heated, Cooled, ThermalStress, Crushed, Exploding, Breaking) and src/Core/Visual/VisualStateResolver.cs static class. Resolve(Reagent, MetaGrid) returns Dictionary<Vector2I, VisualState> per cell. Logic: check cardinal neighbors for aspects. Fragile+adjacent Hot AND Cold = ThermalStress. Fragile+Heavy directly above = Crushed. Adjacent Hot only = Heated. Adjacent Cold only = Cooled. Else Normal. See docs/sprite-state-system.md for full spec. Pure C#, no Godot. Unit tests for all state transitions.",
+      "priority": 94,
+      "phase": "visual-systems",
+      "depends_on": [],
+      "verification": "dotnet test passes with visual state resolver tests",
+      "status": "pending"
+    },
+    {
+      "id": "VS.7",
+      "title": "Create SpriteSheetSpec and SpriteStateRenderer",
+      "description": "Godot-side sprite rendering. (1) SpriteSheetSpec in src/Core/Visual/ (pure C#): StateRowMap dict, FrameCounts dict, CellWidth/CellHeight, DefaultReagentSpec() factory, GetRegion(state, frame) returning (x,y,w,h). (2) ReagentSpriteSheet in src/Game/Visual/: wraps Texture2D + SpriteSheetSpec, loads from res://art/sprites/reagents/, provides AtlasTexture lookup. (3) SpriteStateRenderer in src/Game/Visual/: TextureRect showing correct region for current VisualState, auto-advances animated states at 8fps, emits AnimationFinished. (4) MetaGridView integration: if sprite sheet exists for reagent, use SpriteStateRenderer instead of ColorRect. Auto-detect. See docs/sprite-state-system.md.",
+      "priority": 95,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.6"
+      ],
+      "verification": "dotnet build succeeds, MetaGridView renders sprite-based cells",
+      "status": "pending"
+    },
+    {
+      "id": "VS.8",
+      "title": "Create DevSpriteGenerator tool",
+      "description": "Create src/Game/Tools/DevSpriteGenerator.cs that procedurally generates placeholder sprite sheet PNGs for all ReagentCatalog entries using Godot Image API. Each sheet: 7 state rows x 4 frames. Draws colored rectangles (aspect color from GridConstants) with state overlays: Normal=clean+icon, Heated=orange corner, Cooled=blue corner, ThermalStress=diagonal split+cracks, Crushed=darkened+arrow, Breaking(4 frames)=progressive cracks to scatter, Exploding(4 frames)=flash to burst to fade. Outputs to art/sprites/reagents/{species}_{shape}.png (72 files) plus sprite_specs.json. Create scenes/dev_sprite_generator.tscn tool scene. See docs/sprite-state-system.md Dev Sprite Sheets section.",
+      "priority": 96,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.2",
+        "VS.7"
+      ],
+      "verification": "Running generator produces 72 PNGs with correct dimensions, valid JSON spec",
+      "status": "pending"
+    },
+    {
+      "id": "VS.9",
+      "title": "Implement ReactionAnimator",
+      "description": "Create src/Game/Animation/ReactionAnimator.cs. On PuzzleValidator returning HasReactions: (1) receive List<ReactionResult>. (2) For each, spawn temporary visual nodes at AffectedCells. (3) Play tween animations: Explosion=flash(0.1s)+burst(0.2s)+particles(0.2s)+fade(0.1s), Breakage=cracks(0.15s)+fragments(0.2s)+scatter(0.15s), ThermalStress=pulse(0.15s)+cracks(0.15s)+shatter(0.2s). (4) If sprite sheets available, use Breaking/Exploding frame rows. Else procedural color animations. (5) Emit AllAnimationsComplete when done, PuzzleScreen shows result overlay after. (6) Per-animation signals for SFX hooks. Sequential for chained, parallel for independent. See docs/visual-polish-design.md Section 10.",
+      "priority": 96,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.7"
+      ],
+      "verification": "dotnet build succeeds, reaction animations play before result overlay",
+      "status": "pending"
+    },
+    {
+      "id": "VS.10",
+      "title": "Implement FallingAnimator for Heavy reagents",
+      "description": "Create src/Game/Animation/FallingAnimator.cs. When Heavy reagent placed with empty space below: (1) Logic calculates final resting position instantly. (2) Reagent placed at final position in grid immediately. (3) FallingAnimator tweens visual from drop position to final position (0.3s, EaseOut + Bounce for weight feel). (4) Self-destructs after animation. (5) Emits FallingStarted signal for SFX. Placement-time animation, not confirmation-time. Wire into MetaGridView/PuzzleScreen where PlaceReagent succeeds and final position differs from drop position.",
+      "priority": 97,
+      "phase": "visual-systems",
+      "depends_on": [
+        "VS.9"
+      ],
+      "verification": "dotnet build succeeds, heavy reagent placement shows falling animation",
+      "status": "pending"
     }
   ]
 }

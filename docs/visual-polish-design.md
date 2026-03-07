@@ -280,7 +280,89 @@ When the character portrait panel is added (post-MVP):
 
 ---
 
-## 10. Color Palette Reference
+## 10. Reaction Animations
+
+When a reaction is triggered (on puzzle confirmation), the game plays a short animation making the reaction VISIBLE before showing the result overlay. This is critical for player comprehension — without animation, "FAILED: Explosion" is opaque. With animation, the player SEES the volatile reagent detonate.
+
+### Animation Sequence
+
+On `PuzzleValidator.Evaluate()` returning `HasReactions`:
+
+1. **Queue** all `ReactionResult` objects as animation events
+2. **Play** each animation (sequentially or parallel for independent reactions)
+3. **Wait** for all animations to complete
+4. **Show** the result overlay with the reaction summary text
+
+### Animation Specifications
+
+| Event | Trigger | Duration | Visual |
+|-------|---------|----------|--------|
+| **Volatile explosion** | `ReactionResultType.Explosion` | ~0.6s | Affected cells flash white (0.1s) → orange/red burst expands from center (0.2s) → particle scatter outward (0.2s) → fade to empty (0.1s) |
+| **Fragile breakage (Sharp)** | `ReactionResultType.Breakage` | ~0.5s | Crack lines appear across affected cells (0.15s) → fragments separate outward (0.2s) → scatter/fade (0.15s) |
+| **Fragile thermal stress** | `ReactionResultType.ThermalStressFracture` | ~0.5s | Red-blue stress lines pulse once (0.15s) → crack pattern (0.15s) → shatter outward (0.2s) |
+| **Heavy crushing Fragile** | Placement constraint / `ReactionResultType.Crushing` | ~0.4s | Heavy reagent visually presses down (0.1s) → target Fragile cell crack lines (0.15s) → crush deformation (0.15s) |
+| **Heavy falling** | Placement of Heavy reagent with empty space below | ~0.3s | Reagent slides smoothly from drop position to resting position (Tween, ease-out) |
+| **Toxic cloud** | `ReactionResultType.ToxicCloud` | ~0.5s | Green haze particles emanate from toxic cells (0.3s) → spread to adjacent cells (0.2s) |
+
+### Heavy Falling (Placement-Time Animation)
+
+Unlike reaction animations (which play on Confirm), Heavy falling plays immediately when a Heavy reagent is placed:
+
+1. Player drops Heavy reagent at cursor position
+2. Game logic instantly calculates the final resting position (gravity settling)
+3. The reagent is logically placed at the final position immediately
+4. The visual representation animates from the drop position to the final position
+5. Uses Godot `Tween` with `EaseType.Out` and `TransitionType.Bounce` for satisfying weight feel
+6. Duration: ~0.3s
+
+### Implementation Architecture
+
+**`src/Game/Animation/ReactionAnimator.cs`:**
+- Input: `List<ReactionResult>` from `PuzzleValidator`
+- For each result, spawns temporary visual nodes on the grid at `AffectedCells` positions
+- Manages animation sequencing (sequential for chained reactions, parallel for independent)
+- Emits `AllAnimationsComplete` signal when done → PuzzleScreen shows result overlay
+- Uses Godot `Tween` for interpolation, temporary `Node2D` children for particle effects
+- Animations are rendered ON TOP of the grid (above reagent layer, below UI)
+
+**`src/Game/Animation/FallingAnimator.cs`:**
+- Input: reagent reference + drop position + final position
+- Creates a visual-only tween that moves the reagent's rendered cells from drop to final
+- Self-destructs after animation completes
+- Does NOT affect game state (logic placement is instant)
+
+### SFX Hooks
+
+Each animation type emits a signal at start, enabling audio wiring:
+- `ExplosionStarted` → boom/poof SFX
+- `BreakageStarted` → glass crack/shatter SFX
+- `CrushStarted` → heavy impact SFX
+- `FallingStarted` → whoosh/thud SFX
+- `ToxicCloudStarted` → hiss/sizzle SFX
+
+Audio files are TBD (placeholder or free assets). The hooks should be wired first.
+
+### Sprite State Integration
+
+Reaction animations use the sprite sheet's animated state rows (see `docs/sprite-state-system.md`):
+- **Breaking:** Plays frames from the "Breaking" row of the affected reagent's sprite sheet
+- **Exploding:** Plays frames from the "Exploding" row
+- For reagents without sprite sheets (legacy ColorRect mode), use simple procedural animations (flash + fade)
+
+---
+
+## 11. Undo/Redo Visual Feedback
+
+When the player undoes or redoes a placement:
+- **Undo:** The removed reagent fades out of its grid position (0.15s) and the tray item re-appears
+- **Redo:** The reagent fades into its grid position (0.15s) from the tray
+- Subtle, quick — not as dramatic as reaction animations
+- Keyboard shortcuts: Ctrl+Z (Undo), Ctrl+Y (Redo)
+- UI buttons in the controls area (bottom-right of puzzle screen)
+
+---
+
+## 12. Color Palette Reference
 
 Canonical color values for aspects, severity levels, and UI chrome. These correspond to the values in `GridConstants.cs` and serve as the authoritative reference.
 

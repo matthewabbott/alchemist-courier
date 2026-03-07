@@ -177,6 +177,61 @@ Reagents are designed **top-down from flavor**:
 
 Examples of the aesthetic: giggle mushroom, star jelly, flame sprite essence, cloud cotton, crystal snail shell — but also grounded items like cinnabar, quicksilver, moonstone. The vibe is "fantastical cute with alchemical authenticity underneath."
 
+## Canonical Reagent Catalog
+
+Each Simple-tier aspect has a canonical single-aspect reagent species. These are the baseline reagents that appear in standalone/daily puzzles. Each species exists in multiple polyomino shape variants.
+
+### Reagent Species
+
+| Aspect | Species | Flavor | Visual Notes |
+|--------|---------|--------|-------------|
+| **Hot** | Firevine | A climbing vine that perpetually smolders | Warm reds/oranges, curling tendrils |
+| **Cold** | Snowflower | A blue snowflake-shaped bloom that never thaws | Icy blues, crystalline petals |
+| **Volatile** | Burstbloom | A heat-sensitive alchemical bloom from foothills | Orange/yellow, swollen pods |
+| **Toxic** | Purple Creeper | A venomous trailing plant with poisonous sap | Deep purples/greens, thorny |
+| **Heavy** | Lead Ingot | Dense alchemical metal, prized for its weight | Earthy browns/grays, blocky |
+| **Stable** | Nullflower | A calm, dampening blossom that soothes reactions | Soft grays, serene |
+| **Sharp** | Sharpstone | Jagged crystalline mineral with cutting edges | Steel grays, angular facets |
+| **Fragile** | Glasswork | Delicate blown glass, beautiful but vulnerable | Pale lavender/clear, smooth curves |
+
+### Shape Variants
+
+Each species has sprite variants for all standard polyomino sizes:
+
+| Size | Shapes | Count |
+|------|--------|-------|
+| Monomino (1 cell) | Single | 1 |
+| Domino (2 cells) | Horizontal pair | 1 |
+| Triomino (3 cells) | I-bar, L-bend | 2 |
+| Tetromino (4 cells) | I, O, T, S, L | 5 |
+| **Total per species** | | **9** |
+
+Total: 8 species × 9 shapes = **72 canonical reagent definitions**.
+
+Reagent rotation is handled by the engine — each shape needs only one sprite, rendered at 0°/90°/180°/270° by the rotation system.
+
+**Naming convention:** `{species}_{shape}` (e.g., `sharpstone_t`, `firevine_domino`, `glass_monomino`)
+
+### Puzzle Generation Rules
+
+For **Simple-tier standalone puzzles** (daily, one-off):
+- Each aspect in the puzzle maps to exactly one reagent species
+- At most ONE reagent in the puzzle may have two aspects (multi-aspect)
+- Shape variant is chosen randomly from available shapes that fit the target cell count
+
+For **future roguelite/sequential modes:**
+- Multi-aspect reagents are common (2-3 aspects per reagent, eventually 5+)
+- Per-cell aspect variation (e.g., a knife: Sharp blade cells + Heavy hilt cell)
+- Reagents from multiple schools (Wuxing, Western Alchemy) once those are implemented
+
+### Visual States
+
+Each reagent species has visual state variants for the sprite state system (see `docs/sprite-state-system.md`):
+- Normal, Heated, Cooled, ThermalStress, Crushed (static states)
+- Breaking, Exploding (animated states, 4 frames each)
+
+"Restrictive" species (Fragile, Volatile) have the most expressive state variants since their reactions are visually dramatic. Stable/Heavy species may have simpler state art.
+
 ## Adjacency System
 
 Adjacency determines which reagents can react with each other. This is the bridge between spatial placement and the chemistry system.
