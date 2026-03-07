@@ -7,6 +7,8 @@ using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Core.Visual;
+using AlchemistCourier.Game.Visual;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Inventory;
@@ -47,6 +49,9 @@ public partial class MetaGridView : Control
 
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
+
+    // Sprite state renderers (per placed reagent, keyed by reagent instance)
+    private readonly Dictionary<Reagent, SpriteStateRenderer> _spriteRenderers = new();
 
     // Highlight overlay
     private HighlightOverlay _highlightOverlay = null!;
@@ -280,6 +285,9 @@ public partial class MetaGridView : Control
             }
         }
 
+        // Update sprite renderers for placed reagents
+        UpdateSpriteRenderers();
+
         // Draw bag borders
         CreateBagBorders(bagIndexMap);
 
@@ -430,6 +438,103 @@ public partial class MetaGridView : Control
             ZIndex = 2,
         };
     }
+
+    private void UpdateSpriteRenderers()
+    {
+        // Collect currently placed reagents
+        var placedReagents = new HashSet<Reagent>();
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (cell.IsOccupied)
+                    placedReagents.Add((Reagent)cell.OccupyingReagent!);
+            }
+        }
+
+        // Remove renderers for reagents no longer placed
+        var toRemove = new List<Reagent>();
+        foreach (var kvp in _spriteRenderers)
+        {
+            if (!placedReagents.Contains(kvp.Key))
+            {
+                kvp.Value.QueueFree();
+                toRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var r in toRemove)
+            _spriteRenderers.Remove(r);
+
+        // Create or update renderers for placed reagents
+        foreach (var reagent in placedReagents)
+        {
+            var catalogId = reagent.Definition.Id;
+            if (catalogId == null) continue;
+
+            var rotatedShape = reagent.GetRotatedShape();
+            int shapeCols = rotatedShape.GetLength(1);
+            int shapeRows = rotatedShape.GetLength(0);
+            int pixelW = shapeCols * GridConstants.CellSize;
+            int pixelH = shapeRows * GridConstants.CellSize;
+
+            var spec = SpriteSheetSpec.DefaultReagentSpec(pixelW, pixelH);
+            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec);
+            if (spriteSheet == null) continue;
+
+            // Resolve visual state: pick the most critical state across all cells
+            var cellStates = VisualStateResolver.Resolve(reagent, _metaGrid);
+            var displayState = PickDisplayState(cellStates);
+
+            if (_spriteRenderers.TryGetValue(reagent, out var existing))
+            {
+                // Update position and state
+                existing.Position = GridCoordinates.GridToPixel(reagent.PlacedPosition!.Value);
+                existing.SetState(displayState);
+            }
+            else
+            {
+                // Create new renderer
+                var renderer = new SpriteStateRenderer
+                {
+                    ZIndex = 2,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                };
+                renderer.Initialize(spriteSheet, pixelW, pixelH);
+                renderer.Position = GridCoordinates.GridToPixel(reagent.PlacedPosition!.Value);
+                renderer.SetState(displayState);
+                AddChild(renderer);
+                _spriteRenderers[reagent] = renderer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Picks the most visually significant state from a per-cell state map.
+    /// Priority: Crushed > ThermalStress > Heated > Cooled > Normal.
+    /// Animated states (Exploding, Breaking) override all others.
+    /// </summary>
+    private static VisualState PickDisplayState(Dictionary<CoreVec, VisualState> cellStates)
+    {
+        var best = VisualState.Normal;
+        foreach (var state in cellStates.Values)
+        {
+            if (StatePriority(state) > StatePriority(best))
+                best = state;
+        }
+        return best;
+    }
+
+    private static int StatePriority(VisualState state) => state switch
+    {
+        VisualState.Exploding => 6,
+        VisualState.Breaking => 5,
+        VisualState.Crushed => 4,
+        VisualState.ThermalStress => 3,
+        VisualState.Heated => 2,
+        VisualState.Cooled => 1,
+        _ => 0,
+    };
 
     private ColorRect CreateHintedBorderRect(Vector2 cellPixelPos, CoreVec direction)
     {
