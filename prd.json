@@ -1311,6 +1311,26 @@
       "status": "blocked"
     },
     {
+      "id": "SA.1",
+      "title": "SpriteAssigner: load PNG + grid overlay + cell clicking",
+      "description": "Create src/Game/Tools/SpriteAssigner.cs + scenes/sprite_assigner.tscn — a standalone tool for assigning shapes to candidate sprite PNGs. Layout: toolbar at top (Load PNG button, Item Name field, Export button), large sprite preview area on left with clickable grid overlay, properties panel on right. Implementation: (1) Load PNG via FileDialog (reuse pattern from EditorScreen.cs lines 602-615), display as TextureRect. (2) Overlay a configurable NxN grid of clickable ColorRect cells (reuse ShapeEditorWidget.cs pattern lines 32-48). Grid resolution dropdown (4x4, 6x6, 8x8) to control how many cells overlay the sprite. (3) Click cells to toggle occupancy — active cells get semi-transparent colored highlight. (4) Status bar shows cell count and auto-detected shape name by comparing against ShapeUtil canonical shapes. Files to reference: src/Game/Editor/ShapeEditorWidget.cs, src/Game/Editor/EditorScreen.cs, src/Core/Reagents/ShapeUtil.cs.",
+      "priority": 82,
+      "phase": "sprite-tools",
+      "depends_on": [],
+      "verification": "dotnet build. Run scenes/sprite_assigner.tscn, load a PNG from art/generated/codex/, click cells to define shape, status bar shows correct shape name.",
+      "status": "pending"
+    },
+    {
+      "id": "SA.2",
+      "title": "SpriteAssigner: aspect/metadata + preview + JSON export",
+      "description": "Extend SpriteAssigner with: (1) Right panel: aspect dropdown (reuse pattern from ReagentEditorPanel.cs lines 17-31), rarity dropdown (Common/Uncommon/Rare), flavor text field. (2) 32px preview panel: show the loaded sprite downscaled to actual game cell size on a mock grid with the selected cells highlighted — shows what the player will actually see. (3) JSON export: button writes catalog entry JSON to a configurable output directory. Format: {id, name, shape (bool[][]), aspect, rarity, flavor_text, sprite_source (path), exported_at (ISO timestamp)}. Shape is the minimal bounding box of selected cells. (4) Batch workflow: after export, clear selection but keep the PNG loaded for re-assignment (in case user wants to try a different shape for the same art).",
+      "priority": 83,
+      "phase": "sprite-tools",
+      "depends_on": ["SA.1"],
+      "verification": "dotnet build. Load PNG, select cells, set aspect/metadata, export JSON. Verify JSON file contents match selections. Verify 32px preview renders correctly.",
+      "status": "pending"
+    },
+    {
       "id": "SB.1",
       "title": "Create SandboxScreen with catalog mode",
       "description": "Create src/Game/Tools/SandboxScreen.cs + scenes/sandbox.tscn. Catalog view: scrollable grid showing all 72 reagent sprites grouped by species (8 rows, 9 shapes each). Filter by aspect and shape. Visual state toggle radio buttons (cycle through Normal/Heated/Cooled/ThermalStress/Crushed/Breaking/Exploding). Each sprite cell shows the reagent at current visual state using ReagentSpriteSheet + SpriteStateRenderer. Falls back to colored rectangles if no sprite PNGs exist. Species headers with aspect icon. Tab bar at top: Catalog | Playground.",
