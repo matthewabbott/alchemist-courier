@@ -1119,7 +1119,7 @@
         "VS.6"
       ],
       "verification": "dotnet build succeeds, MetaGridView renders sprite-based cells",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.8",
