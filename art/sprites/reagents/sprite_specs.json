@@ -1,0 +1,2594 @@
+{
+  "firevine_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "creeper_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "leadingot_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_monomino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_domino": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_i_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_l_tri": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_i_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_o_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_t_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_s_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_l_tet": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  }
+}

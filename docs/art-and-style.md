@@ -11,14 +11,26 @@ This document covers the visual direction, audio approach, UI/UX design, and ass
 - Never dark or grim — even dangerous situations (explosions, toxic fumes) are rendered in a charming, approachable way
 
 ### Art Style
-- **RetroDiffusion pixel art** — AI-generated pixel art as the primary asset creation method
+- **"Pixel art Secret of Kells"** — the primary style direction. AI-generated pixel art (RetroDiffusion) rendered in an illuminated manuscript aesthetic:
+  - **Bold dark outlines** with organic, flowing curves (not rigid geometric)
+  - **Rich, warm palette**: golds, deep greens, warm reds, earthy browns — with pops of vivid blue/purple
+  - **Celtic/illuminated manuscript ornamental feel**: knotwork-inspired patterns where possible, even at small scale
+  - **Flat-ish shading** with limited gradients (suits pixel art well)
+  - **Nature motifs**: spiraling vines, leaves, petals, organic shapes
+  - **Warm light bias**: everything looks like it's lit by candlelight or firelight
 - **Chibi/cute character designs** — inspired by Recettear, Stardew Valley, Pokemon Mystery Dungeon
 - **Item designs grounded in alchemy** — reagent sprites reference actual alchemical imagery (alembics, philosopher's stones, elemental symbols) but rendered in a cute/fantastical style
 - **Codex illustrations** — more detailed, "serious" alchemical artwork for the codex/lore entries (aspirational)
 
+The "Secret of Kells" direction connects naturally to the existing alchemical parchment UI aesthetic and the "cozy core, earnest lore" tone. The film's flat-shaded, ornamental visual language translates exceptionally well to 32×32 pixel art — bold outlines, limited color per sprite, and decorative detail within small spaces.
+
 ### Inspirations
 | Source | What We Take |
 |--------|-------------|
+| **The Secret of Kells** | Primary style reference — flat shading, bold outlines, Celtic spiral/vine motifs, warm gold/green/red palette, nature imagery merging with ornamental patterns |
+| **Book of Kells / Lindisfarne Gospels** | Source manuscripts — knotwork interlace, carpet pages, botanical vine scrolls, zoomorphic decoration |
+| **Splendor Solis / Vienna Dioscurides** | Alchemical & botanical manuscript illustrations — ornamental borders, herb drawings with flat outlines, gold accents |
+| **Pentiment / Inkulinati** | Games using illuminated manuscript aesthetics — proof that this visual language works in interactive media |
 | **Core Keeper** | Pixel art style, warm palette, cozy underground aesthetic |
 | **Pokemon Mystery Dungeon** | Chibi character proportions, expressive sprite animations, warm color palette |
 | **Stardew Valley** | Friendly pixel art, approachable UI, cozy farming/gathering feel |

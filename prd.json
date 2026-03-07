@@ -1179,6 +1179,26 @@
       "verification": "dotnet build && dotnet test pass, no behavior change",
       "status": "done",
       "source": "code-review-2026-03-06e"
+    },
+    {
+      "id": "SB.1",
+      "title": "Create SandboxScreen with catalog mode",
+      "description": "Create src/Game/Tools/SandboxScreen.cs + scenes/sandbox.tscn. Catalog view: scrollable grid showing all 72 reagent sprites grouped by species (8 rows, 9 shapes each). Filter by aspect and shape. Visual state toggle radio buttons (cycle through Normal/Heated/Cooled/ThermalStress/Crushed/Breaking/Exploding). Each sprite cell shows the reagent at current visual state using ReagentSpriteSheet + SpriteStateRenderer. Falls back to colored rectangles if no sprite PNGs exist. Species headers with aspect icon. Tab bar at top: Catalog | Playground.",
+      "priority": 98,
+      "phase": "sandbox",
+      "depends_on": [],
+      "verification": "Run scenes/sandbox.tscn, all 72 reagent sprites visible in catalog grid, state toggle changes displayed state"
+    },
+    {
+      "id": "SB.2",
+      "title": "Add playground mode to SandboxScreen",
+      "description": "Add Playground tab to SandboxScreen. Contains: 12x12 MetaGridView, right sidebar with free-draw bag editor (reuse BagEditorPanel from src/Game/Editor/ -- draw bag shape on grid, select BagPropertyType from dropdown, Place Bag button adds to MetaGrid), right sidebar reagent catalog section (all 72 reagents from ReagentCatalog, grouped by species, drag to place on grid). Bottom bar: Confirm button triggers ReactionAnimator, Reset clears grid, Undo/Redo wired to ActionHistory (Ctrl+Z/Y). No win/lose conditions -- purely exploratory sandbox.",
+      "priority": 99,
+      "phase": "sandbox",
+      "depends_on": [
+        "SB.1"
+      ],
+      "verification": "Run scenes/sandbox.tscn, switch to Playground, draw custom bag, place reagents, confirm triggers reactions, undo/redo works"
     }
   ]
 }
