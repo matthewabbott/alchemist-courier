@@ -1144,7 +1144,7 @@
         "VS.7"
       ],
       "verification": "dotnet build succeeds, reaction animations play before result overlay",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.10",

@@ -482,6 +482,16 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Findings: 2 (P0: 0, P1: 0, P2: 1, P3: 0, P4: 1)
 - Fixed: 0, Tasks created: 0
 
+## Integration Review — 2026-03-06
+- Reviewed commits: db17b9e..HEAD (ART.4, CQ.1-CQ.4, GF.1-GF.4, VS.1-VS.8, R1, R2)
+- Build: PASS (632/632 unit tests)
+- Harness: 31/31 tests pass, 0 failures
+- Visual: All 40 screenshots verified, no regressions
+- Issues: 0
+- Added: `undo_redo` integration test — validates ActionHistory place/undo/redo lifecycle end-to-end (VS.4/VS.5 coverage gap)
+- Coverage gaps assessed: VS.1 (Sharp/Fragile filter) and VS.6/VS.7 (visual state system) lack integration tests but are adequately covered by unit tests or are visual-only features. All other recent features have sufficient integration coverage.
+- Pre-existing cosmetic issues unchanged: (1) tutorial win overlay vertical text, (2) Heat label left-edge clipping, (3) status bar base thresholds.
+
 ## T.1 — Install desloppify and run baseline scan
 - Date: 2026-03-05
 - Commit: 4249356
@@ -755,3 +765,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: db17b9e
 - Notes: Extracted CreateBorderRectWithStyle(pixelPos, direction, borderWidth, color) shared helper replacing three near-identical methods (CreateBorderRect, CreateHintedBorderRect, CreateLockedBorderRect) that differed only in border width and color. Extracted CreateReagentBorders(borderList, predicate, borderWidth, color) shared loop replacing two near-identical methods (CreateHintedBorders, CreateLockedBorders) that differed only in the reagent predicate (IsHinted vs IsLocked), border width, and color. Net: 20 insertions, 122 deletions. Pure refactor — no behavior change. All 632 tests pass.
+
+## VS.9 — Implement ReactionAnimator
+- Date: 2026-03-06
+- Commit: d909a31
+- Notes: Created src/Game/Animation/ReactionAnimator.cs — a Godot Control that plays visual reaction animations before the result overlay appears on puzzle confirmation. Supports four animation types: Explosion (white flash → orange/red burst → scale-up scatter → fade, 0.6s), Breakage (lavender brighten → shrink fragments → fade, 0.5s), ToxicCloud (green haze emanate → spread/fade, 0.5s), and GenericReaction (flash reaction color → fade, 0.4s) for cumulative types (Overheating, Hypothermia, Poisoning). Sprite-based path: for reagents with sprite sheets, creates temporary SpriteStateRenderers using Exploding/Breaking state rows at 8fps, then fades out. Procedural fallback: creates ColorRect overlays at affected cell positions, animates via Godot Tween. All reactions play in parallel; AllAnimationsComplete signal fires after all finish. SFX signal hooks (ExplosionStarted, BreakageStarted, ToxicCloudStarted) emitted per-animation for future audio. Wired into PuzzleScreen: on HasReactions, animations play first, then OnReactionAnimationsComplete shows the failure overlay. ReactionAnimator added as child of MetaGridView (matching grid coordinate space) at ZIndex 5. All 632 tests pass.
