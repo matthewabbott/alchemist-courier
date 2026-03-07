@@ -59,3 +59,16 @@ Deleted 72 old sprite PNGs + 72 `.import` files from `art/sprites/reagents/`. Ra
 
 ### Test results
 All 655 tests pass. Build: 0 errors. No Godot imports in Core.
+
+## CR.5 — Integration test checkpoint
+
+Full integration test run verifying the game works end-to-end after the catalog refactor.
+
+### Results
+- **Build:** 0 errors
+- **Unit tests:** 655/655 pass
+- **Integration harness:** 31/31 pass (`[HARNESS_DONE] passed=31 failed=0`)
+- **Screenshots:** Visually verified — grid, bags, reagents, aspect colors, status bars, puzzle generation, tutorials, hints, editor, undo/redo all rendering correctly
+
+### Conclusion
+No regressions from the 72→24 item catalog refactor. All systems working correctly with new catalog.

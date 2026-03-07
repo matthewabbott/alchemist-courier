@@ -1258,7 +1258,7 @@
       "phase": "catalog-refactor",
       "depends_on": ["CR.2", "CR.3", "CR.4"],
       "verification": "All integration tests pass ([HARNESS_DONE passed=N failed=0]), screenshots show correct rendering",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HF.1",

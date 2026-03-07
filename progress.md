@@ -795,3 +795,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-07
 - Commit: 99b6a96
 - Notes: Deleted 72 old sprite PNGs and their .import files from art/sprites/reagents/. Ran DevSpriteGenerator via Godot MCP to generate 24 new sprite sheets matching the new catalog item IDs. Each sheet is 128×224px (4 frames × 32px, 7 state rows × 32px). New files: anvil_shard.png, blight_moss.png, burstbloom.png, calm_stone.png, crystal_tear.png, ember_seed.png, firevine.png, frost_fern.png, frozen_teardrop.png, glass_shard.png, glasswork.png, gossamer_thread.png, ironbark_root.png, lead_ingot.png, lead_nugget.png, magma_slug.png, nullflower.png, purple_creeper.png, razor_fern.png, sharpstone.png, snowflower.png, spark_petal.png, thunder_egg.png, venom_drop.png, plus sprite_specs.json. All 655 tests pass.
+
+## CR.5 — Integration test checkpoint after catalog refactor
+- Date: 2026-03-07
+- Commit: (checkpoint, no code changes)
+- Notes: Full integration test run after catalog refactor (CR.1-CR.4). Build: 0 errors. Unit tests: 655/655 pass. Integration harness: 31/31 pass ([HARNESS_DONE] passed=31 failed=0). Screenshots visually verified — grid rendering, reagent placement, aspect colors, status bars, puzzle generation, tutorials, hints, editor, undo/redo all working correctly. No regressions from the 72→24 item catalog refactor.
