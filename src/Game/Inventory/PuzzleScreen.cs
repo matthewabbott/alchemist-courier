@@ -413,12 +413,7 @@ public partial class PuzzleScreen : Control
     {
         var name = _selectedReagent?.Definition.Name ?? "Reagent";
         ClearSelectionState();
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateUndoRedoButtons();
+        RefreshAfterGridChange();
 
         int remaining = CountUnplaced();
         if (remaining == 0)
@@ -433,12 +428,7 @@ public partial class PuzzleScreen : Control
 
     private void OnReagentRemoved()
     {
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateUndoRedoButtons();
+        RefreshAfterGridChange();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
     }
 
@@ -542,12 +532,7 @@ public partial class PuzzleScreen : Control
         var action = new RemoveReagentAction(reagent);
         if (!_actionHistory.Execute(action, _metaGrid)) return false;
         reagent.Rotation = 0;
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateUndoRedoButtons();
+        RefreshAfterGridChange();
         UpdateStatus($"Removed {reagent.Definition.Name}.");
         return true;
     }
@@ -704,13 +689,7 @@ public partial class PuzzleScreen : Control
             // Hint modifies grid outside ActionHistory — clear history to avoid inconsistent state
             _actionHistory.Clear();
             ClearSelectionState();
-            _reagentTray.RefreshDisplay();
-            _gridView.RefreshDisplay();
-            _statusBar.Refresh();
-            UpdateStatusThresholds();
-            RefreshEagleSense();
-            UpdateHintButton();
-            UpdateUndoRedoButtons();
+            RefreshAfterGridChange(updateHints: true);
         }
 
         return result;
@@ -737,12 +716,7 @@ public partial class PuzzleScreen : Control
         if (!_actionHistory.Undo(_metaGrid)) return false;
 
         ClearSelectionState();
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateUndoRedoButtons();
+        RefreshAfterGridChange();
         UpdateStatus("Undone.");
         return true;
     }
@@ -754,12 +728,7 @@ public partial class PuzzleScreen : Control
         if (!_actionHistory.Redo(_metaGrid)) return false;
 
         ClearSelectionState();
-        _reagentTray.RefreshDisplay();
-        _gridView.RefreshDisplay();
-        _statusBar.Refresh();
-        UpdateStatusThresholds();
-        RefreshEagleSense();
-        UpdateUndoRedoButtons();
+        RefreshAfterGridChange();
         UpdateStatus("Redone.");
         return true;
     }
@@ -810,6 +779,17 @@ public partial class PuzzleScreen : Control
             if (!r.IsPlaced) count++;
         }
         return count;
+    }
+
+    private void RefreshAfterGridChange(bool updateHints = false)
+    {
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateUndoRedoButtons();
+        if (updateHints) UpdateHintButton();
     }
 
     private void RefreshEagleSense()
