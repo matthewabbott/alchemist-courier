@@ -1278,7 +1278,7 @@
       "phase": "hover-frames",
       "depends_on": ["HF.1"],
       "verification": "dotnet build succeeds, HoverFrameOverlay compiles with correct API",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "HF.3",

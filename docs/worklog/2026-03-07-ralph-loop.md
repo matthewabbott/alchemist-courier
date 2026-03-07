@@ -98,3 +98,8 @@ Two-part task:
 
 ### Test results
 All 667 tests pass (655 existing + 12 new).
+
+## HF.2 — HoverFrameOverlay rendering with pulse animation
+
+Created `src/Game/Inventory/HoverFrameOverlay.cs` — the Godot-side renderer for the hover frame system. It loads pre-generated frame textures (from HF.1) as TextureRects and applies a sinusoidal alpha pulse via the node's `Modulate` property. Three interaction modes provide distinct visual feedback: hover pulses gently (0.25–0.55 alpha), selection pulses slightly brighter (0.35–0.65), and drag holds steady (0.50). Falls back to procedural ColorRect edge rendering when no texture is found. Added 7 frame-related constants to `GridConstants.cs`. Wiring into MetaGridView comes in HF.3.
+Commit: fcfb59a
