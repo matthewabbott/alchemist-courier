@@ -1075,7 +1075,7 @@
         "VS.2"
       ],
       "verification": "dotnet test passes, generated puzzles have named reagents from catalog",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.4",
