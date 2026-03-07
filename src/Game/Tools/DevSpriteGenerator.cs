@@ -3,6 +3,7 @@ using System.IO;
 using System.Text.Json;
 using Godot;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Core.Visual;
 using AlchemistCourier.Game.Inventory;
@@ -66,6 +67,7 @@ public partial class DevSpriteGenerator : Control
         AddChild(margin);
 
         Generate();
+        GenerateFrameTextures();
     }
 
     private void Generate()
@@ -128,6 +130,86 @@ public partial class DevSpriteGenerator : Control
 
         GD.Print($"[SPRITE_GEN] Generated {_generated} sprite sheets to {outputDir}");
         GD.Print($"[SPRITE_GEN] Wrote sprite_specs.json");
+    }
+
+    private void GenerateFrameTextures()
+    {
+        var outputDir = ProjectSettings.GlobalizePath("res://art/sprites/frames/dev");
+        Directory.CreateDirectory(outputDir);
+
+        const int borderWidth = 4;
+        const int innerWidth = 1;
+        int frameCount = 0;
+
+        // All 8 standard aspect IDs
+        string[] aspects = { AspectIds.Hot, AspectIds.Cold, AspectIds.Volatile, AspectIds.Toxic,
+                             AspectIds.Heavy, AspectIds.Stable, AspectIds.Sharp, AspectIds.Fragile };
+
+        foreach (var shapeName in ReagentCatalog.ShapeNames)
+        {
+            var shapeMatrix = ReagentCatalog.GetShapeMatrix(shapeName);
+            if (shapeMatrix == null) continue;
+
+            int shapeRows = shapeMatrix.GetLength(0);
+            int shapeCols = shapeMatrix.GetLength(1);
+            var perimeterEdges = HoverFrameResolver.GetPerimeterEdges(shapeMatrix);
+
+            foreach (var aspectId in aspects)
+            {
+                var aspectColor = GridConstants.GetAspectColor(aspectId);
+                int imgWidth = shapeCols * CellSize;
+                int imgHeight = shapeRows * CellSize;
+                var image = Image.CreateEmpty(imgWidth, imgHeight, false, Image.Format.Rgba8);
+
+                // Draw perimeter frame on each cell
+                foreach (var (pos, edges) in perimeterEdges)
+                {
+                    int cellX = pos.Col * CellSize;
+                    int cellY = pos.Row * CellSize;
+
+                    DrawFrameEdges(image, cellX, cellY, edges, aspectColor, borderWidth, innerWidth);
+                }
+
+                var filePath = Path.Combine(outputDir, $"{aspectId}_{shapeName}.png");
+                image.SavePng(filePath);
+                frameCount++;
+            }
+        }
+
+        GD.Print($"[SPRITE_GEN] Generated {frameCount} frame textures to {outputDir}");
+        _progressLabel.Text += $"\nFrames: {outputDir} ({frameCount} PNGs)";
+    }
+
+    private static void DrawFrameEdges(Image image, int cellX, int cellY,
+        CellEdge edges, Color color, int borderWidth, int innerWidth)
+    {
+        var white = new Color(1f, 1f, 1f, 0.8f);
+
+        if (edges.HasFlag(CellEdge.Top))
+        {
+            // Outer colored border
+            FillRect(image, cellX, cellY, CellSize, borderWidth, color);
+            // Inner white edge
+            FillRect(image, cellX, cellY + borderWidth, CellSize, innerWidth, white);
+        }
+
+        if (edges.HasFlag(CellEdge.Bottom))
+        {
+            FillRect(image, cellX, cellY + CellSize - borderWidth, CellSize, borderWidth, color);
+            FillRect(image, cellX, cellY + CellSize - borderWidth - innerWidth, CellSize, innerWidth, white);
+        }
+
+        if (edges.HasFlag(CellEdge.Left))
+        {
+            FillRect(image, cellX, cellY, borderWidth, CellSize, color);
+            FillRect(image, cellX + borderWidth, cellY, innerWidth, CellSize, white);
+        }
+
+        if (edges.HasFlag(CellEdge.Right))
+        {
+            FillRect(image, cellX + CellSize - borderWidth, cellY, borderWidth, CellSize, color);
+            FillRect(image, cellX + CellSize - borderWidth - innerWidth, cellY, innerWidth, CellSize, white);
+        }
     }
 
     private static string GetPrimaryAspect(ReagentDefinition def)
