@@ -5,6 +5,7 @@ using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Highlight;
+using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
@@ -56,6 +57,9 @@ public partial class MetaGridView : Control
     private List<ReactionRule>? _reactionRules;
     private HashSet<string>? _reactiveAspectIds;
     private PlacementWarningLevel _currentWarningLevel;
+
+    // Action history for undo/redo
+    private ActionHistory? _actionHistory;
 
     // Interaction state
     private Reagent? _selectedReagent;
@@ -150,6 +154,12 @@ public partial class MetaGridView : Control
     public void SetStatusThresholds(StatusThresholds? thresholds)
     {
         _statusThresholds = thresholds;
+    }
+
+    /// <summary>Set the action history for undo/redo support.</summary>
+    public void SetActionHistory(ActionHistory history)
+    {
+        _actionHistory = history;
     }
 
     /// <summary>Last rejection tooltip reason text (for testing).</summary>
@@ -598,7 +608,15 @@ public partial class MetaGridView : Control
                         ShowRejectionTooltip("Cannot remove — locked reagent", _hoverGridPos.Value);
                         return;
                     }
-                    if (!_metaGrid.RemoveReagent(reagent)) return;
+                    if (_actionHistory != null)
+                    {
+                        var action = new RemoveReagentAction(reagent);
+                        if (!_actionHistory.Execute(action, _metaGrid)) return;
+                    }
+                    else
+                    {
+                        if (!_metaGrid.RemoveReagent(reagent)) return;
+                    }
                     reagent.Rotation = 0;
                     RefreshDisplay();
                     EmitSignal(SignalName.ReagentRemoved);
@@ -737,7 +755,15 @@ public partial class MetaGridView : Control
 
         if (_isPlacementValid)
         {
-            _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
+            if (_actionHistory != null)
+            {
+                var action = new PlaceReagentAction(_selectedReagent, _hoverGridPos.Value, _selectedReagent.Rotation);
+                if (!_actionHistory.Execute(action, _metaGrid)) return;
+            }
+            else
+            {
+                _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
+            }
             _selectedReagent = null;
             ClearGhost();
             HideRejectionTooltip();

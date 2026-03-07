@@ -15,6 +15,7 @@ public partial class PuzzleScreen : Control
     private List<Reagent> _trayReagents = null!;
     private Reagent? _selectedReagent;
     private int _selectedIndex = -1;
+    private readonly ActionHistory _actionHistory = new();
 
     private MetaGridView _gridView = null!;
     private ReagentTray _reagentTray = null!;
@@ -26,6 +27,8 @@ public partial class PuzzleScreen : Control
     private Button _primerButton = null!;
     private AspectLegendPanel _legendPanel = null!;
     private ItemDetailPanel _itemDetailPanel = null!;
+    private Button _undoButton = null!;
+    private Button _redoButton = null!;
     private Button _hintButton = null!;
     private Label _hintCountLabel = null!;
     private HintState _hintState = new HintState(0);
@@ -70,6 +73,7 @@ public partial class PuzzleScreen : Control
     public ItemDetailPanel ItemDetail => _itemDetailPanel;
     public bool EagleSenseActive => _eagleSenseActive;
     public string? LegendSelectedAspect => _legendSelectedAspect;
+    public ActionHistory ActionHistory => _actionHistory;
 
     /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
     public event System.Action<ConfirmResult>? PuzzleConfirmed;
@@ -210,6 +214,7 @@ public partial class PuzzleScreen : Control
         _gridView = new MetaGridView();
         _gridView.Initialize(_metaGrid);
         _gridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
+        _gridView.SetActionHistory(_actionHistory);
         gridCenter.AddChild(_gridView);
         hbox.AddChild(gridCenter);
 
@@ -263,6 +268,16 @@ public partial class PuzzleScreen : Control
         buttonBar.Alignment = BoxContainer.AlignmentMode.Center;
         buttonBar.AddThemeConstantOverride("separation", 12);
         vbox.AddChild(buttonBar);
+
+        _undoButton = CreateStyledButton("Undo", new Color(0.3f, 0.3f, 0.35f));
+        _undoButton.Pressed += () => Undo();
+        _undoButton.Disabled = true;
+        buttonBar.AddChild(_undoButton);
+
+        _redoButton = CreateStyledButton("Redo", new Color(0.3f, 0.3f, 0.35f));
+        _redoButton.Pressed += () => Redo();
+        _redoButton.Disabled = true;
+        buttonBar.AddChild(_redoButton);
 
         _confirmButton = CreateStyledButton("Confirm", new Color(0.25f, 0.5f, 0.3f));
         _confirmButton.Pressed += OnConfirmPressed;
@@ -403,6 +418,7 @@ public partial class PuzzleScreen : Control
         _statusBar.Refresh();
         UpdateStatusThresholds();
         RefreshEagleSense();
+        UpdateUndoRedoButtons();
 
         int remaining = CountUnplaced();
         if (remaining == 0)
@@ -422,6 +438,7 @@ public partial class PuzzleScreen : Control
         _statusBar.Refresh();
         UpdateStatusThresholds();
         RefreshEagleSense();
+        UpdateUndoRedoButtons();
         UpdateStatus("Removed reagent. Select one from the tray to place it.");
     }
 
@@ -498,7 +515,8 @@ public partial class PuzzleScreen : Control
         if (_selectedReagent == null) return false;
         var pos = new Core.Grid.Vector2I(col, row);
         if (!_metaGrid.CanPlaceReagent(_selectedReagent, pos)) return false;
-        _metaGrid.PlaceReagent(_selectedReagent, pos);
+        var action = new PlaceReagentAction(_selectedReagent, pos, _selectedReagent.Rotation);
+        if (!_actionHistory.Execute(action, _metaGrid)) return false;
         OnReagentPlaced();
         return true;
     }
@@ -521,11 +539,15 @@ public partial class PuzzleScreen : Control
         var pos = new Core.Grid.Vector2I(col, row);
         var reagent = _metaGrid.GetReagentAtCell(pos);
         if (reagent == null) return false;
-        if (!_metaGrid.RemoveReagent(reagent)) return false;
+        var action = new RemoveReagentAction(reagent);
+        if (!_actionHistory.Execute(action, _metaGrid)) return false;
         reagent.Rotation = 0;
         _reagentTray.RefreshDisplay();
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateUndoRedoButtons();
         UpdateStatus($"Removed {reagent.Definition.Name}.");
         return true;
     }
@@ -547,6 +569,7 @@ public partial class PuzzleScreen : Control
         foreach (var reagent in _trayReagents)
             reagent.IsHinted = false;
 
+        _actionHistory.Clear();
         _lastConfirmResult = ConfirmResult.None;
         _lastReactions.Clear();
         _resultOverlay.Hide();
@@ -554,6 +577,7 @@ public partial class PuzzleScreen : Control
         _gridView.RefreshDisplay();
         _statusBar.Refresh();
         UpdateHintButton();
+        UpdateUndoRedoButtons();
         UpdateStatus("Puzzle reset. Select a reagent from the tray to begin.");
     }
 
@@ -677,6 +701,8 @@ public partial class PuzzleScreen : Control
 
         if (result.IsSuccess)
         {
+            // Hint modifies grid outside ActionHistory — clear history to avoid inconsistent state
+            _actionHistory.Clear();
             ClearSelectionState();
             _reagentTray.RefreshDisplay();
             _gridView.RefreshDisplay();
@@ -684,6 +710,7 @@ public partial class PuzzleScreen : Control
             UpdateStatusThresholds();
             RefreshEagleSense();
             UpdateHintButton();
+            UpdateUndoRedoButtons();
         }
 
         return result;
@@ -703,6 +730,46 @@ public partial class PuzzleScreen : Control
         }
     }
 
+    /// <summary>Undo the last placement or removal action.</summary>
+    public bool Undo()
+    {
+        if (!_actionHistory.CanUndo) return false;
+        if (!_actionHistory.Undo(_metaGrid)) return false;
+
+        ClearSelectionState();
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateUndoRedoButtons();
+        UpdateStatus("Undone.");
+        return true;
+    }
+
+    /// <summary>Redo the last undone action.</summary>
+    public bool Redo()
+    {
+        if (!_actionHistory.CanRedo) return false;
+        if (!_actionHistory.Redo(_metaGrid)) return false;
+
+        ClearSelectionState();
+        _reagentTray.RefreshDisplay();
+        _gridView.RefreshDisplay();
+        _statusBar.Refresh();
+        UpdateStatusThresholds();
+        RefreshEagleSense();
+        UpdateUndoRedoButtons();
+        UpdateStatus("Redone.");
+        return true;
+    }
+
+    private void UpdateUndoRedoButtons()
+    {
+        _undoButton.Disabled = !_actionHistory.CanUndo;
+        _redoButton.Disabled = !_actionHistory.CanRedo;
+    }
+
     public override void _UnhandledKeyInput(InputEvent @event)
     {
         if (@event is InputEventKey { Pressed: true } keyEvent)
@@ -715,6 +782,16 @@ public partial class PuzzleScreen : Control
             else if (keyEvent.Keycode == Key.Tab)
             {
                 ToggleEagleSense();
+                GetViewport().SetInputAsHandled();
+            }
+            else if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.Z)
+            {
+                Undo();
+                GetViewport().SetInputAsHandled();
+            }
+            else if (keyEvent.CtrlPressed && keyEvent.Keycode == Key.Y)
+            {
+                Redo();
                 GetViewport().SetInputAsHandled();
             }
         }
