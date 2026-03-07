@@ -165,6 +165,12 @@ public class PuzzleGenerator
 
         // Step 5: Assign aspects to reagents (filtered by complexity level)
         var availableAspects = ComplexityFilter.GetAspects(difficulty.ComplexityLevel);
+
+        // Filter out constrained aspects that can't be placed in this bag layout
+        bool hasNonGravityBag = bagProperties.Any(p => !p.Contains(BagPropertyType.Gravity));
+        if (!hasNonGravityBag)
+            availableAspects = availableAspects.Where(a => a != AspectIds.Fragile).ToList();
+
         var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes, availableAspects);
 
         // Step 6: Create runtime objects and try to place all reagents validly
@@ -343,12 +349,24 @@ public class PuzzleGenerator
         return closest[rng.Next(closest.Length)];
     }
 
+    /// <summary>
+    /// Placement-constrained aspects: at most one reagent per aspect per puzzle
+    /// to keep generation feasible. Sharp can't be on bag edges, Fragile can't be
+    /// in Gravity bags and breaks from adjacent reactions.
+    /// </summary>
+    private static readonly HashSet<string> ConstrainedAspects = new()
+    {
+        AspectIds.Sharp,
+        AspectIds.Fragile,
+    };
+
     private List<List<AspectSet>> AssignAspects(
         SeededRandom rng, DifficultyParams difficulty,
         List<(bool[,] shape, int cellCount)> reagentShapes,
         List<string> availableAspects)
     {
         var result = new List<List<AspectSet>>();
+        var usedConstrainedAspects = new HashSet<string>();
 
         // For each reagent, assign 0..MaxAspectCount aspects spread across its cells
         for (int i = 0; i < reagentShapes.Count; i++)
@@ -364,9 +382,21 @@ public class PuzzleGenerator
             }
             else
             {
+                // Filter out constrained aspects that have hit their per-puzzle cap
+                var pool = availableAspects
+                    .Where(a => !ConstrainedAspects.Contains(a) || !usedConstrainedAspects.Contains(a))
+                    .ToList();
+
                 // Pick how many distinct aspect types this reagent gets (1..MaxAspectCount)
                 int numAspectTypes = rng.Next(1, difficulty.MaxAspectCount + 1);
-                var chosenAspects = PickDistinctAspects(rng, numAspectTypes, availableAspects);
+                var chosenAspects = PickDistinctAspects(rng, numAspectTypes, pool);
+
+                // Track constrained aspect usage
+                foreach (var a in chosenAspects)
+                {
+                    if (ConstrainedAspects.Contains(a))
+                        usedConstrainedAspects.Add(a);
+                }
 
                 for (int c = 0; c < cellCount; c++)
                 {
@@ -438,11 +468,13 @@ public class PuzzleGenerator
 
         // Sort: Heavy reagents first (so they land at the bottom of Gravity bags),
         // then Sharp reagents (they need interior cells which are scarce),
+        // then Fragile reagents (they can't go in Gravity bags, so place early),
         // then largest-first for better packing
         var indexed = reagents
             .Select((r, i) => (reagent: r, index: i))
             .OrderByDescending(x => x.reagent.HasAspect(AspectIds.Heavy) ? 1 : 0)
             .ThenByDescending(x => x.reagent.HasAspect(AspectIds.Sharp) ? 1 : 0)
+            .ThenByDescending(x => x.reagent.HasAspect(AspectIds.Fragile) ? 1 : 0)
             .ThenByDescending(x => x.reagent.Definition.CellCount)
             .ToList();
 

@@ -9,26 +9,26 @@ namespace AlchemistCourier.Core.Tests.Puzzle;
 public class ComplexityFilterTests
 {
     [Fact]
-    public void GetAspects_Simple_Returns6Aspects()
+    public void GetAspects_Simple_Returns8Aspects()
     {
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Simple);
 
-        Assert.Equal(6, aspects.Count);
+        Assert.Equal(8, aspects.Count);
         Assert.Contains(AspectIds.Hot, aspects);
         Assert.Contains(AspectIds.Cold, aspects);
         Assert.Contains(AspectIds.Volatile, aspects);
         Assert.Contains(AspectIds.Stable, aspects);
         Assert.Contains(AspectIds.Heavy, aspects);
         Assert.Contains(AspectIds.Toxic, aspects);
+        Assert.Contains(AspectIds.Sharp, aspects);
+        Assert.Contains(AspectIds.Fragile, aspects);
     }
 
     [Fact]
-    public void GetAspects_Simple_ExcludesSharpAndFragile()
+    public void GetAspects_Simple_ExcludesCatalyticAndMedicinal()
     {
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Simple);
 
-        Assert.DoesNotContain(AspectIds.Sharp, aspects);
-        Assert.DoesNotContain(AspectIds.Fragile, aspects);
         Assert.DoesNotContain(AspectIds.Catalytic, aspects);
         Assert.DoesNotContain(AspectIds.Medicinal, aspects);
     }
@@ -39,12 +39,12 @@ public class ComplexityFilterTests
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Intermediate);
 
         Assert.Equal(10, aspects.Count);
-        // Includes Simple
+        // Includes Simple (with Sharp/Fragile)
         Assert.Contains(AspectIds.Hot, aspects);
         Assert.Contains(AspectIds.Volatile, aspects);
-        // Plus Intermediate additions
         Assert.Contains(AspectIds.Sharp, aspects);
         Assert.Contains(AspectIds.Fragile, aspects);
+        // Plus Intermediate additions
         Assert.Contains(AspectIds.Catalytic, aspects);
         Assert.Contains(AspectIds.Medicinal, aspects);
     }
@@ -105,16 +105,16 @@ public class ComplexityFilterTests
     }
 
     [Fact]
-    public void GetRules_Simple_ExcludesBreakage()
+    public void GetRules_Simple_IncludesBreakage()
     {
-        // Breakage requires Sharp + Fragile (Intermediate aspects)
+        // Sharp + Fragile are now Simple tier, so Breakage is included
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Simple);
 
-        Assert.DoesNotContain(rules, r => r.Name == "Breakage");
+        Assert.Contains(rules, r => r.Name == "Breakage");
     }
 
     [Fact]
-    public void GetRules_Simple_IncludesSimpleAspectRules()
+    public void GetRules_Simple_IncludesAllMvpRules()
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Simple);
 
@@ -124,19 +124,20 @@ public class ComplexityFilterTests
         Assert.Contains(rules, r => r.Name == "Overheating");
         Assert.Contains(rules, r => r.Name == "Hypothermia");
         Assert.Contains(rules, r => r.Name == "Poisoning");
+        Assert.Contains(rules, r => r.Name == "Breakage");
     }
 
     [Fact]
-    public void GetRules_Simple_Returns6Rules()
+    public void GetRules_Simple_Returns7Rules()
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Simple);
 
-        // All 7 MVP rules minus Breakage (Sharp+Fragile are Intermediate)
-        Assert.Equal(6, rules.Count);
+        // All 7 MVP rules (Sharp+Fragile are Simple tier)
+        Assert.Equal(7, rules.Count);
     }
 
     [Fact]
-    public void GetRules_Intermediate_IncludesBreakage()
+    public void GetRules_Intermediate_Returns7Rules()
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Intermediate);
 
@@ -221,7 +222,7 @@ public class ComplexityFilterTests
     {
         var generator = new PuzzleGenerator();
         var difficulty = new DifficultyParams(3, 6, 12, 8, 3, 0.2f, true, ComplexityLevel.Intermediate);
-        var intermediateOnlyAspects = new[] { AspectIds.Sharp, AspectIds.Fragile, AspectIds.Catalytic, AspectIds.Medicinal }.ToHashSet();
+        var intermediateOnlyAspects = new[] { AspectIds.Catalytic, AspectIds.Medicinal }.ToHashSet();
         var allAllowed = ComplexityFilter.GetAspects(ComplexityLevel.Intermediate).ToHashSet();
 
         bool foundIntermediateAspect = false;

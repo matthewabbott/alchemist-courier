@@ -15,11 +15,11 @@ public static class ComplexityFilter
     {
         AspectIds.Hot, AspectIds.Cold, AspectIds.Volatile,
         AspectIds.Stable, AspectIds.Heavy, AspectIds.Toxic,
+        AspectIds.Sharp, AspectIds.Fragile,
     };
 
     private static readonly string[] IntermediateAspects =
     {
-        AspectIds.Sharp, AspectIds.Fragile,
         AspectIds.Catalytic, AspectIds.Medicinal,
     };
 
