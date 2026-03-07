@@ -1132,7 +1132,7 @@
         "VS.7"
       ],
       "verification": "Running generator produces 72 PNGs with correct dimensions, valid JSON spec",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.9",
