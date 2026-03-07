@@ -173,14 +173,15 @@ public class PuzzleGenerator
 
         var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes, availableAspects);
 
-        // Step 6: Create runtime objects and try to place all reagents validly
+        // Step 6: Create runtime objects, using catalog entries where possible
         var reagentDefs = new List<ReagentDefinition>();
         var reagents = new List<Reagent>();
         for (int i = 0; i < reagentShapes.Count; i++)
         {
             var (shape, _) = reagentShapes[i];
             var aspects = aspectAssignments[i];
-            var def = new ReagentDefinition(
+            var catalogDef = TryFindCatalogMatch(shape, aspects);
+            var def = catalogDef ?? new ReagentDefinition(
                 id: $"reagent_{i}",
                 name: $"Reagent {i}",
                 shape: shape,
@@ -565,6 +566,28 @@ public class PuzzleGenerator
             for (int c = 0; c < cols; c++)
                 if (shape[r, c]) count++;
         return count;
+    }
+
+    /// <summary>
+    /// If all non-empty cells share the same single aspect, look up a matching
+    /// ReagentCatalog entry. Returns null for multi-aspect, no-aspect, or unmatched shapes.
+    /// </summary>
+    private static ReagentDefinition? TryFindCatalogMatch(bool[,] shape, List<AspectSet> cellAspects)
+    {
+        string? singleAspectId = null;
+        foreach (var aspectSet in cellAspects)
+        {
+            if (aspectSet.IsEmpty) continue;
+            if (aspectSet.Aspects.Count != 1) return null;
+            var id = aspectSet.Aspects[0].Id;
+            if (singleAspectId == null)
+                singleAspectId = id;
+            else if (singleAspectId != id)
+                return null;
+        }
+
+        if (singleAspectId == null) return null;
+        return ReagentCatalog.FindMatch(singleAspectId, shape);
     }
 
     private static DifficultyLevel InferDifficulty(DifficultyParams p) => p.BagCount switch

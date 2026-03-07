@@ -34,12 +34,7 @@ public static class DemoPuzzle
             flavorText: "A smoldering pebble that radiates intense heat."
         ));
 
-        var iceShard = new Reagent(new ReagentDefinition(
-            "ice_shard", "Ice Shard",
-            new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Cold()), new AspectSet(Aspect.Cold()) },
-            flavorText: "A sliver of permafrost that never melts."
-        ));
+        var iceShard = new Reagent(ReagentCatalog.Get("snowflower", "domino")!);
 
         var poisonFang = new Reagent(new ReagentDefinition(
             "poison_fang", "Poison Fang",
@@ -76,12 +71,7 @@ public static class DemoPuzzle
             flavorText: "Unstable gelatinous compound that detonates near heat."
         ));
 
-        var inertCrystal = new Reagent(new ReagentDefinition(
-            "inert_crystal", "Inert Crystal",
-            new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Stable()), new AspectSet(Aspect.Stable()) },
-            flavorText: "A perfectly balanced crystal that dampens nearby reactions."
-        ));
+        var inertCrystal = new Reagent(ReagentCatalog.Get("nullflower", "domino")!);
 
         var cinnabarBlock = new Reagent(new ReagentDefinition(
             "cinnabar_block", "Cinnabar Block",

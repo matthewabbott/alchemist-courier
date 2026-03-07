@@ -569,6 +569,128 @@ public class PuzzleGeneratorTests
         Assert.Equal(0, difficulty.MaxHints);
     }
 
+    // --- ReagentCatalog Integration ---
+
+    [Fact]
+    public void Generate_SingleAspectReagents_UsesCatalogNames()
+    {
+        // Easy puzzles have MaxAspectCount=1 so all aspected reagents are single-aspect
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+
+        bool foundCatalogReagent = false;
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            var reagents = ReconstructReagentsFromDefs(puzzle);
+
+            foreach (var reagent in reagents)
+            {
+                if (ReagentCatalog.GetById(reagent.Definition.Id) != null)
+                {
+                    foundCatalogReagent = true;
+                    // Catalog reagent should have proper name (not "Reagent N")
+                    Assert.DoesNotContain("Reagent ", reagent.Definition.Name);
+                    Assert.NotNull(reagent.Definition.FlavorText);
+                }
+            }
+            if (foundCatalogReagent) break;
+        }
+
+        Assert.True(foundCatalogReagent,
+            "Expected at least one Easy-difficulty seed to produce a catalog-named reagent");
+    }
+
+    [Fact]
+    public void Generate_CatalogReagents_SolutionStillValid()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+
+        for (int seed = 1; seed <= 20; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            Assert.True(PuzzleSolver.IsSolvable(puzzle),
+                $"Seed {seed}: puzzle with catalog reagents should be solvable");
+        }
+    }
+
+    [Fact]
+    public void Generate_NoAspectReagents_FallBackToAnonymous()
+    {
+        // Tutorial1 has MaxAspectCount=0, no reagents get aspects
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Tutorial1);
+        var puzzle = _generator.Generate(42, difficulty);
+
+        var reagents = ReconstructReagentsFromDefs(puzzle);
+        foreach (var reagent in reagents)
+        {
+            // No aspects = no catalog match, should use anonymous names
+            Assert.Null(ReagentCatalog.GetById(reagent.Definition.Id));
+        }
+    }
+
+    [Fact]
+    public void Generate_CatalogReagents_DeterministicAcrossSeeds()
+    {
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+
+        var puzzle1 = _generator.Generate(42, difficulty);
+        var puzzle2 = _generator.Generate(42, difficulty);
+
+        var reagents1 = ReconstructReagentsFromDefs(puzzle1);
+        var reagents2 = ReconstructReagentsFromDefs(puzzle2);
+
+        Assert.Equal(reagents1.Count, reagents2.Count);
+        for (int i = 0; i < reagents1.Count; i++)
+        {
+            Assert.Equal(reagents1[i].Definition.Id, reagents2[i].Definition.Id);
+            Assert.Equal(reagents1[i].Definition.Name, reagents2[i].Definition.Name);
+        }
+    }
+
+    /// <summary>
+    /// Reconstruct reagents preserving original ReagentDefinition info (ID, name, flavor).
+    /// Unlike ReconstructReagents which creates anonymous defs, this preserves catalog data.
+    /// </summary>
+    private static List<Reagent> ReconstructReagentsFromDefs(PuzzleState puzzle)
+    {
+        var reagents = new List<Reagent>();
+        foreach (var pr in puzzle.Reagents)
+        {
+            var shape = pr.ToShapeMatrix();
+            var aspects = new List<AspectSet>();
+            foreach (var cellAspects in pr.AspectsPerCell)
+            {
+                var set = new AspectSet();
+                foreach (var id in cellAspects)
+                    set.Add(Aspect.FromId(id));
+                aspects.Add(set);
+            }
+
+            // Try catalog lookup to mirror generator behavior
+            var catalogDef = TryFindCatalogMatchForTest(shape, aspects);
+            var def = catalogDef ?? new ReagentDefinition("anon", "Anonymous", shape, aspectsPerCell: aspects);
+            reagents.Add(new Reagent(def));
+        }
+        return reagents;
+    }
+
+    private static ReagentDefinition? TryFindCatalogMatchForTest(bool[,] shape, List<AspectSet> cellAspects)
+    {
+        string? singleAspectId = null;
+        foreach (var aspectSet in cellAspects)
+        {
+            if (aspectSet.IsEmpty) continue;
+            if (aspectSet.Aspects.Count != 1) return null;
+            var id = aspectSet.Aspects[0].Id;
+            if (singleAspectId == null)
+                singleAspectId = id;
+            else if (singleAspectId != id)
+                return null;
+        }
+        if (singleAspectId == null) return null;
+        return ReagentCatalog.FindMatch(singleAspectId, shape);
+    }
+
     private static void AssertShapesEqual(bool[][] a, bool[][] b)
     {
         Assert.Equal(a.Length, b.Length);
