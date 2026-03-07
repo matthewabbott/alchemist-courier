@@ -6,6 +6,7 @@ using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Animation;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -33,6 +34,7 @@ public partial class PuzzleScreen : Control
     private Label _hintCountLabel = null!;
     private HintState _hintState = new HintState(0);
     private ResultOverlayPanel _resultOverlay = null!;
+    private ReactionAnimator _reactionAnimator = null!;
     private HintOrchestrator? _hintOrchestrator;
     private Label _dayLabel = null!;
     private Label _streakLabel = null!;
@@ -74,6 +76,7 @@ public partial class PuzzleScreen : Control
     public bool EagleSenseActive => _eagleSenseActive;
     public string? LegendSelectedAspect => _legendSelectedAspect;
     public ActionHistory ActionHistory => _actionHistory;
+    public ReactionAnimator Animator => _reactionAnimator;
 
     /// <summary>Fired after ConfirmPuzzle() with the result.</summary>
     public event System.Action<ConfirmResult>? PuzzleConfirmed;
@@ -215,6 +218,9 @@ public partial class PuzzleScreen : Control
         _gridView.Initialize(_metaGrid);
         _gridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
         _gridView.SetActionHistory(_actionHistory);
+        _reactionAnimator = new ReactionAnimator { MouseFilter = MouseFilterEnum.Ignore };
+        _reactionAnimator.SetContext(_gridView, _metaGrid);
+        _gridView.AddChild(_reactionAnimator);
         gridCenter.AddChild(_gridView);
         hbox.AddChild(gridCenter);
 
@@ -581,8 +587,10 @@ public partial class PuzzleScreen : Control
                 UpdateStatus($"Cannot confirm: {CountUnplaced()} reagent(s) not yet placed.");
                 break;
             case ConfirmResult.HasReactions:
-                _resultOverlay.ShowFailure(_lastReactions);
                 UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
+                // Play reaction animations, then show failure overlay
+                _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
+                _reactionAnimator.PlayReactions(_lastReactions);
                 break;
             case ConfirmResult.Win:
                 _resultOverlay.ShowWin("SUCCESS — All reagents placed safely!", result.Score);
@@ -595,6 +603,12 @@ public partial class PuzzleScreen : Control
 
         PuzzleConfirmed?.Invoke(_lastConfirmResult);
         return _lastConfirmResult;
+    }
+
+    private void OnReactionAnimationsComplete()
+    {
+        _reactionAnimator.AllAnimationsComplete -= OnReactionAnimationsComplete;
+        _resultOverlay.ShowFailure(_lastReactions);
     }
 
     public void ToggleLegend()
