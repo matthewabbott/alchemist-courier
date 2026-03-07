@@ -82,7 +82,7 @@ public partial class DevSpriteGenerator : Control
         foreach (var def in allDefs)
         {
             var aspectId = GetPrimaryAspect(def);
-            var baseColor = ConvertColor(GridConstants.GetAspectColor(aspectId));
+            var baseColor = GridConstants.GetAspectColor(aspectId);
 
             var image = Image.CreateEmpty(SheetWidth, SheetHeight, false, Image.Format.Rgba8);
 
@@ -136,8 +136,6 @@ public partial class DevSpriteGenerator : Control
             return def.AspectsPerCell[0].Aspects[0].Id;
         return "";
     }
-
-    private static Color ConvertColor(Godot.Color c) => c;
 
     // --- Row drawing methods ---
 

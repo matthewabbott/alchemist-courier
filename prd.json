@@ -1168,6 +1168,17 @@
       "verification": "dotnet build && dotnet test pass, no behavior change",
       "status": "done",
       "source": "code-review-2026-03-06d"
+    },
+    {
+      "id": "R2",
+      "title": "Deduplicate MetaGridView border creation methods",
+      "description": "MetaGridView.cs has 3 near-identical border rect methods (CreateBorderRect, CreateHintedBorderRect, CreateLockedBorderRect) that differ only in border width and color. Similarly, CreateHintedBorders and CreateLockedBorders are nearly identical loops. Extract a shared CreateBorderRectWithStyle(pixelPos, direction, width, color) helper and a shared CreateReagentBorders(predicate, color, width) loop. Files: src/Game/Inventory/MetaGridView.cs.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet build && dotnet test pass, no behavior change",
+      "status": "pending",
+      "source": "code-review-2026-03-06e"
     }
   ]
 }

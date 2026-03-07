@@ -9,10 +9,10 @@ namespace AlchemistCourier.Core.Visual;
 public class SpriteSheetSpec
 {
     /// <summary>Maps each visual state to its row index in the sprite sheet.</summary>
-    public Dictionary<VisualState, int> StateRowMap { get; }
+    public IReadOnlyDictionary<VisualState, int> StateRowMap { get; }
 
     /// <summary>Maps each visual state to its number of animation frames.</summary>
-    public Dictionary<VisualState, int> FrameCounts { get; }
+    public IReadOnlyDictionary<VisualState, int> FrameCounts { get; }
 
     /// <summary>Width of one frame in pixels (covers the shape's bounding box).</summary>
     public int CellWidth { get; }
