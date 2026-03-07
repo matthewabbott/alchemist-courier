@@ -1218,7 +1218,7 @@
       "phase": "catalog-refactor",
       "depends_on": ["IA.2"],
       "verification": "dotnet build succeeds, ReagentCatalog.GetAll() returns ~24 items, all items have correct aspects and shapes",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CR.2",
