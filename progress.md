@@ -780,3 +780,18 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-07
 - Commit: b1421a8
 - Notes: Rewrote ReagentCatalog from 72-entry species×shape combinatorial model (8 species × 9 shapes) to 24 unique named items per docs/item-catalog-design.md. Each item has one natural polyomino shape, one aspect, and unique flavor text. Items: 3 per aspect (Hot, Cold, Volatile, Toxic, Heavy, Stable, Sharp, Fragile), shapes range from monomino (8 items) through tetrominoes (5 items). Removed Get(speciesId, shapeName) method, added GetShapeName(ReagentDefinition). Rarity derived from cell count: 1-2=Common, 3=Uncommon, 4=Rare. Critical fix in PuzzleGenerator: decoupled catalog from aspect assignment — catalog now provides naming only (id, name, flavorText), generator always uses its own shape and aspects. This fixed 5 PuzzleGenerator test failures caused by catalog matches silently replacing generator aspects with full-coverage catalog aspects. DemoPuzzle updated to use GetById. ReagentCatalogTests fully rewritten for 24-item counts and individual lookups. All 655 tests pass (639 existing adjusted + 16 net new).
+
+## CR.2 — Update all unit tests for new catalog structure
+- Date: 2026-03-07
+- Commit: (no-op, completed by CR.1)
+- Notes: Verified all unit tests already updated during CR.1. ReagentCatalogTests already assert 24 items, 3 per aspect, correct shape distribution, and all 24 individual item IDs. Searched entire codebase for old catalog IDs (e.g., firevine_domino, snowflower_monomino) — zero references remain in code. All 655 tests pass.
+
+## CR.3 — Update PuzzleGenerator, tutorial, and save/load for new catalog
+- Date: 2026-03-07
+- Commit: (no-op, catalog-agnostic design)
+- Notes: Verified all consumers are catalog-agnostic. PuzzleGenerator uses TryFindCatalogMatch for optional naming only — no hardcoded catalog IDs. TutorialData uses DifficultyParams with fixed seeds, no reagent IDs. SaveData stores lesson numbers and date seeds only. PuzzleSearchSolver and EditorScreen have no catalog references. DemoPuzzle uses GetById("snowflower") and GetById("nullflower"), both present in new 24-item catalog. No code changes needed.
+
+## CR.4 — Regenerate dev sprites for new catalog items
+- Date: 2026-03-07
+- Commit: 99b6a96
+- Notes: Deleted 72 old sprite PNGs and their .import files from art/sprites/reagents/. Ran DevSpriteGenerator via Godot MCP to generate 24 new sprite sheets matching the new catalog item IDs. Each sheet is 128×224px (4 frames × 32px, 7 state rows × 32px). New files: anvil_shard.png, blight_moss.png, burstbloom.png, calm_stone.png, crystal_tear.png, ember_seed.png, firevine.png, frost_fern.png, frozen_teardrop.png, glass_shard.png, glasswork.png, gossamer_thread.png, ironbark_root.png, lead_ingot.png, lead_nugget.png, magma_slug.png, nullflower.png, purple_creeper.png, razor_fern.png, sharpstone.png, snowflower.png, spark_petal.png, thunder_egg.png, venom_drop.png, plus sprite_specs.json. All 655 tests pass.

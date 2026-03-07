@@ -36,3 +36,26 @@ The catalog reduction exposed a hidden coupling in `PuzzleGenerator`. When `TryF
 
 ### Test results
 All 655 tests pass.
+
+## CR.2 — Update all unit tests for new catalog structure
+
+No-op. All tests were already updated as part of CR.1. Verified: `ReagentCatalogTests` asserts 24 items, 3 per aspect, all 24 individual IDs. Searched codebase for old combinatorial IDs (e.g., `firevine_domino`) — zero references remain.
+
+## CR.3 — Update PuzzleGenerator, tutorial, and save/load for new catalog
+
+No-op. All consumers are catalog-agnostic by design:
+- `PuzzleGenerator` uses `TryFindCatalogMatch` for naming only, no hardcoded IDs
+- `TutorialData` uses `DifficultyParams` with fixed seeds, no reagent IDs
+- `SaveData` stores lesson numbers and date seeds only
+- `DemoPuzzle` uses `GetById("snowflower")` and `GetById("nullflower")`, both in new catalog
+
+## CR.4 — Regenerate dev sprites for 24-item catalog
+
+### What changed
+Deleted 72 old sprite PNGs + 72 `.import` files from `art/sprites/reagents/`. Ran `DevSpriteGenerator` via Godot MCP to produce 24 new sprite sheets matching the new catalog item IDs.
+
+### Files modified
+- `art/sprites/reagents/` — removed 144 old files, added 24 new PNGs + `sprite_specs.json`
+
+### Test results
+All 655 tests pass. Build: 0 errors. No Godot imports in Core.

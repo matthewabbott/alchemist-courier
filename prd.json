@@ -1248,7 +1248,7 @@
       "phase": "catalog-refactor",
       "depends_on": ["CR.1"],
       "verification": "dotnet build, run DevSpriteGenerator, art/sprites/reagents/ contains ~24 sprite PNGs matching new catalog",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CR.5",
