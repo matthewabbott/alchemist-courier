@@ -1156,12 +1156,12 @@
         "VS.9"
       ],
       "verification": "dotnet build succeeds, heavy reagent placement shows falling animation",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R1",
       "title": "Extract RefreshAfterGridChange helper in PuzzleScreen",
-      "description": "PuzzleScreen.cs has 6+ near-identical refresh sequences (RefreshDisplay x2, Refresh, UpdateStatusThresholds, RefreshEagleSense, UpdateUndoRedoButtons) across OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, UseHint, Undo, and Redo. Extract a private RefreshAfterGridChange(bool updateHints = false) helper to consolidate. ResetPuzzle is a variant that skips some calls — handle as a separate path or with a parameter. File: src/Game/Inventory/PuzzleScreen.cs.",
+      "description": "PuzzleScreen.cs has 6+ near-identical refresh sequences (RefreshDisplay x2, Refresh, UpdateStatusThresholds, RefreshEagleSense, UpdateUndoRedoButtons) across OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, UseHint, Undo, and Redo. Extract a private RefreshAfterGridChange(bool updateHints = false) helper to consolidate. ResetPuzzle is a variant that skips some calls \u00e2\u20ac\u201d handle as a separate path or with a parameter. File: src/Game/Inventory/PuzzleScreen.cs.",
       "priority": 0,
       "phase": "review-fix",
       "depends_on": [],
