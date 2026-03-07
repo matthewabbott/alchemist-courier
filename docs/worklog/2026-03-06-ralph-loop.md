@@ -50,3 +50,10 @@ Commit: 197a10f
 ## VS.4: Implement ActionHistory (undo/redo) in Core
 Built the command-pattern undo/redo infrastructure — IGridAction interface with PlaceReagentAction and RemoveReagentAction implementations, managed by an ActionHistory class with dual undo/redo stacks. The key design decision was tracking rotation state: PlaceReagentAction captures and restores the previous rotation on undo, while RemoveReagentAction snapshots position and rotation at construction time so they survive any player modifications while the reagent is unplaced. Failed operations leave stacks unchanged for consistency. VS.5 will wire this into PuzzleScreen with Ctrl+Z/Ctrl+Y shortcuts.
 Commit: a04612c
+
+## Code Review C
+Reviewed VS.1 (Sharp/Fragile promotion), VS.2 (ReagentCatalog), and VS.4 (ActionHistory) — cf5896c..882a33b. All code is clean: Core purity maintained, Command pattern applied appropriately (not speculative), rotation tracking is correct, and 36 new tests provide thorough coverage. Only P3-P4 findings: silent (0,0) fallback in RemoveReagentAction constructor for unplaced reagents (safe in practice), minor style notes in ReagentCatalog (double lookup, allocation on miss), and one xUnit2013 build warning. No fixes or tasks needed — CLEAN status.
+
+## VS.6: Create VisualStateResolver in Core
+First piece of the sprite state system — the pure C# logic layer that answers "what visual condition is this reagent cell in?" For each cell of a placed reagent, the resolver checks cardinal neighbors for Hot/Cold aspects (from OTHER reagents, not self) and checks directly above for Heavy. The resolution priority chain was the interesting design choice: Crushed wins over thermal states (if Heavy is above you, you're being crushed regardless of temperature), ThermalStress only applies to Fragile reagents (non-fragile things can be warm or cold without danger), and when both Hot and Cold are adjacent to a non-fragile reagent they cancel out to Normal. This sets up VS.7's sprite sheet rendering — the Game layer will map these states to sprite regions.
+Commit: 7f1a010

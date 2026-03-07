@@ -697,3 +697,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: a04612c
 - Notes: Created undo/redo infrastructure in src/Core/Puzzle/. IGridAction interface with Execute(MetaGrid)/Undo(MetaGrid) returning bool. PlaceReagentAction stores reagent, position, rotation; Execute sets rotation and places, Undo removes and restores previous rotation. RemoveReagentAction captures position and rotation at construction time; Execute removes, Undo restores rotation and re-places. ActionHistory manages two Stack<IGridAction> (undo/redo) with Execute (push undo, clear redo), Undo (pop undo, push redo), Redo (pop redo, push undo), Clear. Failed Execute/Undo/Redo operations leave stacks unchanged. 18 new tests covering: basic state, place/remove actions, rotation tracking, multiple actions in order, redo cleared by new action, clear empties both stacks, empty stack returns false, full place-remove round-trip, failed execute not on stack, locked reagent removal blocked, cell occupancy verified through undo/redo. All 595 tests pass (577 existing + 18 new).
+
+## Code Review C — 2026-03-06
+- Reviewed commits: cf5896c..882a33b
+- Findings: 4 (P0: 0, P1: 0, P2: 0, P3: 1, P4: 3)
+- Fixed: 0, Tasks created: 0
+
+## VS.6 — Create VisualStateResolver in Core
+- Date: 2026-03-06
+- Commit: 7f1a010
+- Notes: Created src/Core/Visual/ directory with VisualState enum (Normal, Heated, Cooled, ThermalStress, Crushed, Exploding, Breaking) and VisualStateResolver static class. Resolver determines per-cell visual state for placed reagents based on adjacent aspects from neighboring reagents. Resolution priority: Crushed (Fragile + Heavy directly above, row-1) > ThermalStress (Fragile + both Hot and Cold adjacent) > Heated (Hot adjacent, no Cold) > Cooled (Cold adjacent, no Hot) > Normal. Non-fragile reagents can be Heated/Cooled but never ThermalStress or Crushed. Self-adjacency excluded — a reagent's own cells don't influence its visual state. 15 new tests covering: unplaced returns empty, isolated returns Normal, Heated/Cooled/ThermalStress for Fragile, non-Fragile gets Normal (not ThermalStress) with both Hot+Cold, Crushed (Heavy above), Crushed priority over Heated, Heavy below/beside not Crushed, diagonal not adjacent, multi-cell per-cell states, self-adjacency ignored, grid edge safety, no-aspect neighbor. All 612 tests pass (597 existing + 15 new).
