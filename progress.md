@@ -682,3 +682,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: 9d485fb
 - Notes: Updated scenes/main.tscn to point to GameFlowController instead of PuzzleScreen — the game now starts at the main menu (or tutorial for first launch). TutorialCompleted event, completion handlers, and first-launch detection were all already implemented in GF.1. Added two integration tests: Test_GameFlowStartsAtMenu (TransitionTo MainMenu, verify CurrentScreen and node type) and Test_GameFlowFirstLaunchTutorial (TransitionTo Tutorial and DailyPuzzle, verify each transition produces correct screen enum and node type). All 526 unit tests pass.
+
+## VS.1 — Fix ComplexityFilter: promote Sharp/Fragile to Simple tier
+- Date: 2026-03-06
+- Commit: a3dbd20
+- Notes: Moved Sharp and Fragile from IntermediateAspects to SimpleAspects in ComplexityFilter. Simple tier now has 8 aspects (was 6), Intermediate has 2 (was 4). Simple-tier rules now include Breakage (7 total, was 6). Updated 6 ComplexityFilter tests for new counts. Key challenge: adding constrained aspects to the generator's pool caused generation failures — Sharp can't be on bag edges, Fragile can't be in Gravity bags, and Fragile breaks from ANY adjacent reaction (A.3 mechanic). Fix: (1) Cap constrained aspects (Sharp, Fragile) to at most 1 reagent each per puzzle in AssignAspects(). (2) Filter Fragile from pool when all bags are Gravity. (3) Add Fragile to placement priority ordering (placed early to claim non-Gravity bag slots). All 526 tests pass.

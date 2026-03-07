@@ -1053,7 +1053,7 @@
       "phase": "visual-systems",
       "depends_on": [],
       "verification": "dotnet test passes, Simple-tier puzzles can include Sharp/Fragile",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.2",
