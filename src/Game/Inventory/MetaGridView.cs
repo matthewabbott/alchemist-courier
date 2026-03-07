@@ -77,6 +77,9 @@ public partial class MetaGridView : Control
     private FallingAnimator? _fallingAnimator;
     private CoreVec? _effectivePlacePos; // May differ from _hoverGridPos for Heavy falling
 
+    // Hover frame overlay
+    private HoverFrameOverlay _hoverFrameOverlay = null!;
+
     // Hover tracking for placed reagents
     private Reagent? _hoveredPlacedReagent;
 
@@ -116,6 +119,13 @@ public partial class MetaGridView : Control
         CreateCellNodes();
         CreateGridLines();
 
+        _hoverFrameOverlay = new HoverFrameOverlay
+        {
+            ZIndex = 3,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_hoverFrameOverlay);
+
         _highlightOverlay = new HighlightOverlay
         {
             ZIndex = 4,
@@ -150,6 +160,9 @@ public partial class MetaGridView : Control
 
     /// <summary>The highlight overlay (for testing).</summary>
     public HighlightOverlay Highlights => _highlightOverlay;
+
+    /// <summary>The hover frame overlay (for testing).</summary>
+    public HoverFrameOverlay HoverFrame => _hoverFrameOverlay;
 
     /// <summary>Set the highlight overlay content directly.</summary>
     public void SetHighlights(HighlightSet highlights)
@@ -190,6 +203,7 @@ public partial class MetaGridView : Control
         _hoverGridPos = position;
         _mouseInsideGrid = true;
         UpdateGhostPreview();
+        UpdateHoveredReagent(position);
     }
 
     /// <summary>Simulate a left-click at the current hover position (for testing).</summary>
@@ -531,6 +545,8 @@ public partial class MetaGridView : Control
         }
         else
         {
+            // Hide hover frame when a reagent is selected for placement
+            _hoverFrameOverlay.HideFrame();
             UpdateGhostPreview();
         }
     }
@@ -592,6 +608,18 @@ public partial class MetaGridView : Control
         if (hoveredReagent != _hoveredPlacedReagent)
         {
             _hoveredPlacedReagent = hoveredReagent;
+
+            // Update hover frame overlay
+            if (hoveredReagent != null && hoveredReagent.PlacedPosition.HasValue)
+            {
+                var pixelPos = GridCoordinates.GridToPixel(hoveredReagent.PlacedPosition.Value);
+                _hoverFrameOverlay.ShowFrame(hoveredReagent, pixelPos);
+            }
+            else
+            {
+                _hoverFrameOverlay.HideFrame();
+            }
+
             EmitSignal(SignalName.HoveredReagentChanged);
         }
     }

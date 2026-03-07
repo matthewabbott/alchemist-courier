@@ -86,6 +86,7 @@ public partial class TestHarness : Control
         await Test_LockedReagentRemovalBlocked();
         await Test_GameFlowStartsAtMenu();
         await Test_GameFlowFirstLaunchTutorial();
+        await Test_HoverFrameOverlay();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1820,6 +1821,46 @@ public partial class TestHarness : Control
         bool pass = isTutorial && hasScreenNode && isDaily && hasDailyNode;
         EndTest("game_flow_first_launch_tutorial", pass, pass ? null
             : $"isTutorial={isTutorial} hasScreenNode={hasScreenNode} isDaily={isDaily} hasDailyNode={hasDailyNode}");
+    }
+
+    private async Task Test_HoverFrameOverlay()
+    {
+        BeginTest("hover_frame_overlay");
+
+        // Create a fresh puzzle screen with the demo puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Place first reagent (Fire Pebble — monomino at (1,1))
+        bool placed = TestActions.SelectAndPlace(_puzzleScreen, 0, 1, 1);
+        await WaitFrames(2);
+        Log($"[STATE] placed_reagent={placed}");
+
+        // Programmatically set hover over the placed reagent's position
+        var gridView = _puzzleScreen.GridView;
+        gridView.SetHoverPosition(new CoreVec(1, 1));
+        await WaitFrames(2);
+
+        // Verify hover frame overlay is showing
+        bool isShowingFrame = gridView.HoverFrame.IsShowingFrame;
+        bool hasHoveredReagent = gridView.HoveredPlacedReagent != null;
+        Log($"[STATE] hover_frame_showing={isShowingFrame} hovered_reagent={hasHoveredReagent}");
+
+        // Move hover to empty cell outside bags — frame should hide
+        gridView.SetHoverPosition(new CoreVec(0, 0));
+        await WaitFrames(3);
+
+        bool frameHiddenOnEmpty = !gridView.HoverFrame.IsShowingFrame;
+        Log($"[STATE] frame_hidden_on_empty={frameHiddenOnEmpty}");
+
+        await CaptureScreenshot("30_hover_frame_overlay.png");
+
+        bool pass = placed && isShowingFrame && hasHoveredReagent && frameHiddenOnEmpty;
+        EndTest("hover_frame_overlay", pass, pass ? null
+            : $"placed={placed} isShowingFrame={isShowingFrame} hasHoveredReagent={hasHoveredReagent} frameHiddenOnEmpty={frameHiddenOnEmpty}");
     }
 
     private async Task Test_RenderFinal()
