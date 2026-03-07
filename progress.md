@@ -725,3 +725,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: 9ef9131
 - Notes: Integrated ActionHistory (from VS.4) into PuzzleScreen and MetaGridView. All PlaceReagent/RemoveReagent calls now route through ActionHistory.Execute() for undo tracking. MetaGridView accepts optional ActionHistory via SetActionHistory() — editor and other consumers are unaffected (fallback to direct grid calls). Added Undo/Redo styled buttons to the button bar and Ctrl+Z/Ctrl+Y keyboard shortcuts in _UnhandledKeyInput. ResetPuzzle() clears history. Hint operations also clear history to prevent inconsistent undo state (hints modify the grid outside of ActionHistory). Locked reagents are excluded from history since they can't be interacted with. All 616 tests pass, no Core Godot imports.
+
+## Code Review D — 2026-03-06
+- Reviewed commits: 942efa5..651e894 (VS.5)
+- Findings: 1 (P0: 0, P1: 0, P2: 1)
+- Fixed: 0, Tasks created: 1 (R1 — extract RefreshAfterGridChange helper in PuzzleScreen)
+
+## R1 — Extract RefreshAfterGridChange helper in PuzzleScreen
+- Date: 2026-03-06
+- Commit: b1cb698
+- Notes: Extracted RefreshAfterGridChange(bool updateHints = false) helper consolidating 6 near-identical refresh sequences across OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, UseHint, Undo, and Redo. Each call site reduced from 5-7 lines to a single method call. ResetPuzzle kept as a separate path since it omits UpdateStatusThresholds/RefreshEagleSense and has additional reset-specific logic. Net reduction: 20 lines (17 insertions, 37 deletions). Pure refactor — no behavior change. All 616 tests pass.

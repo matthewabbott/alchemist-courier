@@ -65,3 +65,10 @@ Commit: 9a0bcf0
 ## VS.5: Wire undo/redo into PuzzleScreen UI
 Wired the ActionHistory infrastructure (from VS.4) into the actual gameplay loop. All player-initiated placements and removals now flow through ActionHistory.Execute(), enabling full undo/redo. MetaGridView accepts an optional ActionHistory via SetActionHistory() — this keeps the editor and other consumers unaffected since they fall back to direct grid calls. Added Undo/Redo buttons to the button bar alongside Confirm/Reset/Hint, plus Ctrl+Z and Ctrl+Y keyboard shortcuts. The interesting edge case was hints: since HintOrchestrator directly manipulates the grid outside the action history, a successful hint clears the undo stack to prevent inconsistent state when undoing.
 Commit: 9ef9131
+
+## Code Review D
+Reviewed VS.5 (ActionHistory UI wiring, commits 942efa5..651e894). No P0/P1 issues found. One P2 DRY violation: PuzzleScreen has 6+ near-identical UI refresh sequences across Undo, Redo, OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, and UseHint — created task R1 to extract a RefreshAfterGridChange helper. Core ActionHistory files are clean and Godot-free. Positive notes: correct use of _UnhandledKeyInput for shortcuts, and smart ActionHistory clearing on hint operations.
+
+## R1: Extract RefreshAfterGridChange helper in PuzzleScreen
+Quick DRY cleanup from Code Review D — extracted the 6 near-identical refresh sequences (tray + grid + status bar + thresholds + eagle sense + undo/redo buttons) into a single RefreshAfterGridChange(bool updateHints) helper. The UseHint path additionally needs UpdateHintButton, handled by the parameter. ResetPuzzle is left as its own path since it has a different lifecycle (clears history, hides overlay, resets confirmation state) and deliberately omits eagle sense refresh. Net -20 lines, zero behavior change.
+Commit: b1cb698
