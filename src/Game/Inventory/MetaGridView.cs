@@ -8,6 +8,7 @@ using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Core.Visual;
+using AlchemistCourier.Game.Animation;
 using AlchemistCourier.Game.Visual;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
@@ -72,6 +73,10 @@ public partial class MetaGridView : Control
     private bool _isPlacementValid;
     private bool _mouseInsideGrid;
 
+    // Falling animation
+    private FallingAnimator? _fallingAnimator;
+    private CoreVec? _effectivePlacePos; // May differ from _hoverGridPos for Heavy falling
+
     // Hover tracking for placed reagents
     private Reagent? _hoveredPlacedReagent;
 
@@ -117,6 +122,12 @@ public partial class MetaGridView : Control
             MouseFilter = MouseFilterEnum.Ignore,
         };
         AddChild(_highlightOverlay);
+
+        _fallingAnimator = new FallingAnimator
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_fallingAnimator);
 
         CreateRejectionTooltip();
         RefreshDisplay();
@@ -648,10 +659,21 @@ public partial class MetaGridView : Control
     {
         ClearGhost();
         _currentWarningLevel = PlacementWarningLevel.Invalid;
+        _effectivePlacePos = null;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
-        var positions = _selectedReagent.GetMetaGridPositions(_hoverGridPos.Value);
-        _isPlacementValid = _metaGrid.CanPlaceReagent(_selectedReagent, _hoverGridPos.Value);
+        // Calculate effective placement position (may differ for Heavy falling)
+        var effectivePos = _hoverGridPos.Value;
+        if (_selectedReagent.HasAspect(AspectIds.Heavy))
+        {
+            var fallPos = _metaGrid.CalculateFallPosition(_selectedReagent, _hoverGridPos.Value);
+            if (fallPos != _hoverGridPos.Value && _metaGrid.CanPlaceReagent(_selectedReagent, fallPos))
+                effectivePos = fallPos;
+        }
+        _effectivePlacePos = effectivePos;
+
+        var positions = _selectedReagent.GetMetaGridPositions(effectivePos);
+        _isPlacementValid = _metaGrid.CanPlaceReagent(_selectedReagent, effectivePos);
 
         Color ghostColor;
         if (!_isPlacementValid)
@@ -707,26 +729,27 @@ public partial class MetaGridView : Control
 
     private void ComputeAndRenderHighlights()
     {
-        if (_selectedReagent == null || _hoverGridPos == null || _reactionRules == null)
+        if (_selectedReagent == null || _effectivePlacePos == null || _reactionRules == null)
             return;
 
+        var placePos = _effectivePlacePos.Value;
         var highlights = new HighlightSet();
 
         // Constraint highlights (Sharp on edge, Fragile in gravity, etc.)
         var constraintHighlights = HighlightEngine.ComputeConstraintHighlights(
-            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+            _metaGrid, _selectedReagent, placePos);
         highlights.AddRange(constraintHighlights.GetByLayer(HighlightLayer.Constraint));
 
         // Ghost constraint highlights (rendered on ghost cells themselves)
         var ghostConstraints = HighlightEngine.ComputeGhostConstraintHighlights(
-            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+            _metaGrid, _selectedReagent, placePos);
         highlights.AddRange(ghostConstraints.GetByLayer(HighlightLayer.GhostOverlay));
 
         // Interaction highlights (adjacent reactive aspects)
         if (_isPlacementValid)
         {
             var interactionHighlights = HighlightEngine.ComputeInteractionHighlights(
-                _metaGrid, _selectedReagent, _hoverGridPos.Value, _reactionRules, _statusThresholds);
+                _metaGrid, _selectedReagent, placePos, _reactionRules, _statusThresholds);
             highlights.AddRange(interactionHighlights.GetByLayer(HighlightLayer.Interaction));
         }
 
@@ -758,25 +781,70 @@ public partial class MetaGridView : Control
 
         if (_isPlacementValid)
         {
+            var placePos = _effectivePlacePos ?? _hoverGridPos.Value;
+            var clickPos = _hoverGridPos.Value;
+            bool isFalling = placePos != clickPos;
+
             if (_actionHistory != null)
             {
-                var action = new PlaceReagentAction(_selectedReagent, _hoverGridPos.Value, _selectedReagent.Rotation);
+                var action = new PlaceReagentAction(_selectedReagent, placePos, _selectedReagent.Rotation);
                 if (!_actionHistory.Execute(action, _metaGrid)) return;
             }
             else
             {
-                _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
+                _metaGrid.PlaceReagent(_selectedReagent, placePos);
             }
+
+            var placedReagent = _selectedReagent;
             _selectedReagent = null;
             ClearGhost();
             HideRejectionTooltip();
             RefreshDisplay();
+
+            if (isFalling && _fallingAnimator != null)
+            {
+                // Temporarily hide the destination cells so the falling overlay is visible
+                HideCellsForReagent(placedReagent, placePos);
+                _fallingAnimator.PlayFall(placedReagent, clickPos, placePos, () =>
+                {
+                    // Restore the destination cells after animation
+                    RefreshDisplay();
+                });
+            }
+
             EmitSignal(SignalName.ReagentPlaced);
         }
         else
         {
             ShowRejectionForCurrentPosition();
         }
+    }
+
+    /// <summary>
+    /// Temporarily hides the cell colors for a placed reagent by setting them to the bag empty tint.
+    /// Used during falling animations so the overlay is visible over the destination.
+    /// </summary>
+    private void HideCellsForReagent(Reagent reagent, CoreVec position)
+    {
+        var positions = reagent.GetMetaGridPositions(position);
+        var bagIndexMap = new Dictionary<Core.Bags.Bag, int>();
+        for (int i = 0; i < _metaGrid.PlacedBags.Count; i++)
+            bagIndexMap[_metaGrid.PlacedBags[i]] = i;
+
+        foreach (var pos in positions)
+        {
+            if (pos.Col < 0 || pos.Col >= _metaGrid.Width ||
+                pos.Row < 0 || pos.Row >= _metaGrid.Height)
+                continue;
+
+            var bag = _metaGrid.GetBagAtCell(pos);
+            int bagIdx = bag != null ? bagIndexMap.GetValueOrDefault(bag, 0) : 0;
+            _cellRects[pos.Col, pos.Row].Color = GridConstants.GetBagTint(bagIdx);
+        }
+
+        // Also hide sprite renderer for this reagent during animation
+        if (_spriteRenderers.TryGetValue(reagent, out var renderer))
+            renderer.Visible = false;
     }
 
     private void ShowRejectionForCurrentPosition()

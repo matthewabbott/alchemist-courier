@@ -1229,4 +1229,111 @@ public class MetaGridTests
         bool fragileViolations = grid.GetFragileViolations(fragile, fragilePos).Count > 0;
         Assert.True(fragileViolations); // Fragile in Gravity bag = violation
     }
+
+    // --- CalculateFallPosition ---
+
+    [Fact]
+    public void CalculateFallPosition_HeavyInGravityBag_FallsToBottom()
+    {
+        // 4x1 Gravity bag (4 rows, 1 col). Heavy reagent dropped at row 0 falls to row 3.
+        var shape = new bool[,] { { true }, { true }, { true }, { true } };
+        var gravDef = new BagDefinition("tall_grav", "Tall Gravity", shape,
+            new[] { BagPropertyType.Gravity });
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(0, 0));
+        Assert.Equal(new Vector2I(0, 3), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_NonHeavy_NoFalling()
+    {
+        // Non-Heavy reagent in a Gravity bag should not fall.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell); // Not Heavy
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(1, 0));
+        Assert.Equal(new Vector2I(1, 0), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_HeavyInNormalBag_NoFalling()
+    {
+        // Heavy reagent in a non-Gravity bag should not fall.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(1, 1));
+        Assert.Equal(new Vector2I(1, 1), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_HeavyBlockedByOccupant_FallsAbove()
+    {
+        // 4x1 Gravity bag. Existing reagent at row 3. Heavy falls to row 2.
+        var shape = new bool[,] { { true }, { true }, { true }, { true } };
+        var gravDef = new BagDefinition("tall_grav", "Tall Gravity", shape,
+            new[] { BagPropertyType.Gravity });
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var existing = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(existing, new Vector2I(0, 3));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(0, 0));
+        Assert.Equal(new Vector2I(0, 2), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_AlreadyAtBottom_NoChange()
+    {
+        // 3x3 Gravity bag. Heavy at bottom row (row 2) — already at bottom.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(1, 2));
+        Assert.Equal(new Vector2I(1, 2), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_MultiCellReagent_FallsToBottom()
+    {
+        // 4x2 Gravity bag. 2-row Heavy reagent dropped at row 0 falls to row 2.
+        var bagShape = new bool[,] { { true, true }, { true, true }, { true, true }, { true, true } };
+        var gravDef = new BagDefinition("tall_wide_grav", "Tall Wide Gravity", bagShape,
+            new[] { BagPropertyType.Gravity });
+        var grid = CreateGrid();
+        var bag = new Bag(gravDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavyDef = CreateHeavyReagentDef(new bool[,] { { true }, { true } }); // 2 rows
+        var heavy = new Reagent(heavyDef);
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(0, 0));
+        // Shape is 2 rows, so at row 2 the cells are at rows 2 and 3 (bottom of 4-row bag)
+        Assert.Equal(new Vector2I(0, 2), result);
+    }
+
+    [Fact]
+    public void CalculateFallPosition_OutsideBag_NoChange()
+    {
+        // Position not in any bag — return unchanged.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(5, 5));
+        Assert.Equal(new Vector2I(5, 5), result);
+    }
 }

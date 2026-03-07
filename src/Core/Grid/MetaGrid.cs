@@ -516,4 +516,61 @@ public class MetaGrid
         }
         return bags.ToList();
     }
+
+    /// <summary>
+    /// Calculates the final resting position for a Heavy reagent falling in a Gravity bag.
+    /// Returns the input position if the reagent is not Heavy, not in a Gravity bag,
+    /// or cannot fall further.
+    /// </summary>
+    public Vector2I CalculateFallPosition(Reagent reagent, Vector2I dropPosition)
+    {
+        if (!reagent.HasAspect(AspectIds.Heavy))
+            return dropPosition;
+
+        // Verify all cells at drop position are in the same Gravity bag
+        var dropPositions = reagent.GetMetaGridPositions(dropPosition);
+        if (dropPositions.Count == 0)
+            return dropPosition;
+
+        Bag? gravityBag = null;
+        foreach (var pos in dropPositions)
+        {
+            var cell = GetCell(pos);
+            if (cell == null || !cell.IsInBag)
+                return dropPosition;
+
+            var bag = GetBagAtCell(pos);
+            if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
+                return dropPosition;
+
+            if (gravityBag == null)
+                gravityBag = bag;
+            else if (bag != gravityBag)
+                return dropPosition; // Spans multiple bags — don't fall
+        }
+
+        // Shift down one row at a time, checking all cells fit
+        var bestPos = dropPosition;
+        for (int shift = 1; ; shift++)
+        {
+            var candidate = new Vector2I(dropPosition.Col, dropPosition.Row + shift);
+            var candidatePositions = reagent.GetMetaGridPositions(candidate);
+
+            bool valid = true;
+            foreach (var pos in candidatePositions)
+            {
+                var cell = GetCell(pos);
+                if (cell == null || !cell.IsInBag || GetBagAtCell(pos) != gravityBag || cell.IsOccupied)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+
+            if (!valid) break;
+            bestPos = candidate;
+        }
+
+        return bestPos;
+    }
 }
