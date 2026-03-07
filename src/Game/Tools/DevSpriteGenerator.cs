@@ -83,7 +83,7 @@ public partial class DevSpriteGenerator : Control
 
         foreach (var def in allDefs)
         {
-            var aspectId = GetPrimaryAspect(def);
+            var aspectId = def.PrimaryAspectId ?? "";
             var baseColor = GridConstants.GetAspectColor(aspectId);
 
             var image = Image.CreateEmpty(SheetWidth, SheetHeight, false, Image.Format.Rgba8);
@@ -210,13 +210,6 @@ public partial class DevSpriteGenerator : Control
             FillRect(image, cellX + CellSize - borderWidth, cellY, borderWidth, CellSize, color);
             FillRect(image, cellX + CellSize - borderWidth - innerWidth, cellY, innerWidth, CellSize, white);
         }
-    }
-
-    private static string GetPrimaryAspect(ReagentDefinition def)
-    {
-        if (def.AspectsPerCell.Count > 0 && def.AspectsPerCell[0].Aspects.Count > 0)
-            return def.AspectsPerCell[0].Aspects[0].Id;
-        return "";
     }
 
     // --- Row drawing methods ---

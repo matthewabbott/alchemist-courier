@@ -54,6 +54,15 @@ public class ReagentDefinition
     /// <summary>Number of cells this reagent occupies.</summary>
     public int CellCount => ShapeUtil.CellCount(Shape);
 
+    /// <summary>
+    /// The aspect ID of the first aspect on the first cell, or null if no aspects exist.
+    /// Used as the dominant/primary aspect for visual theming (frame colors, tints).
+    /// </summary>
+    public string? PrimaryAspectId =>
+        AspectsPerCell.Count > 0 && AspectsPerCell[0].Aspects.Count > 0
+            ? AspectsPerCell[0].Aspects[0].Id
+            : null;
+
     public ReagentDefinition(string id, string name, bool[,] shape,
         float weight = 1f, int value = 1, Rarity rarity = Rarity.Common,
         IList<AspectSet>? aspectsPerCell = null, string? flavorText = null)

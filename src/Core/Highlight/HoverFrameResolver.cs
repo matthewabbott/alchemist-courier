@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Reagents;
 
@@ -21,7 +20,7 @@ public static class HoverFrameResolver
     /// </summary>
     public static string? GetFrameKey(Reagent reagent)
     {
-        var aspectId = GetPrimaryAspectId(reagent.Definition);
+        var aspectId = reagent.Definition.PrimaryAspectId;
         if (aspectId == null)
             return null;
 
@@ -53,12 +52,4 @@ public static class HoverFrameResolver
         return ContiguousBoundary.Compute(positions);
     }
 
-    private static string? GetPrimaryAspectId(ReagentDefinition def)
-    {
-        if (def.AspectsPerCell.Count == 0)
-            return null;
-
-        var firstAspects = def.AspectsPerCell[0].Aspects;
-        return firstAspects.Count > 0 ? firstAspects[0].Id : null;
-    }
 }

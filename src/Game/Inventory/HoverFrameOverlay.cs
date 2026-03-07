@@ -130,7 +130,7 @@ public partial class HoverFrameOverlay : Control
 
     private void CreateFrameVisuals(Reagent reagent, Vector2 gridPixelPosition)
     {
-        var aspectId = GetPrimaryAspectId(reagent);
+        var aspectId = reagent.Definition.PrimaryAspectId;
         if (aspectId == null) return;
 
         var shapeName = ReagentCatalog.GetShapeName(reagent.Definition);
@@ -243,15 +243,6 @@ public partial class HoverFrameOverlay : Control
 
         _textureCache[key] = texture;
         return texture;
-    }
-
-    private static string? GetPrimaryAspectId(Reagent reagent)
-    {
-        if (reagent.Definition.AspectsPerCell.Count == 0)
-            return null;
-
-        var firstAspects = reagent.Definition.AspectsPerCell[0].Aspects;
-        return firstAspects.Count > 0 ? firstAspects[0].Id : null;
     }
 
     /// <summary>Clears the texture cache (for testing or scene changes).</summary>
