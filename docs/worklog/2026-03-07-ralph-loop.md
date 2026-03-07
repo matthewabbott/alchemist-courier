@@ -107,3 +107,8 @@ Commit: fcfb59a
 ## Code Review — HF.1 + HF.2
 
 Reviewed commits 966e9f0..bb6c93b (HoverFrameResolver, HoverFrameOverlay, DevSpriteGenerator additions). Found one P2 DRY violation: `GetPrimaryAspectId` was duplicated identically across 3 files (Rule of Three triggered). Extracted to `ReagentDefinition.PrimaryAspectId` property, removing 28 lines of duplication. Also noted frame key rotation mismatch (resolver includes `_r{rotation}` but textures don't) as P3 design note. Desloppify: 100/100 maintained. All 667 tests pass.
+
+## HF.3 — Wire HoverFrameOverlay into MetaGridView + integration test
+
+Wired the hover frame overlay into the game's grid view. When a player hovers over a placed reagent, they now see a pulsing aspect-colored perimeter frame around it — the edge-only rendering style avoids obscuring the reagent art while clearly indicating which item is under the cursor. The frame hides automatically when moving away or selecting a new reagent from the tray. Also fixed `SetHoverPosition` to trigger hover detection (it was only updating the ghost preview, not tracking which placed reagent was under the cursor). Integration test confirms the full show/hide cycle.
+Commit: 1226c6f

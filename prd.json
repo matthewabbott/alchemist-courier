@@ -1288,7 +1288,7 @@
       "phase": "hover-frames",
       "depends_on": ["HF.2"],
       "verification": "dotnet build && dotnet test pass. Integration harness passes. Hover frames visible when hovering placed reagents.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "AP.1",

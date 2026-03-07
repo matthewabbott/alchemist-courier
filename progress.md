@@ -811,6 +811,11 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: fcfb59a
 - Notes: Created src/Game/Inventory/HoverFrameOverlay.cs — Godot Control that renders aspect-themed perimeter frames over reagents. Loads pre-generated frame textures from art/sprites/frames/dev/{aspect}_{shape}.png with fallback to procedural ColorRect edge rendering when textures are missing. Uses parent Modulate for alpha, enabling uniform transparency across all children. Sinusoidal pulse animation (alpha oscillates between min/max over 1.5s period) via _Process. Three interaction modes: hover (0.25-0.55 alpha), selection (0.35-0.65), drag (steady 0.50). Smooth fade-out on HideFrame() over 0.15s. Added 7 hover frame constants to GridConstants.cs. Static texture cache with ClearCache() for scene transitions. No new tests (Godot UI component — tested via integration in HF.3). All 667 unit tests still pass.
 
+## HF.3 — Wire HoverFrameOverlay into MetaGridView + integration test
+- Date: 2026-03-07
+- Commit: 1226c6f
+- Notes: Wired HoverFrameOverlay into MetaGridView as a child node at Z-index 3 (between sprite renderers and ghost cells). UpdateHoveredReagent now shows/hides the hover frame when hovering placed reagents. Fixed SetHoverPosition to also call UpdateHoveredReagent for test harness consistency. SetSelectedReagent hides the frame when a tray reagent is selected for placement. Added Test_HoverFrameOverlay integration test verifying frame appears on hover (4 edge rects for monomino) and hides when moving to empty cell. All 667 unit tests pass, 32/32 integration tests pass.
+
 ## Code Review — 2026-03-07
 - Reviewed commits: 966e9f0..bb6c93b (HF.1, HF.2)
 - Findings: 4 (P0: 0, P1: 0, P2: 1, P3: 2, P4: 1)
