@@ -750,3 +750,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: a9149e4..13b4c79 (VS.7, VS.8)
 - Findings: 4 (P0: 0, P1: 1, P2: 1, P3: 2)
 - Fixed: 2, Tasks created: 1 (R2)
+
+## R2 — Deduplicate MetaGridView border creation methods
+- Date: 2026-03-06
+- Commit: db17b9e
+- Notes: Extracted CreateBorderRectWithStyle(pixelPos, direction, borderWidth, color) shared helper replacing three near-identical methods (CreateBorderRect, CreateHintedBorderRect, CreateLockedBorderRect) that differed only in border width and color. Extracted CreateReagentBorders(borderList, predicate, borderWidth, color) shared loop replacing two near-identical methods (CreateHintedBorders, CreateLockedBorders) that differed only in the reagent predicate (IsHinted vs IsLocked), border width, and color. Net: 20 insertions, 122 deletions. Pure refactor — no behavior change. All 632 tests pass.

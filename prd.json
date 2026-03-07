@@ -1177,7 +1177,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet build && dotnet test pass, no behavior change",
-      "status": "pending",
+      "status": "done",
       "source": "code-review-2026-03-06e"
     }
   ]
