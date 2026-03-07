@@ -29,6 +29,15 @@ public static class GridConstants
     // Locked reagent indicator
     public static readonly Color LockedBorderColor = new(0.7f, 0.6f, 0.3f);
 
+    // Hover frame overlay
+    public const float FramePulseAlphaMin = 0.25f;
+    public const float FramePulseAlphaMax = 0.55f;
+    public const float FramePulsePeriod = 1.5f;
+    public const float FrameSelectedAlphaMin = 0.35f;
+    public const float FrameSelectedAlphaMax = 0.65f;
+    public const float FrameDragAlpha = 0.50f;
+    public const float FrameFadeDuration = 0.15f;
+
     // Bag hue offsets — each placed bag gets a slightly different tint
     private static readonly Color[] BagTints = new[]
     {
