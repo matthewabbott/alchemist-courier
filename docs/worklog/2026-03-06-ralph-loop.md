@@ -42,3 +42,7 @@ Commit: 9d485fb
 ## VS.1: Fix ComplexityFilter — promote Sharp/Fragile to Simple tier
 Sharp and Fragile were incorrectly classified as Intermediate-tier aspects, but design docs treat them as core mechanics central to the danger model. Promoting them to Simple was a two-line change in ComplexityFilter, but the cascade into PuzzleGenerator was the real challenge: Fragile's A.3 mechanic (breaks from ANY adjacent reaction) combined with Sharp's edge-placement constraint makes generation significantly harder when both are in the aspect pool. The fix limits each constrained aspect to one reagent per puzzle and filters Fragile when all bags are Gravity — keeping puzzles interesting without making generation intractable. Simple-tier puzzles can now include Sharp/Fragile Breakage interactions from day one.
 Commit: a3dbd20
+
+## VS.2: Create ReagentCatalog with canonical single-aspect reagents
+Built the canonical reagent catalog — 72 named reagent definitions covering all 8 Simple-tier species (Firevine, Snowflower, etc.) across 9 standard polyomino shapes from monomino to L-tetromino. This replaces anonymous "reagent_0" identifiers with proper names like "Firevine Domino" and "Sharpstone T-Piece", each with flavor text from the design docs. The catalog is a static lookup table with indices by ID, aspect, and shape, plus a FindMatch() method that VS.3 will use to wire generated puzzles to named catalog entries. Pure Core code, zero Godot deps.
+Commit: 197a10f
