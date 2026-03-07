@@ -810,3 +810,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-07
 - Commit: fcfb59a
 - Notes: Created src/Game/Inventory/HoverFrameOverlay.cs — Godot Control that renders aspect-themed perimeter frames over reagents. Loads pre-generated frame textures from art/sprites/frames/dev/{aspect}_{shape}.png with fallback to procedural ColorRect edge rendering when textures are missing. Uses parent Modulate for alpha, enabling uniform transparency across all children. Sinusoidal pulse animation (alpha oscillates between min/max over 1.5s period) via _Process. Three interaction modes: hover (0.25-0.55 alpha), selection (0.35-0.65), drag (steady 0.50). Smooth fade-out on HideFrame() over 0.15s. Added 7 hover frame constants to GridConstants.cs. Static texture cache with ClearCache() for scene transitions. No new tests (Godot UI component — tested via integration in HF.3). All 667 unit tests still pass.
+
+## Code Review — 2026-03-07
+- Reviewed commits: 966e9f0..bb6c93b (HF.1, HF.2)
+- Findings: 4 (P0: 0, P1: 0, P2: 1, P3: 2, P4: 1)
+- Fixed: 1 (DRY x3 — extracted PrimaryAspectId to ReagentDefinition), Tasks created: 0

@@ -103,3 +103,7 @@ All 667 tests pass (655 existing + 12 new).
 
 Created `src/Game/Inventory/HoverFrameOverlay.cs` — the Godot-side renderer for the hover frame system. It loads pre-generated frame textures (from HF.1) as TextureRects and applies a sinusoidal alpha pulse via the node's `Modulate` property. Three interaction modes provide distinct visual feedback: hover pulses gently (0.25–0.55 alpha), selection pulses slightly brighter (0.35–0.65), and drag holds steady (0.50). Falls back to procedural ColorRect edge rendering when no texture is found. Added 7 frame-related constants to `GridConstants.cs`. Wiring into MetaGridView comes in HF.3.
 Commit: fcfb59a
+
+## Code Review — HF.1 + HF.2
+
+Reviewed commits 966e9f0..bb6c93b (HoverFrameResolver, HoverFrameOverlay, DevSpriteGenerator additions). Found one P2 DRY violation: `GetPrimaryAspectId` was duplicated identically across 3 files (Rule of Three triggered). Extracted to `ReagentDefinition.PrimaryAspectId` property, removing 28 lines of duplication. Also noted frame key rotation mismatch (resolver includes `_r{rotation}` but textures don't) as P3 design note. Desloppify: 100/100 maintained. All 667 tests pass.
