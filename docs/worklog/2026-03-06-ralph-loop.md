@@ -61,3 +61,7 @@ Commit: 7f1a010
 ## VS.3: Wire PuzzleGenerator to use ReagentCatalog
 Bridged the gap between the anonymous "Reagent 0" names and the canonical species catalog from VS.2. Added TryFindCatalogMatch() to PuzzleGenerator — when a reagent has all cells sharing one aspect and its shape matches a catalog entry, the generator uses the catalog definition (e.g. "Firevine Domino" instead of "Reagent 3"). The matching is conservative: multi-aspect, no-aspect, and rotated shapes that don't match catalog matrices fall back to anonymous names. DemoPuzzle's iceShard and inertCrystal now use catalog entries directly (snowflower_domino and nullflower_domino), while multi-aspect demo reagents keep their custom definitions.
 Commit: 9a0bcf0
+
+## VS.5: Wire undo/redo into PuzzleScreen UI
+Wired the ActionHistory infrastructure (from VS.4) into the actual gameplay loop. All player-initiated placements and removals now flow through ActionHistory.Execute(), enabling full undo/redo. MetaGridView accepts an optional ActionHistory via SetActionHistory() — this keeps the editor and other consumers unaffected since they fall back to direct grid calls. Added Undo/Redo buttons to the button bar alongside Confirm/Reset/Hint, plus Ctrl+Z and Ctrl+Y keyboard shortcuts. The interesting edge case was hints: since HintOrchestrator directly manipulates the grid outside the action history, a successful hint clears the undo stack to prevent inconsistent state when undoing.
+Commit: 9ef9131

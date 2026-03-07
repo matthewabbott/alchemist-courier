@@ -1097,7 +1097,7 @@
         "VS.4"
       ],
       "verification": "dotnet build succeeds, undo/redo works in puzzle gameplay",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VS.6",

@@ -712,3 +712,16 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-06
 - Commit: 9a0bcf0
 - Notes: Added TryFindCatalogMatch() to PuzzleGenerator — for single-aspect reagents (all non-empty cells share one aspect), looks up ReagentCatalog.FindMatch(aspectId, shape) and uses the catalog definition instead of anonymous "reagent_N". Multi-aspect, no-aspect, and shape-unmatched reagents fall back to anonymous definitions. DemoPuzzle updated to use catalog entries for iceShard (snowflower_domino) and inertCrystal (nullflower_domino); multi-aspect reagents (fire_pebble, poison_fang, blast_jelly, cinnabar_block) kept as custom definitions. 4 new tests: catalog names found in Easy-difficulty puzzles, solution still valid with catalog reagents, no-aspect Tutorial1 puzzles fall back to anonymous, deterministic catalog matching across same seed. All 616 tests pass (612 existing + 4 new).
+
+## Integration Review — 2026-03-06
+- Reviewed commits: 608b943..942efa5 (CQ.1-CQ.4, GF.1-GF.4, VS.1-VS.4, VS.6, ART.4)
+- Build: PASS (616/616 unit tests)
+- Harness: 30/30 tests pass, 0 failures
+- Visual: 39 screenshots verified, no regressions
+- Issues: 0
+- Notes: All Game-layer features have integration coverage. VS.4 (ActionHistory) and VS.6 (VisualStateResolver) are Core-only, awaiting Game-layer wiring (VS.5, VS.7). Game flow screenshots show test-artifact overlap (not a real bug). Pre-existing cosmetic issues unchanged.
+
+## VS.5 — Wire undo/redo into PuzzleScreen UI
+- Date: 2026-03-06
+- Commit: 9ef9131
+- Notes: Integrated ActionHistory (from VS.4) into PuzzleScreen and MetaGridView. All PlaceReagent/RemoveReagent calls now route through ActionHistory.Execute() for undo tracking. MetaGridView accepts optional ActionHistory via SetActionHistory() — editor and other consumers are unaffected (fallback to direct grid calls). Added Undo/Redo styled buttons to the button bar and Ctrl+Z/Ctrl+Y keyboard shortcuts in _UnhandledKeyInput. ResetPuzzle() clears history. Hint operations also clear history to prevent inconsistent undo state (hints modify the grid outside of ActionHistory). Locked reagents are excluded from history since they can't be interacted with. All 616 tests pass, no Core Godot imports.
