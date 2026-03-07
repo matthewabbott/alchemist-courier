@@ -1228,7 +1228,7 @@
       "phase": "catalog-refactor",
       "depends_on": ["CR.1"],
       "verification": "dotnet test — all tests pass with new catalog",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CR.3",
@@ -1238,7 +1238,7 @@
       "phase": "catalog-refactor",
       "depends_on": ["CR.1"],
       "verification": "dotnet build && dotnet test pass, tutorial generates valid puzzles with new catalog items",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "CR.4",
