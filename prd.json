@@ -1634,7 +1634,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. In web_demo: place conflicting reagents -- violations appear in panel. Remove reagent -- violations update. Empty grid -- 'No issues'.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.12",

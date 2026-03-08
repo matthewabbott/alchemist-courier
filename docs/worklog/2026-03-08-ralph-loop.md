@@ -145,3 +145,11 @@ pattern. The overlay groups rects by bag so _Process() can efficiently update al
 group with a smooth sine-wave alpha oscillation (2s period, 0.08–0.25 range). Balanced bags
 show no overlay. Placed at ZIndex 2 so the tint sits below hover/highlight/damage overlays.
 Commit: e2f390d
+
+## GO.11: ViolationListPanel for live violation display
+Added a live violations panel to the WebDemoScreen sidebar — it shows all current placement
+issues (explosions, bag imbalances, breakage, etc.) in real time as reagents are placed and
+removed. Each entry is color-coded by severity and clickable (emitting a signal for future
+GO.12 cell-highlight integration). The panel uses ViolationTracker.ComputeAll() which was
+already built as Core infrastructure, so this was a clean Game-layer-only wiring task.
+Commit: 55aea9c

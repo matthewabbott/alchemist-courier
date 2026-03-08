@@ -926,3 +926,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: e2f390d
 - Notes: Created BagStateOverlay (src/Game/Inventory/BagStateOverlay.cs) — a Godot Control that renders animated thermal tint overlays on bag cells to indicate hot/cold imbalance. Uses ChemistryEngine.GetBagBalanceViolations() to detect per-bag imbalance. Red/orange tint for too-hot bags (Imbalance > 0), blue tint for too-cold bags (Imbalance < 0). Alpha oscillates via sine wave in _Process() with 2s period (range 0.08–0.25). Follows DamageOverlay pattern with pooled ColorRect children grouped by bag for efficient per-frame color updates. Wired into MetaGridView at ZIndex 2 (below hover frame and highlights), refreshes on every placement/removal via RefreshDisplay(). Exposed RenderedCount and ActiveGroupCount test properties. All 802 tests pass.
+
+## GO.11 — J.3 UI: ViolationListPanel for live violation display
+- Date: 2026-03-08
+- Commit: 55aea9c
+- Notes: Created ViolationListPanel (PanelContainer) in the WebDemoScreen sidebar that shows a live list of current placement violations via ViolationTracker.ComputeAll(). Each violation entry is a clickable Button colored by severity (red=Danger, yellow=Warning) with transparent flat styling. Panel header shows "Issues (N)" count badge in amber when violations exist, or "No issues" in green when grid is clean. Entries emit ViolationClicked(int) signal for GO.12 cell-highlight integration. Wired into WebDemoScreen.BuildSidebar after AspectLegendPanel, refreshes on all grid-change paths (RefreshAfterGridChange, OnResetPressed, OnHintPressed). All 802 tests pass.
