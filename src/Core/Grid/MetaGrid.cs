@@ -436,9 +436,6 @@ public class MetaGrid
         return violations;
     }
 
-    private bool IsHeavyConstraintValid(Reagent reagent, List<Vector2I> positions) =>
-        GetHeavyViolations(reagent, positions).Count == 0;
-
     /// <summary>
     /// Get detailed Sharp constraint violations for the given reagent and positions.
     /// Sharp reagents can't be on edge cells of non-Reinforced bags.
