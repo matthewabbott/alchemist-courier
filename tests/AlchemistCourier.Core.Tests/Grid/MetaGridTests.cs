@@ -2893,4 +2893,199 @@ public class MetaGridTests
         Assert.Null(reagent.PlacedPosition);
         Assert.DoesNotContain(reagent, grid.PlacedReagents);
     }
+
+    // --- Cross-Bag Reagent Placement Regression Tests (GO.5) ---
+
+    [Fact]
+    public void CrossBag_DominoSpanningTwoAdjacentBags_PlacesSuccessfully()
+    {
+        // Reagent spanning two adjacent bags should place without issue
+        var grid = CreateGrid(10, 10);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // Domino at (2,1)-(3,1): cell (2,1) in bag1, cell (3,1) in bag2
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        var placed = grid.PlaceReagent(reagent, new Vector2I(2, 1));
+
+        Assert.True(placed);
+        Assert.Equal(new Vector2I(2, 1), reagent.PlacedPosition);
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(2, 1)));
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(3, 1)));
+        // Confirm it spans both bags
+        var bags = grid.GetBagsForReagent(reagent);
+        Assert.Equal(2, bags.Count);
+    }
+
+    [Fact]
+    public void CrossBag_SingleCellInEachBag_PlacesSuccessfully()
+    {
+        // L-shape reagent spanning two bags at their boundary
+        var grid = CreateGrid(10, 10);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // TriBar (vertical 3-cell) can't span horizontally. Use domino instead.
+        // Place two single-cell reagents on each side of the boundary
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(r1, new Vector2I(2, 0))); // in bag1
+        Assert.True(grid.PlaceReagent(r2, new Vector2I(3, 0))); // in bag2
+
+        // Both placed, each in one bag
+        Assert.Single(grid.GetBagsForReagent(r1));
+        Assert.Single(grid.GetBagsForReagent(r2));
+    }
+
+    [Fact]
+    public void CrossBag_PlacementFailsWhenBagsNotAdjacent()
+    {
+        // Two bags with a gap between them — domino can't span the gap
+        var grid = CreateGrid(10, 10);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (4,0) — gap at col 3
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        // Domino at (2,1)-(3,1): cell (2,1) in bag1, cell (3,1) in the gap (no bag)
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        var placed = grid.PlaceReagent(reagent, new Vector2I(2, 1));
+
+        Assert.False(placed);
+        Assert.Null(reagent.PlacedPosition);
+        Assert.DoesNotContain(reagent, grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void CrossBag_SpanningReagentRemovedAfterBagMoveAway()
+    {
+        // After one bag moves away, spanning reagent has orphaned cells and is removed
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // Domino spanning both bags
+        var spanning = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(spanning, new Vector2I(2, 1));
+        Assert.Equal(2, grid.GetBagsForReagent(spanning).Count);
+
+        // Also place a single-cell fully in bag2
+        var contained = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(contained, new Vector2I(4, 1));
+
+        // Move bag2 away — spanning reagent orphaned at (3,1)
+        var result = grid.MoveBag(bag2, new Vector2I(6, 0));
+
+        Assert.True(result);
+        // Spanning reagent is removed
+        Assert.Null(spanning.PlacedPosition);
+        Assert.DoesNotContain(spanning, grid.PlacedReagents);
+        // Orphaned cell at (3,1) is cleaned up
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(3, 1)));
+        // Cell at (2,1) also cleaned up (the other half of the spanning reagent)
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(2, 1)));
+        // Contained reagent in bag2 is carried along
+        Assert.NotNull(contained.PlacedPosition);
+        Assert.Contains(contained, grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void CrossBag_SpanningReagentSurvivesWhenBagMoveStillCoversIt()
+    {
+        // Bag moves but spanning reagent cells are still all in bags (overlapping move)
+        var grid = CreateGrid(12, 12);
+        // Bag1: 4-col wide satchel at (0,0), covers cols 0-3
+        var bag1 = new Bag(BagDefinition.Satchel); // 3r×4c
+        // Bag2: 3x3 at (4,0), covers cols 4-6
+        var bag2 = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        // Domino at (3,1)-(4,1): cell (3,1) in bag1, cell (4,1) in bag2
+        var spanning = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(spanning, new Vector2I(3, 1));
+        Assert.Equal(2, grid.GetBagsForReagent(spanning).Count);
+
+        // Move bag1 one cell to the right: now covers cols 1-4.
+        // But wait — this would overlap bag2 at col 4. Bags can't overlap.
+        // Instead, move bag1 down: from (0,0) to (0,3). The spanning cell (3,1)
+        // is no longer in bag1's new footprint → reagent gets orphaned.
+        // So this scenario (spanning survives) only works if we move the bag
+        // in a way that still covers the spanning cell.
+
+        // Move bag1 within same row range but shifted along row:
+        // Satchel shape is 3r×4c. At origin (0,0) it covers (0..3, 0..2).
+        // Move to (0,1): covers (0..3, 1..3). Cell (3,1) is still in bag1.
+        var result = grid.MoveBag(bag1, new Vector2I(0, 1));
+
+        Assert.True(result);
+        // The spanning reagent's cells: (3,1) still in bag1 (new position covers it),
+        // (4,1) still in bag2
+        Assert.NotNull(spanning.PlacedPosition);
+        Assert.Contains(spanning, grid.PlacedReagents);
+        Assert.Equal(spanning, grid.GetReagentAtCell(new Vector2I(3, 1)));
+        Assert.Equal(spanning, grid.GetReagentAtCell(new Vector2I(4, 1)));
+    }
+
+    [Fact]
+    public void CrossBag_CanPlaceNewReagentSpanningAfterBagMove()
+    {
+        // After moving bags to be adjacent, a new cross-bag placement should work
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (6,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(6, 0));
+
+        // Gap at cols 3-5: domino can't span
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        Assert.False(grid.PlaceReagent(reagent, new Vector2I(2, 1)));
+
+        // Move bag2 to be adjacent to bag1
+        Assert.True(grid.MoveBag(bag2, new Vector2I(3, 0)));
+
+        // Now domino can span: (2,1) in bag1, (3,1) in bag2
+        Assert.True(grid.PlaceReagent(reagent, new Vector2I(2, 1)));
+        Assert.Equal(2, grid.GetBagsForReagent(reagent).Count);
+    }
+
+    [Fact]
+    public void CrossBag_RotateBagOrphansSpanningReagent_CellsCleanedUp()
+    {
+        // Rotating a non-square bag that no longer covers spanning reagent cells
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.Satchel); // 3r×4c at (0,0): cols 0-3, rows 0-2
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (4,0): cols 4-6
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        // Domino at (3,1)-(4,1): spans bag1 and bag2
+        var spanning = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(spanning, new Vector2I(3, 1));
+
+        // Also place a single-cell fully inside bag1
+        var safe = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(safe, new Vector2I(0, 0));
+
+        // Rotate bag1: 3r×4c → 4r×3c. New footprint covers cols 0-2, rows 0-3.
+        // Cell (3,1) is no longer in bag1 → spanning reagent orphaned
+        var result = grid.RotateBag(bag1);
+
+        Assert.True(result);
+        // Spanning reagent removed
+        Assert.Null(spanning.PlacedPosition);
+        Assert.DoesNotContain(spanning, grid.PlacedReagents);
+        // Both cells cleaned up
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(3, 1)));
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(4, 1)));
+        // Safe reagent rotated with bag (contained)
+        Assert.NotNull(safe.PlacedPosition);
+        Assert.Contains(safe, grid.PlacedReagents);
+    }
 }
