@@ -2624,9 +2624,9 @@ public class MetaGridTests
     // --- Spanning Reagent Orphan Cleanup Tests ---
 
     [Fact]
-    public void MoveBag_SpanningReagent_LockedStillRemoved()
+    public void MoveBag_SpanningReagent_LockedBlocksMove()
     {
-        // Locked spanning reagents should also be removed when their bag moves away
+        // Locked spanning reagent blocks the bag move — state is fully restored
         var grid = CreateGrid(12, 12);
         var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
         var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
@@ -2639,10 +2639,15 @@ public class MetaGridTests
 
         var result = grid.MoveBag(bag1, new Vector2I(0, 5));
 
-        Assert.True(result);
-        // Locked spanning reagent is still removed
-        Assert.Null(reagent.PlacedPosition);
-        Assert.DoesNotContain(reagent, grid.PlacedReagents);
+        Assert.False(result);
+        // Bag stays at original position
+        Assert.Equal(new Vector2I(0, 0), bag1.PositionOnMetaGrid);
+        // Locked spanning reagent is still placed
+        Assert.Equal(new Vector2I(2, 1), reagent.PlacedPosition);
+        Assert.Contains(reagent, grid.PlacedReagents);
+        // Cell occupancy preserved
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(2, 1)));
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(3, 1)));
     }
 
     [Fact]
@@ -2734,5 +2739,158 @@ public class MetaGridTests
         Assert.Equal(new Vector2I(1, 6), r1.PlacedPosition); // carried
         Assert.Equal(new Vector2I(7, 1), r2.PlacedPosition); // unaffected
         Assert.Equal(2, grid.PlacedReagents.Count);
+    }
+
+    // --- Locked Reagent Blocks Bag Movement Tests (GO.4) ---
+
+    [Fact]
+    public void MoveBag_LockedSpanningReagent_StateFullyRestored()
+    {
+        // When a locked spanning reagent blocks a bag move, the entire grid state
+        // should be identical to before the move was attempted
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // Contained reagent in bag1
+        var contained = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(contained, new Vector2I(1, 1));
+
+        // Locked spanning reagent
+        var spanning = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(spanning, new Vector2I(2, 1));
+        spanning.IsLocked = true;
+
+        var result = grid.MoveBag(bag1, new Vector2I(0, 5));
+
+        Assert.False(result);
+        // Bag position unchanged
+        Assert.Equal(new Vector2I(0, 0), bag1.PositionOnMetaGrid);
+        // Contained reagent NOT moved
+        Assert.Equal(new Vector2I(1, 1), contained.PlacedPosition);
+        Assert.Equal(contained, grid.GetReagentAtCell(new Vector2I(1, 1)));
+        // Spanning reagent still placed
+        Assert.Equal(new Vector2I(2, 1), spanning.PlacedPosition);
+        Assert.Contains(spanning, grid.PlacedReagents);
+        Assert.Equal(2, grid.PlacedReagents.Count);
+    }
+
+    [Fact]
+    public void MoveBag_UnlockedSpanningReagent_StillRemoved()
+    {
+        // Non-locked spanning reagents are removed as before (R3 behavior)
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(2, 1));
+        // NOT locked
+
+        var result = grid.MoveBag(bag1, new Vector2I(0, 5));
+
+        Assert.True(result);
+        Assert.Null(reagent.PlacedPosition);
+        Assert.DoesNotContain(reagent, grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void RotateBag_LockedSpanningReagent_BlocksRotation()
+    {
+        // Locked spanning reagent blocks rotation of a non-square bag
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.Satchel); // 3r×4c at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (4,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(3, 1)); // spans (3,1) and (4,1)
+        reagent.IsLocked = true;
+
+        var result = grid.RotateBag(bag1);
+
+        Assert.False(result);
+        // Rotation reverted
+        Assert.Equal(0, bag1.Rotation);
+        // Reagent still placed at original position
+        Assert.Equal(new Vector2I(3, 1), reagent.PlacedPosition);
+        Assert.Contains(reagent, grid.PlacedReagents);
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(3, 1)));
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(4, 1)));
+    }
+
+    [Fact]
+    public void RotateBag_LockedSpanningReagent_ContainedReagentRestored()
+    {
+        // When locked spanning reagent blocks rotation, contained reagents
+        // should also be restored to their original positions
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.Satchel); // 3r×4c at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (4,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        // Contained reagent in bag1
+        var contained = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(contained, new Vector2I(0, 0));
+
+        // Locked spanning reagent
+        var spanning = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(spanning, new Vector2I(3, 1));
+        spanning.IsLocked = true;
+
+        var result = grid.RotateBag(bag1);
+
+        Assert.False(result);
+        Assert.Equal(0, bag1.Rotation);
+        // Contained reagent not moved
+        Assert.Equal(new Vector2I(0, 0), contained.PlacedPosition);
+        Assert.Equal(contained, grid.GetReagentAtCell(new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void MoveBag_LockedContainedReagent_MoveSucceeds()
+    {
+        // A locked reagent FULLY contained in the bag should NOT block the move
+        // (it moves with the bag)
+        var grid = CreateGrid(12, 12);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+        reagent.IsLocked = true;
+
+        var result = grid.MoveBag(bag, new Vector2I(4, 4));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(5, 5), reagent.PlacedPosition);
+        Assert.Contains(reagent, grid.PlacedReagents);
+    }
+
+    [Fact]
+    public void RotateBag_UnlockedSpanningReagent_StillRemoved()
+    {
+        // Non-locked spanning reagent is removed during rotation (R3 behavior unchanged)
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.Satchel); // 3r×4c at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (4,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(4, 0));
+
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(3, 1)); // spans (3,1) and (4,1)
+        // NOT locked
+
+        var result = grid.RotateBag(bag1);
+
+        Assert.True(result);
+        Assert.Null(reagent.PlacedPosition);
+        Assert.DoesNotContain(reagent, grid.PlacedReagents);
     }
 }

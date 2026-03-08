@@ -234,6 +234,13 @@ public class MetaGrid
             }
         }
 
+        // Pre-check: reject if any locked non-contained reagent would be orphaned
+        if (HasLockedOrphanedReagent(bag, contained, newPositions))
+        {
+            RestoreReagentCellOccupancy(contained);
+            return false;
+        }
+
         // Clear old cell ownership
         foreach (var cell in bag.OwnedCells)
         {
@@ -313,6 +320,14 @@ public class MetaGrid
             }
         }
 
+        // Pre-check: reject if any locked non-contained reagent would be orphaned
+        if (HasLockedOrphanedReagent(bag, contained, newPositions))
+        {
+            bag.Rotation = oldRotation; // Revert
+            RestoreReagentCellOccupancy(contained);
+            return false;
+        }
+
         // Clear old cell ownership
         foreach (var cell in bag.OwnedCells)
         {
@@ -362,6 +377,44 @@ public class MetaGrid
         RemoveOrphanedReagents(contained);
 
         return true;
+    }
+
+    /// <summary>
+    /// Check if any locked non-contained reagent would have cells orphaned
+    /// (outside any bag) after the bag moves to new positions.
+    /// </summary>
+    private bool HasLockedOrphanedReagent(Bag bag, List<Reagent> contained, List<Vector2I> newBagPositions)
+    {
+        var newPositionSet = new HashSet<Vector2I>(newBagPositions);
+        var containedSet = new HashSet<Reagent>(contained);
+
+        // Find cells that the bag currently covers but won't after the move
+        var abandonedCells = new HashSet<Vector2I>();
+        foreach (var cell in bag.OwnedCells)
+        {
+            if (!newPositionSet.Contains(cell.Position))
+                abandonedCells.Add(cell.Position);
+        }
+
+        if (abandonedCells.Count == 0)
+            return false;
+
+        // Check if any locked, non-contained reagent has cells in abandoned positions
+        foreach (var reagent in _placedReagents)
+        {
+            if (containedSet.Contains(reagent))
+                continue;
+            if (!reagent.IsLocked)
+                continue;
+
+            foreach (var pos in reagent.GetCurrentMetaGridPositions())
+            {
+                if (abandonedCells.Contains(pos))
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
