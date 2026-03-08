@@ -39,6 +39,11 @@ public static class PuzzleValidator
         if (reactions.Count > 0)
             return ValidationResult.HasReactions(reactions);
 
+        // Per-bag hot/cold balance check (I.2)
+        var balanceViolations = ChemistryEngine.GetBagBalanceViolations(grid);
+        if (balanceViolations.Count > 0)
+            return ValidationResult.HotColdImbalance(balanceViolations);
+
         return ValidationResult.Win();
     }
 

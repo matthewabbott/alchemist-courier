@@ -119,6 +119,32 @@ public static class PuzzleSearchSolver
         return count;
     }
 
+    /// <summary>
+    /// Compute distinct rotations for a reagent. Symmetric shapes (e.g., single cell, square)
+    /// have fewer than 4 distinct rotations. This avoids overcounting solutions that differ
+    /// only by equivalent rotations.
+    /// </summary>
+    private static List<int> GetDistinctRotations(Reagent reagent)
+    {
+        var seen = new HashSet<string>();
+        var result = new List<int>();
+        int savedRotation = reagent.Rotation;
+
+        for (int rot = 0; rot < 4; rot++)
+        {
+            reagent.Rotation = rot;
+            var positions = reagent.GetLocalCellPositions();
+            // Normalize: sort positions to create a canonical key
+            positions.Sort((a, b) => a.Row != b.Row ? a.Row.CompareTo(b.Row) : a.Col.CompareTo(b.Col));
+            var key = string.Join(";", positions.Select(p => $"{p.Col},{p.Row}"));
+            if (seen.Add(key))
+                result.Add(rot);
+        }
+
+        reagent.Rotation = savedRotation;
+        return result;
+    }
+
     private static bool Backtrack(
         MetaGrid grid,
         List<ReactionRule> rules,
@@ -131,11 +157,12 @@ public static class PuzzleSearchSolver
             return false;
 
         if (depth == ordered.Count)
-            return true; // All reagents placed successfully
+            return true; // All reagents placed with no reactions
 
         var (reagent, originalIndex) = ordered[depth];
+        var rotations = GetDistinctRotations(reagent);
 
-        for (int rot = 0; rot < 4; rot++)
+        foreach (int rot in rotations)
         {
             reagent.Rotation = rot;
 
@@ -196,8 +223,9 @@ public static class PuzzleSearchSolver
         }
 
         var (reagent, originalIndex) = ordered[depth];
+        var rotations = GetDistinctRotations(reagent);
 
-        for (int rot = 0; rot < 4; rot++)
+        foreach (int rot in rotations)
         {
             reagent.Rotation = rot;
 

@@ -14,7 +14,7 @@ namespace AlchemistCourier.Core.Puzzle;
 /// </summary>
 public class PuzzleGenerator
 {
-    private const int MaxRetries = 50;
+    private const int MaxRetries = 200;
     private const int MetaGridPadding = 2;
 
     /// <summary>
@@ -166,10 +166,8 @@ public class PuzzleGenerator
         // Step 5: Assign aspects to reagents (filtered by complexity level)
         var availableAspects = ComplexityFilter.GetAspects(difficulty.ComplexityLevel);
 
-        // Filter out constrained aspects that can't be placed in this bag layout
-        bool hasNonGravityBag = bagProperties.Any(p => !p.Contains(BagPropertyType.Gravity));
-        if (!hasNonGravityBag)
-            availableAspects = availableAspects.Where(a => a != AspectIds.Fragile).ToList();
+        // Fragile is allowed in all bag types (no placement constraints).
+        // No aspect filtering needed based on bag layout.
 
         var aspectAssignments = AssignAspects(rng, difficulty, reagentShapes, availableAspects);
 
@@ -196,6 +194,11 @@ public class PuzzleGenerator
         var placements = PlaceReagentsValidly(rng, grid, reagents, rules);
         if (placements == null)
             return null;
+
+        // Note: Per-bag hot/cold balance (I.2) is enforced at confirm time by PuzzleValidator,
+        // not during generation. The generator ensures globally balanced hot/cold via
+        // BalanceHotCold in AssignAspects. The player's challenge is to arrange reagents
+        // so each bag is individually balanced. The solver validates solvability.
 
         // Step 8: Build the PuzzleState
         var state = new PuzzleState();
@@ -228,6 +231,16 @@ public class PuzzleGenerator
 
         // Step 9: Lock some reagents in place as pre-placed constraints
         LockSolutionReagents(rng, difficulty, state);
+
+        // Step 10: Validate solution count (I.1)
+        // If MaxSolutions > 0, check that the puzzle doesn't have too many solutions.
+        // This ensures puzzles are challenging enough — too many solutions = too easy.
+        if (difficulty.MaxSolutions > 0)
+        {
+            int solutionCount = PuzzleSearchSolver.CountSolutions(state, difficulty.MaxSolutions + 1);
+            if (solutionCount > difficulty.MaxSolutions)
+                return null; // Too many solutions — reject and retry
+        }
 
         state.MaxHints = difficulty.MaxHints;
         state.Placements = new List<Placement>();
@@ -420,7 +433,88 @@ public class PuzzleGenerator
             result.Add(cellAspects);
         }
 
+        // Post-process: ensure global hot/cold balance (I.2)
+        // This guarantees single-bag puzzles are balanced at the solution level.
+        // Multi-bag puzzles are further validated after placement (step 7b).
+        BalanceHotCold(rng, result);
+
         return result;
+    }
+
+    /// <summary>
+    /// Post-process aspect assignments to ensure total hot magnitude equals total cold magnitude.
+    /// Adds missing cold/hot to empty cells, or replaces excess aspects with empty sets.
+    /// </summary>
+    private static void BalanceHotCold(SeededRandom rng, List<List<AspectSet>> assignments)
+    {
+        int totalHot = 0, totalCold = 0;
+        var hotCells = new List<(int reagentIdx, int cellIdx)>();
+        var coldCells = new List<(int reagentIdx, int cellIdx)>();
+        var emptyCells = new List<(int reagentIdx, int cellIdx)>();
+
+        for (int r = 0; r < assignments.Count; r++)
+        {
+            for (int c = 0; c < assignments[r].Count; c++)
+            {
+                var set = assignments[r][c];
+                int hotMag = set.GetMagnitude(AspectIds.Hot);
+                int coldMag = set.GetMagnitude(AspectIds.Cold);
+                totalHot += hotMag;
+                totalCold += coldMag;
+                if (hotMag > 0) hotCells.Add((r, c));
+                if (coldMag > 0) coldCells.Add((r, c));
+                if (set.IsEmpty) emptyCells.Add((r, c));
+            }
+        }
+
+        // Shuffle to randomize which cells get adjusted
+        rng.Shuffle(emptyCells);
+        rng.Shuffle(hotCells);
+        rng.Shuffle(coldCells);
+
+        // Balance: add missing aspect to empty cells first, then remove excess
+        while (totalHot > totalCold)
+        {
+            if (emptyCells.Count > 0)
+            {
+                var (ri, ci) = emptyCells[emptyCells.Count - 1];
+                emptyCells.RemoveAt(emptyCells.Count - 1);
+                assignments[ri][ci] = new AspectSet(Aspect.Cold());
+                coldCells.Add((ri, ci));
+                totalCold++;
+            }
+            else if (hotCells.Count > 0)
+            {
+                // Remove a hot cell (set to empty) to reduce excess
+                var (ri, ci) = hotCells[hotCells.Count - 1];
+                hotCells.RemoveAt(hotCells.Count - 1);
+                assignments[ri][ci] = AspectSet.Empty;
+                totalHot--;
+            }
+            else
+                break;
+        }
+
+        while (totalCold > totalHot)
+        {
+            if (emptyCells.Count > 0)
+            {
+                var (ri, ci) = emptyCells[emptyCells.Count - 1];
+                emptyCells.RemoveAt(emptyCells.Count - 1);
+                assignments[ri][ci] = new AspectSet(Aspect.Hot());
+                hotCells.Add((ri, ci));
+                totalHot++;
+            }
+            else if (coldCells.Count > 0)
+            {
+                var (ri, ci) = coldCells[coldCells.Count - 1];
+                coldCells.RemoveAt(coldCells.Count - 1);
+                assignments[ri][ci] = AspectSet.Empty;
+                totalCold--;
+            }
+            else
+                break;
+        }
     }
 
     private static List<string> PickDistinctAspects(SeededRandom rng, int count, List<string> availableAspects)

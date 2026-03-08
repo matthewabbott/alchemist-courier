@@ -10,7 +10,7 @@ public class ReactionRuleDatabaseTests
     public void GetMvpRules_ReturnsCorrectCount()
     {
         var rules = ReactionRuleDatabase.GetMvpRules();
-        Assert.Equal(7, rules.Count);
+        Assert.Equal(4, rules.Count);
     }
 
     [Fact]
@@ -28,17 +28,11 @@ public class ReactionRuleDatabaseTests
     }
 
     [Fact]
-    public void GetMvpRules_ContainsNeutralizationRule()
+    public void GetMvpRules_DoesNotContainNeutralizationRule()
     {
+        // I.2: Neutralization removed — hot/cold balance is per-bag confirm-time check
         var rules = ReactionRuleDatabase.GetMvpRules();
-        var neutralization = rules.Single(r => r.Name == "Neutralization");
-
-        Assert.Contains("hot", neutralization.TriggerAspects);
-        Assert.Contains("cold", neutralization.TriggerAspects);
-        Assert.Equal(SensitivityTier.SameBag, neutralization.Sensitivity);
-        Assert.Equal(Granularity.PerItem, neutralization.Granularity);
-        Assert.Equal(0, neutralization.Threshold);
-        Assert.Equal(ReactionResultType.Neutralization, neutralization.ResultType);
+        Assert.DoesNotContain(rules, r => r.Name == "Neutralization");
     }
 
     [Fact]
@@ -56,15 +50,12 @@ public class ReactionRuleDatabaseTests
     }
 
     [Fact]
-    public void GetMvpRules_ContainsToxicCloudRule()
+    public void GetMvpRules_DoesNotContainToxicRules()
     {
+        // I.3: Toxic rules removed from MVP set
         var rules = ReactionRuleDatabase.GetMvpRules();
-        var toxicCloud = rules.Single(r => r.Name == "Toxic Cloud");
-
-        Assert.Equal(2, toxicCloud.TriggerAspects.Count(a => a == "toxic"));
-        Assert.Equal(SensitivityTier.SameBag, toxicCloud.Sensitivity);
-        Assert.Equal(2, toxicCloud.Threshold);
-        Assert.Equal(ReactionResultType.ToxicCloud, toxicCloud.ResultType);
+        Assert.DoesNotContain(rules, r => r.Name == "Toxic Cloud");
+        Assert.DoesNotContain(rules, r => r.Name == "Poisoning");
     }
 
     [Fact]
@@ -89,16 +80,7 @@ public class ReactionRuleDatabaseTests
         Assert.Equal(ReactionResultType.Hypothermia, hypothermia.ResultType);
     }
 
-    [Fact]
-    public void GetMvpRules_PoisoningThresholdIs3()
-    {
-        var rules = ReactionRuleDatabase.GetMvpRules();
-        var poisoning = rules.Single(r => r.Name == "Poisoning");
-
-        Assert.Equal(3, poisoning.Threshold);
-        Assert.Equal(SensitivityTier.WholeInventory, poisoning.Sensitivity);
-        Assert.Equal(ReactionResultType.Poisoning, poisoning.ResultType);
-    }
+    // GetMvpRules_PoisoningThresholdIs3 removed — I.3: toxic excluded from MVP
 
     [Fact]
     public void GetRulesForAspects_HotVolatile_ReturnsExplosionAndOverheating()
@@ -111,14 +93,15 @@ public class ReactionRuleDatabaseTests
     }
 
     [Fact]
-    public void GetRulesForAspects_HotCold_ReturnsNeutralizationAndCumulative()
+    public void GetRulesForAspects_HotCold_ReturnsCumulativeOnly()
     {
+        // I.2: Neutralization removed — only cumulative threshold rules remain
         var rules = ReactionRuleDatabase.GetRulesForAspects("hot", "cold");
 
-        Assert.Contains(rules, r => r.Name == "Neutralization");
+        Assert.DoesNotContain(rules, r => r.Name == "Neutralization");
         Assert.Contains(rules, r => r.Name == "Overheating");
         Assert.Contains(rules, r => r.Name == "Hypothermia");
-        Assert.Equal(3, rules.Count);
+        Assert.Equal(2, rules.Count);
     }
 
     [Fact]
@@ -131,13 +114,11 @@ public class ReactionRuleDatabaseTests
     }
 
     [Fact]
-    public void GetRulesForAspects_ToxicToxic_ReturnsToxicCloudAndPoisoning()
+    public void GetRulesForAspects_ToxicToxic_ReturnsEmpty()
     {
+        // I.3: Toxic rules removed from MVP set
         var rules = ReactionRuleDatabase.GetRulesForAspects("toxic", "toxic");
-
-        Assert.Contains(rules, r => r.Name == "Toxic Cloud");
-        Assert.Contains(rules, r => r.Name == "Poisoning");
-        Assert.Equal(2, rules.Count);
+        Assert.Empty(rules);
     }
 
     [Fact]

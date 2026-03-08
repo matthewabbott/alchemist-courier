@@ -283,4 +283,99 @@ public class PuzzleSearchSolverTests
             },
         };
     }
+
+    // --- I.1: CountSolutions tests ---
+
+    [Fact]
+    public void CountSolutions_SimpleOneCellPuzzle_CountsCorrectly()
+    {
+        // 1 reagent (1-cell) in a 2x2 bag = 4 possible positions
+        var bagShape = new bool[,] { { true, true }, { true, true } };
+        var puzzle = new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Tutorial1,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(bagShape, 0, 0),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+            Placements = new List<Placement>(),
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 0, PositionRow = 0, Rotation = 0 },
+            },
+        };
+
+        int count = PuzzleSearchSolver.CountSolutions(puzzle, 100);
+
+        Assert.Equal(4, count); // 4 cells in the bag, 1-cell reagent can go in any
+    }
+
+    [Fact]
+    public void CountSolutions_StopsAtMaxCount_FourCellBag()
+    {
+        // Same as above but maxCount=2 — should stop at 2
+        var bagShape = new bool[,] { { true, true }, { true, true } };
+        var puzzle = new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Tutorial1,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(bagShape, 0, 0),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+            Placements = new List<Placement>(),
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 0, PositionRow = 0, Rotation = 0 },
+            },
+        };
+
+        int count = PuzzleSearchSolver.CountSolutions(puzzle, 2);
+
+        Assert.Equal(2, count); // Stopped at maxCount
+    }
+
+    [Fact]
+    public void CountSolutions_TightFitPuzzle_FewSolutions()
+    {
+        // 2 reagents that perfectly fill a 1x2 bag — should have exactly 2 solutions
+        // (swap left/right)
+        var bagShape = new bool[,] { { true, true } };
+        var puzzle = new PuzzleState
+        {
+            Seed = 1,
+            Difficulty = DifficultyLevel.Tutorial1,
+            PuzzleType = PuzzleType.FitAllSafely,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(bagShape, 0, 0),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+            Placements = new List<Placement>(),
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 0, PositionRow = 0, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 1, PositionRow = 0, Rotation = 0 },
+            },
+        };
+
+        int count = PuzzleSearchSolver.CountSolutions(puzzle, 100);
+
+        Assert.Equal(2, count); // A,B or B,A
+    }
 }

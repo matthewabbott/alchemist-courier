@@ -14,7 +14,7 @@ public static class ComplexityFilter
     private static readonly string[] SimpleAspects =
     {
         AspectIds.Hot, AspectIds.Cold, AspectIds.Volatile,
-        AspectIds.Stable, AspectIds.Heavy, AspectIds.Toxic,
+        AspectIds.Stable, AspectIds.Heavy,
         AspectIds.Sharp, AspectIds.Fragile,
     };
 

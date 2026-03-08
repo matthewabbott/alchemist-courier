@@ -33,6 +33,13 @@ public class DifficultyParams
     public int MaxHints { get; set; }
 
     /// <summary>
+    /// Maximum valid solutions allowed for generated puzzles (I.1).
+    /// 0 = unlimited (no solution count check). Higher = easier.
+    /// Puzzles with more solutions than this are rejected during generation.
+    /// </summary>
+    public int MaxSolutions { get; set; }
+
+    /// <summary>
     /// Controls mechanical depth — which aspects, bag types, and reaction rules are available.
     /// All standalone/daily puzzles use Simple regardless of difficulty level.
     /// </summary>
@@ -49,7 +56,8 @@ public class DifficultyParams
         float spareSpacePercent,
         bool allowSpecialBags,
         ComplexityLevel complexityLevel = ComplexityLevel.Simple,
-        int maxHints = 0)
+        int maxHints = 0,
+        int maxSolutions = 0)
     {
         BagCount = bagCount;
         BagMinSize = bagMinSize;
@@ -60,6 +68,7 @@ public class DifficultyParams
         AllowSpecialBags = allowSpecialBags;
         ComplexityLevel = complexityLevel;
         MaxHints = maxHints;
+        MaxSolutions = maxSolutions;
     }
 
     /// <summary>

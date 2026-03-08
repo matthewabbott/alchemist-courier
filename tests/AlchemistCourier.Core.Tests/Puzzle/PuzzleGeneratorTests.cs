@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -702,5 +703,64 @@ public class PuzzleGeneratorTests
                 Assert.Equal(a[r][c], b[r][c]);
             }
         }
+    }
+
+    // --- I.1: Solution count restriction ---
+
+    [Fact]
+    public void Generate_MaxSolutions_RejectsPuzzlesWithTooManySolutions()
+    {
+        // Use a tight configuration: 1 bag, 3 reagents, no aspects, exact fit
+        // With MaxSolutions=20, the generator should only accept puzzles with ≤20 solutions.
+        var difficulty = new DifficultyParams(
+            bagCount: 1,
+            bagMinSize: 4,
+            bagMaxSize: 4,
+            reagentCount: 3,
+            maxAspectCount: 0,
+            spareSpacePercent: 0.0f, // Exact fit — fewer solutions
+            allowSpecialBags: false,
+            maxSolutions: 20);
+
+        // Try multiple seeds — at least one should produce a valid puzzle
+        bool generated = false;
+        for (int seed = 1; seed <= 200 && !generated; seed++)
+        {
+            try
+            {
+                var state = new PuzzleGenerator().Generate(seed, difficulty);
+                int solutionCount = PuzzleSearchSolver.CountSolutions(state, 100);
+                Assert.True(solutionCount <= 20, $"Expected ≤20 solutions, got {solutionCount}");
+                Assert.True(solutionCount >= 1, "Expected at least 1 solution");
+                generated = true;
+            }
+            catch (InvalidOperationException)
+            {
+                // This seed failed — try another
+            }
+        }
+
+        Assert.True(generated, "Failed to generate any puzzle with ≤20 solutions across 200 seeds");
+    }
+
+    [Fact]
+    public void Generate_MaxSolutionsZero_SkipsSolutionCountCheck()
+    {
+        // MaxSolutions=0 means unlimited — no solution count check
+        var difficulty = new DifficultyParams(
+            bagCount: 1,
+            bagMinSize: 9,
+            bagMaxSize: 9,
+            reagentCount: 2,
+            maxAspectCount: 0,
+            spareSpacePercent: 0.5f, // Lots of spare space = many solutions
+            allowSpecialBags: false,
+            maxSolutions: 0);
+
+        var state = new PuzzleGenerator().Generate(42, difficulty);
+
+        // Should generate successfully even with many solutions
+        Assert.NotNull(state);
+        Assert.NotEmpty(state.Solution);
     }
 }

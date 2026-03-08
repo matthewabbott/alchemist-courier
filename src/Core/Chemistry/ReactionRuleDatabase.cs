@@ -25,14 +25,8 @@ public static class ReactionRuleDatabase
                 threshold: 0,
                 resultType: ReactionResultType.Explosion),
 
-            // Hot + Cold (same bag) = Neutralization
-            new ReactionRule(
-                name: "Neutralization",
-                triggerAspects: new List<string> { AspectIds.Hot, AspectIds.Cold },
-                sensitivity: SensitivityTier.SameBag,
-                granularity: Granularity.PerItem,
-                threshold: 0,
-                resultType: ReactionResultType.Neutralization),
+            // I.2: Neutralization removed — hot/cold balance is now a per-bag
+            // confirm-time check in PuzzleValidator, not a chemistry reaction.
 
             // Sharp + Fragile (adjacent) = Breakage
             new ReactionRule(
@@ -42,15 +36,6 @@ public static class ReactionRuleDatabase
                 granularity: Granularity.PerCell,
                 threshold: 0,
                 resultType: ReactionResultType.Breakage),
-
-            // Toxic + Toxic (same bag) = Toxic Cloud
-            new ReactionRule(
-                name: "Toxic Cloud",
-                triggerAspects: new List<string> { AspectIds.Toxic, AspectIds.Toxic },
-                sensitivity: SensitivityTier.SameBag,
-                granularity: Granularity.PerItem,
-                threshold: 2,
-                resultType: ReactionResultType.ToxicCloud),
 
             // Cumulative Hot > threshold = Overheating
             new ReactionRule(
@@ -70,14 +55,6 @@ public static class ReactionRuleDatabase
                 threshold: 4,
                 resultType: ReactionResultType.Hypothermia),
 
-            // Cumulative Toxic > threshold = Poisoning
-            new ReactionRule(
-                name: "Poisoning",
-                triggerAspects: new List<string> { AspectIds.Toxic },
-                sensitivity: SensitivityTier.WholeInventory,
-                granularity: Granularity.PerCell,
-                threshold: 3,
-                resultType: ReactionResultType.Poisoning),
         };
     }
 

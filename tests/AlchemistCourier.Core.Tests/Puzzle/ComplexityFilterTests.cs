@@ -9,19 +9,20 @@ namespace AlchemistCourier.Core.Tests.Puzzle;
 public class ComplexityFilterTests
 {
     [Fact]
-    public void GetAspects_Simple_Returns8Aspects()
+    public void GetAspects_Simple_Returns7Aspects()
     {
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Simple);
 
-        Assert.Equal(8, aspects.Count);
+        Assert.Equal(7, aspects.Count);
         Assert.Contains(AspectIds.Hot, aspects);
         Assert.Contains(AspectIds.Cold, aspects);
         Assert.Contains(AspectIds.Volatile, aspects);
         Assert.Contains(AspectIds.Stable, aspects);
         Assert.Contains(AspectIds.Heavy, aspects);
-        Assert.Contains(AspectIds.Toxic, aspects);
         Assert.Contains(AspectIds.Sharp, aspects);
         Assert.Contains(AspectIds.Fragile, aspects);
+        // Toxic excluded from MVP puzzle set (I.3)
+        Assert.DoesNotContain(AspectIds.Toxic, aspects);
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public class ComplexityFilterTests
     {
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Intermediate);
 
-        Assert.Equal(10, aspects.Count);
+        Assert.Equal(9, aspects.Count);
         // Includes Simple (with Sharp/Fragile)
         Assert.Contains(AspectIds.Hot, aspects);
         Assert.Contains(AspectIds.Volatile, aspects);
@@ -50,11 +51,11 @@ public class ComplexityFilterTests
     }
 
     [Fact]
-    public void GetAspects_Advanced_Returns12Aspects()
+    public void GetAspects_Advanced_Returns11Aspects()
     {
         var aspects = ComplexityFilter.GetAspects(ComplexityLevel.Advanced);
 
-        Assert.Equal(12, aspects.Count);
+        Assert.Equal(11, aspects.Count);
         // Includes all Intermediate aspects
         Assert.Contains(AspectIds.Sharp, aspects);
         // Plus Advanced additions
@@ -119,30 +120,32 @@ public class ComplexityFilterTests
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Simple);
 
         Assert.Contains(rules, r => r.Name == "Explosion");
-        Assert.Contains(rules, r => r.Name == "Neutralization");
-        Assert.Contains(rules, r => r.Name == "Toxic Cloud");
         Assert.Contains(rules, r => r.Name == "Overheating");
         Assert.Contains(rules, r => r.Name == "Hypothermia");
-        Assert.Contains(rules, r => r.Name == "Poisoning");
         Assert.Contains(rules, r => r.Name == "Breakage");
+        // I.2: Neutralization removed — hot/cold balance is per-bag confirm-time check
+        Assert.DoesNotContain(rules, r => r.Name == "Neutralization");
+        // Toxic rules excluded from MVP (I.3)
+        Assert.DoesNotContain(rules, r => r.Name == "Toxic Cloud");
+        Assert.DoesNotContain(rules, r => r.Name == "Poisoning");
     }
 
     [Fact]
-    public void GetRules_Simple_Returns7Rules()
+    public void GetRules_Simple_Returns4Rules()
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Simple);
 
-        // All 7 MVP rules (Sharp+Fragile are Simple tier)
-        Assert.Equal(7, rules.Count);
+        // 4 MVP rules (toxic rules excluded per I.3, neutralization removed per I.2)
+        Assert.Equal(4, rules.Count);
     }
 
     [Fact]
-    public void GetRules_Intermediate_Returns7Rules()
+    public void GetRules_Intermediate_Returns4Rules()
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Intermediate);
 
         Assert.Contains(rules, r => r.Name == "Breakage");
-        Assert.Equal(7, rules.Count);
+        Assert.Equal(4, rules.Count);
     }
 
     [Fact]
@@ -150,7 +153,7 @@ public class ComplexityFilterTests
     {
         var rules = ComplexityFilter.GetRules(ComplexityLevel.Advanced);
 
-        Assert.Equal(7, rules.Count);
+        Assert.Equal(4, rules.Count);
     }
 
     [Fact]

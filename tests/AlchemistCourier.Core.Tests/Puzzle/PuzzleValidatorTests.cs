@@ -48,7 +48,7 @@ public class PuzzleValidatorTests
     }
 
     /// <summary>
-    /// Helper: create a grid with two reagents in the same bag that react (Hot + Cold → Neutralization).
+    /// Helper: create a grid with two reagents in the same bag that react (Volatile + Hot → Explosion).
     /// </summary>
     private (MetaGrid grid, List<Reagent> reagents) SetupReactiveGrid()
     {
@@ -57,13 +57,13 @@ public class PuzzleValidatorTests
         var bagDef = new BagDefinition("bag", "Bag", bagShape);
         grid.PlaceBag(new Bag(bagDef), new Vector2I(0, 0));
 
+        var volatileAspects = new List<AspectSet> { new AspectSet() };
+        volatileAspects[0].Add(Aspect.FromId(AspectIds.Volatile));
         var hotAspects = new List<AspectSet> { new AspectSet() };
         hotAspects[0].Add(Aspect.FromId(AspectIds.Hot));
-        var coldAspects = new List<AspectSet> { new AspectSet() };
-        coldAspects[0].Add(Aspect.FromId(AspectIds.Cold));
 
-        var r1 = new Reagent(new ReagentDefinition("r1", "R1", new bool[,] { { true } }, aspectsPerCell: hotAspects));
-        var r2 = new Reagent(new ReagentDefinition("r2", "R2", new bool[,] { { true } }, aspectsPerCell: coldAspects));
+        var r1 = new Reagent(new ReagentDefinition("r1", "R1", new bool[,] { { true } }, aspectsPerCell: volatileAspects));
+        var r2 = new Reagent(new ReagentDefinition("r2", "R2", new bool[,] { { true } }, aspectsPerCell: hotAspects));
 
         grid.PlaceReagent(r1, new Vector2I(0, 0));
         grid.PlaceReagent(r2, new Vector2I(1, 0));
@@ -173,5 +173,56 @@ public class PuzzleValidatorTests
 
         Assert.Equal(ConfirmResult.Win, result.Result);
         Assert.Empty(result.Reactions);
+    }
+
+    // --- Hot/Cold Balance (I.2) ---
+
+    [Fact]
+    public void FitAllSafely_ImbalancedHotCold_ReturnsHotColdImbalance()
+    {
+        // All reagents placed, no reactions, but hot/cold imbalanced → fails
+        var grid = new MetaGrid(6, 6);
+        var bagShape = new bool[,] { { true, true, true } };
+        var bagDef = new BagDefinition("bag", "Bag", bagShape);
+        grid.PlaceBag(new Bag(bagDef), new Vector2I(0, 0));
+
+        var hotAspects = new List<AspectSet> { new AspectSet(Aspect.Hot()) };
+        var r1 = new Reagent(new ReagentDefinition("r1", "R1", new bool[,] { { true } },
+            aspectsPerCell: hotAspects));
+        var r2 = new Reagent(new ReagentDefinition("r2", "R2", new bool[,] { { true } }));
+
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(2, 0)); // Non-adjacent to avoid reactions
+
+        var result = PuzzleValidator.Evaluate(grid, new List<Reagent> { r1, r2 },
+            PuzzleType.FitAllSafely, ReactionRuleDatabase.GetMvpRules());
+
+        Assert.Equal(ConfirmResult.HotColdImbalance, result.Result);
+        Assert.NotEmpty(result.BalanceViolations);
+    }
+
+    [Fact]
+    public void FitAllSafely_BalancedHotCold_ReturnsWin()
+    {
+        // Hot(1) + Cold(1) in same bag, non-adjacent → balanced, no reactions, win
+        var grid = new MetaGrid(6, 6);
+        var bagShape = new bool[,] { { true, true, true } };
+        var bagDef = new BagDefinition("bag", "Bag", bagShape);
+        grid.PlaceBag(new Bag(bagDef), new Vector2I(0, 0));
+
+        var hotAspects = new List<AspectSet> { new AspectSet(Aspect.Hot()) };
+        var coldAspects = new List<AspectSet> { new AspectSet(Aspect.Cold()) };
+        var r1 = new Reagent(new ReagentDefinition("r1", "R1", new bool[,] { { true } },
+            aspectsPerCell: hotAspects));
+        var r2 = new Reagent(new ReagentDefinition("r2", "R2", new bool[,] { { true } },
+            aspectsPerCell: coldAspects));
+
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(2, 0)); // Non-adjacent
+
+        var result = PuzzleValidator.Evaluate(grid, new List<Reagent> { r1, r2 },
+            PuzzleType.FitAllSafely, ReactionRuleDatabase.GetMvpRules());
+
+        Assert.Equal(ConfirmResult.Win, result.Result);
     }
 }

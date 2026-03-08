@@ -8,5 +8,6 @@ public enum ConfirmResult
     None,
     NotAllPlaced,
     HasReactions,
+    HotColdImbalance,
     Win,
 }
