@@ -101,3 +101,11 @@ Commit: 96fadc0
 Reviewed R3, GO.4, GO.5 commits (63be155..888fdfd). Code is clean — no P0/P1/P2 issues found.
 HasLockedOrphanedReagent pre-check pattern is well-designed (rejects before state mutation).
 RotateBag growing to ~100 lines noted as P3 but not actionable. 802 tests passing.
+
+## GO.6: Gravity direction indicator arrow on gravity bags
+Added a procedural purple triangle arrow to MetaGridView for gravity bags. Overrides _Draw()
+to draw a filled polygon centered on each bag that has BagPropertyType.Gravity, pointing in
+the bag's GravityDirection. Simple and clean — no new child nodes, just DrawPolygon with three
+vertices computed from the bag's bounding box center and direction enum. Semi-transparent purple
+matches the dev art style. Supports all four directions.
+Commit: ce08417

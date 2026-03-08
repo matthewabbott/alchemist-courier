@@ -891,3 +891,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 63be155..888fdfd (R3, GO.4, GO.5 + chore)
 - Findings: 2 (P0: 0, P1: 0, P2: 0, P3: 1, P4: 1)
 - Fixed: 0, Tasks created: 0
+
+## GO.6 — A.4: Gravity direction indicator arrow on gravity bags
+- Date: 2026-03-08
+- Commit: ce08417
+- Notes: Added _Draw() override to MetaGridView that draws a filled purple triangle (DrawPolygon) centered on each gravity bag, pointing in the bag's GravityDirection. Arrow is ~1.6 cells tall, 1.0 cells wide, semi-transparent purple (0.6, 0.3, 0.9, 0.7). Supports all four directions (Down/Up/Left/Right). QueueRedraw() called from RefreshDisplay() to keep arrows in sync with grid state. No Core changes — purely Game-layer UI. All 802 tests pass.

@@ -1584,7 +1584,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. Run scenes/web_demo.tscn via Godot MCP -- gravity bags show a purple directional arrow.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.7",
