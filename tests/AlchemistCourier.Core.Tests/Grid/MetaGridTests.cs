@@ -568,6 +568,287 @@ public class MetaGridTests
         Assert.True(grid.CanPlaceReagent(r4, new Vector2I(0, 0))); // on r3
     }
 
+    // --- Bearing Cells ---
+
+    [Fact]
+    public void GetBearingCells_Monomino_ReturnsSelf()
+    {
+        var positions = new List<Vector2I> { new(1, 2) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(1, 2), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_VerticalDomino_ReturnsBottomOnly()
+    {
+        // Vertical domino: (1,0) and (1,1). Gravity = down.
+        // (1,0): below is (1,1) which IS in set → NOT bearing
+        // (1,1): below is (1,2) which is NOT in set → IS bearing
+        var positions = new List<Vector2I> { new(1, 0), new(1, 1) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_HorizontalDomino_ReturnsBoth()
+    {
+        // Horizontal domino: (0,1) and (1,1). Gravity = down.
+        // Both cells' downward neighbors are NOT in the set → both are bearing cells
+        var positions = new List<Vector2I> { new(0, 1), new(1, 1) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(2, bearing.Count);
+        Assert.Contains(new Vector2I(0, 1), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_TTetromino_ReturnsThreeProngTips()
+    {
+        // T-tetromino:
+        //  .X.   → (1,0)
+        //  XXX   → (0,1), (1,1), (2,1)
+        // Bearing cells (gravity=down): (0,1), (1,1), (2,1) — all bottom row
+        // (1,0) has (1,1) below → NOT bearing
+        var positions = new List<Vector2I>
+        {
+            new(1, 0),
+            new(0, 1), new(1, 1), new(2, 1)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(3, bearing.Count);
+        Assert.Contains(new Vector2I(0, 1), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+        Assert.Contains(new Vector2I(2, 1), bearing);
+        Assert.DoesNotContain(new Vector2I(1, 0), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_LTriomino_ReturnsTwoCells()
+    {
+        // L-triomino:
+        //  X.   → (0,0)
+        //  XX   → (0,1), (1,1)
+        // (0,0): below is (0,1) in set → NOT bearing
+        // (0,1): below is (0,2) NOT in set → IS bearing
+        // (1,1): below is (1,2) NOT in set → IS bearing
+        var positions = new List<Vector2I>
+        {
+            new(0, 0),
+            new(0, 1), new(1, 1)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(2, bearing.Count);
+        Assert.Contains(new Vector2I(0, 1), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_STetromino_ReturnsTwoCells()
+    {
+        // S-tetromino:
+        //  .XX   → (1,0), (2,0)
+        //  XX.   → (0,1), (1,1)
+        // (1,0): below is (1,1) in set → NOT bearing
+        // (2,0): below is (2,1) NOT in set → IS bearing
+        // (0,1): below is (0,2) NOT in set → IS bearing
+        // (1,1): below is (1,2) NOT in set → IS bearing
+        var positions = new List<Vector2I>
+        {
+            new(1, 0), new(2, 0),
+            new(0, 1), new(1, 1)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(3, bearing.Count);
+        Assert.Contains(new Vector2I(2, 0), bearing);
+        Assert.Contains(new Vector2I(0, 1), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_OTetromino_ReturnsBottomRow()
+    {
+        // O-tetromino (2x2 square):
+        //  XX  → (0,0), (1,0)
+        //  XX  → (0,1), (1,1)
+        // Bottom row cells are bearing, top row have same-reagent below
+        var positions = new List<Vector2I>
+        {
+            new(0, 0), new(1, 0),
+            new(0, 1), new(1, 1)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(2, bearing.Count);
+        Assert.Contains(new Vector2I(0, 1), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_VerticalI3_ReturnsBottomOnly()
+    {
+        // Vertical I-triomino: (0,0), (0,1), (0,2)
+        // Only (0,2) is bearing — others have same-reagent below
+        var positions = new List<Vector2I>
+        {
+            new(0, 0), new(0, 1), new(0, 2)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(0, 2), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_HorizontalI3_ReturnsAll()
+    {
+        // Horizontal I-triomino: (0,1), (1,1), (2,1)
+        // All cells are bearing — none have same-reagent below
+        var positions = new List<Vector2I>
+        {
+            new(0, 1), new(1, 1), new(2, 1)
+        };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Down);
+        Assert.Equal(3, bearing.Count);
+    }
+
+    [Fact]
+    public void Gravity_BearingCells_PartialSupport_Succeeds()
+    {
+        // Horizontal domino at row 1 of a 3x3 gravity bag.
+        // Cells at (0,1) and (1,1). Both are bearing cells.
+        // Place a support reagent at (0,2) first, so (0,1) has support.
+        // Under bearing cells: one supported bearing cell → whole reagent valid.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place support at (0,2) — bottom row
+        var support = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(support, new Vector2I(0, 2)));
+
+        // Horizontal domino at row 1: (0,1) supported by (0,2), (1,1) unsupported
+        var domino = new Reagent(ReagentDefinition.Domino); // horizontal: cols 0,1
+        Assert.True(grid.CanPlaceReagent(domino, new Vector2I(0, 1)));
+    }
+
+    [Fact]
+    public void Gravity_BearingCells_NoSupport_Fails()
+    {
+        // Horizontal domino at row 0 of a 3x3 gravity bag.
+        // Both cells are bearing cells, neither has support.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var domino = new Reagent(ReagentDefinition.Domino);
+        Assert.False(grid.CanPlaceReagent(domino, new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void Gravity_TTetrominoOneBearingSupported_Succeeds()
+    {
+        // T-tetromino shape: row0=[false,true,false], row1=[true,true,true]
+        //  .X.
+        //  XXX
+        // In a 5x4 gravity bag, place support under just one bearing cell.
+        var grid = CreateGrid();
+        var tallBag = new Bag(CreateGravityBagDef(5, 4));
+        grid.PlaceBag(tallBag, new Vector2I(0, 0));
+
+        // Place support at (0,4) — bottom of column 0
+        var s1 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(s1, new Vector2I(0, 4)));
+
+        var tShape = new bool[,] { { false, true, false }, { true, true, true } };
+        var tDef = new ReagentDefinition("ttet", "T-tet", tShape);
+        var tReagent = new Reagent(tDef);
+
+        // At origin (0,2): cells at (1,2) and (0,3),(1,3),(2,3)
+        // Bearing cells: (0,3),(1,3),(2,3) — all bottom row
+        // Below (0,3) is (0,4) which is occupied by s1 → SUPPORTED
+        // Below (1,3) is (1,4): empty → not supported
+        // Below (2,3) is (2,4): empty → not supported
+        // ONE bearing cell supported → valid!
+        Assert.True(grid.CanPlaceReagent(tReagent, new Vector2I(0, 2)));
+    }
+
+    [Fact]
+    public void Gravity_LTriominoPartialSupport_Succeeds()
+    {
+        // L-triomino in a 4x3 gravity bag:
+        //  X.
+        //  XX
+        // Bearing cells: (0,1), (1,1) (the bottom row)
+        // Stack support under bearing cell (1,1) only, leaving (0,2) empty.
+        // Under bearing cells: one supported bearing cell → whole reagent valid.
+        var grid = CreateGrid();
+        var tallBag = new Bag(CreateGravityBagDef(4, 3));
+        grid.PlaceBag(tallBag, new Vector2I(0, 0));
+
+        // Build support column under (1,1): place at (1,3) then (1,2)
+        var s1 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(s1, new Vector2I(1, 3))); // bottom row
+
+        var s2 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagent(s2, new Vector2I(1, 2))); // on s1
+
+        // L-triomino shape: row0=[true,false], row1=[true,true]
+        var lShape = new bool[,] { { true, false }, { true, true } };
+        var lDef = new ReagentDefinition("ltri", "L-tri", lShape);
+        var lReagent = new Reagent(lDef);
+
+        // At origin (0,0): cells at (0,0), (0,1), (1,1)
+        // Bearing cells: (0,1) and (1,1)
+        // Below (0,1) is (0,2): empty, in same bag → NOT supported
+        // Below (1,1) is (1,2): occupied by s2 → SUPPORTED
+        // One bearing cell supported → VALID
+        Assert.True(grid.CanPlaceReagent(lReagent, new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void Gravity_AllBearingCellsUnsupported_ReturnsViolation()
+    {
+        // L-triomino floating in a 4x3 gravity bag — no support below any bearing cell
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(4, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var lShape = new bool[,] { { true, false }, { true, true } };
+        var lDef = new ReagentDefinition("ltri", "L-tri", lShape);
+        var lReagent = new Reagent(lDef);
+
+        // At origin (0,0): cells at (0,0), (0,1), (1,1)
+        // Bearing cells: (0,1) and (1,1)
+        // Below (0,1) is (0,2): unoccupied → not supported
+        // Below (1,1) is (1,2): unoccupied → not supported
+        // No bearing cells supported → violation
+        var positions = lReagent.GetMetaGridPositions(new Vector2I(0, 0));
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.GravityUnsupported, violations[0].Type);
+        // Both bearing cells should be in the affected cells
+        Assert.Contains(new Vector2I(0, 1), violations[0].AffectedCells);
+        Assert.Contains(new Vector2I(1, 1), violations[0].AffectedCells);
+    }
+
+    [Fact]
+    public void Gravity_BearingCells_AtBagFloor_Succeeds()
+    {
+        // L-triomino at bottom of a 3x3 gravity bag.
+        // All bearing cells at bag floor → supported.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var lShape = new bool[,] { { true, false }, { true, true } };
+        var lDef = new ReagentDefinition("ltri", "L-tri", lShape);
+        var lReagent = new Reagent(lDef);
+
+        // At origin (0,1): cells at (0,1), (0,2), (1,2)
+        // Bearing cells: (0,2) and (1,2) — both at bottom row (bag floor)
+        Assert.True(grid.CanPlaceReagent(lReagent, new Vector2I(0, 1)));
+    }
+
     // --- Heavy Aspect in Gravity Bag Constraints ---
 
     private static ReagentDefinition CreateHeavyReagentDef(bool[,] shape)
@@ -964,16 +1245,16 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Fragile_BlockedFromGravityBag()
+    public void Fragile_AllowedInGravityBag()
     {
-        // Fragile reagent should be rejected from Gravity bags
+        // Fragile reagents are allowed in Gravity bags (D.1 rework)
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
-        // Even at bottom row (valid gravity position), Fragile is blocked
-        Assert.False(grid.CanPlaceReagent(fragile, new Vector2I(1, 2)));
+        // At bottom row (valid gravity position), Fragile is now allowed
+        Assert.True(grid.CanPlaceReagent(fragile, new Vector2I(1, 2)));
     }
 
     [Fact]
@@ -1069,8 +1350,9 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void GetFragileViolations_GravityBag_ReturnsViolation()
+    public void GetFragileViolations_GravityBag_ReturnsEmpty()
     {
+        // D.1: Fragile reagents are now allowed in Gravity bags — no violations
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
@@ -1079,11 +1361,7 @@ public class MetaGridTests
         var positions = fragile.GetMetaGridPositions(new Vector2I(1, 2));
         var violations = grid.GetFragileViolations(fragile, positions);
 
-        Assert.Single(violations);
-        Assert.Equal(ConstraintType.FragileInGravity, violations[0].Type);
-        Assert.Contains(new Vector2I(1, 2), violations[0].AffectedCells);
-        Assert.Equal(AspectIds.Fragile, violations[0].AspectId);
-        Assert.Contains("Fragile", violations[0].Reason);
+        Assert.Empty(violations);
     }
 
     [Fact]
@@ -1223,11 +1501,11 @@ public class MetaGridTests
             // will also be on the edge, so Sharp constraint fails
             grid.GetSharpViolations(sharp, sharpPos).Count == 0);
 
-        // Fragile in gravity — both methods agree
+        // Fragile in gravity — no violation (D.1: fragile allowed in gravity bags)
         var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
         var fragilePos = fragile.GetMetaGridPositions(new Vector2I(1, 2));
         bool fragileViolations = grid.GetFragileViolations(fragile, fragilePos).Count > 0;
-        Assert.True(fragileViolations); // Fragile in Gravity bag = violation
+        Assert.False(fragileViolations); // Fragile in Gravity bag = no violation
     }
 
     // --- CalculateFallPosition ---
@@ -1249,29 +1527,43 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void CalculateFallPosition_NonHeavy_NoFalling()
+    public void CalculateFallPosition_NonHeavyInGravityBag_Falls()
     {
-        // Non-Heavy reagent in a Gravity bag should not fall.
+        // A.2: ALL reagents fall inside gravity bags, not just Heavy.
+        // Non-Heavy reagent in a Gravity bag SHOULD fall to bottom.
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var reagent = new Reagent(ReagentDefinition.SingleCell); // Not Heavy
         var result = grid.CalculateFallPosition(reagent, new Vector2I(1, 0));
-        Assert.Equal(new Vector2I(1, 0), result);
+        Assert.Equal(new Vector2I(1, 2), result); // Falls to bottom row
     }
 
     [Fact]
-    public void CalculateFallPosition_HeavyInNormalBag_NoFalling()
+    public void CalculateFallPosition_HeavyInNormalBag_Falls()
     {
-        // Heavy reagent in a non-Gravity bag should not fall.
+        // A.2: Heavy reagents fall in non-Gravity bags too.
         var grid = CreateGrid();
-        var bag = new Bag(BagDefinition.SmallPouch);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3, no Gravity
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
-        var result = grid.CalculateFallPosition(heavy, new Vector2I(1, 1));
-        Assert.Equal(new Vector2I(1, 1), result);
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(1, 0));
+        Assert.Equal(new Vector2I(1, 2), result); // Falls to bottom row
+    }
+
+    [Fact]
+    public void CalculateFallPosition_NonHeavyInNormalBag_NoFalling()
+    {
+        // A.2: Non-Heavy in non-Gravity bag does NOT fall.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3, no Gravity
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell); // Not Heavy
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(1, 0));
+        Assert.Equal(new Vector2I(1, 0), result); // Stays put
     }
 
     [Fact]
@@ -1335,5 +1627,412 @@ public class MetaGridTests
         var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
         var result = grid.CalculateFallPosition(heavy, new Vector2I(5, 5));
         Assert.Equal(new Vector2I(5, 5), result);
+    }
+
+    // --- A.3: Per-Bag Gravity Direction ---
+
+    private static BagDefinition CreateDirectionalGravityBagDef(int rows, int cols, GravityDirection direction)
+    {
+        var shape = new bool[rows, cols];
+        for (int r = 0; r < rows; r++)
+            for (int c = 0; c < cols; c++)
+                shape[r, c] = true;
+        return new BagDefinition("dir_gravity_bag", "Directional Gravity Bag", shape,
+            new[] { BagPropertyType.Gravity }, gravityDirection: direction);
+    }
+
+    // --- Bearing Cells with non-Down gravity ---
+
+    [Fact]
+    public void GetBearingCells_GravityUp_ReturnsTopCells()
+    {
+        // Vertical domino (0,0) and (0,1). Gravity = Up.
+        // Bearing cell = the one whose UP neighbor is not in the set → (0,0)
+        var positions = new List<Vector2I> { new(0, 0), new(0, 1) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Up);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(0, 0), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_GravityLeft_ReturnsLeftCells()
+    {
+        // Horizontal domino (0,0) and (1,0). Gravity = Left.
+        // Bearing cell = the one whose LEFT neighbor is not in the set → (0,0)
+        var positions = new List<Vector2I> { new(0, 0), new(1, 0) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Left);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(0, 0), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_GravityRight_ReturnsRightCells()
+    {
+        // Horizontal domino (0,0) and (1,0). Gravity = Right.
+        // Bearing cell = the one whose RIGHT neighbor is not in the set → (1,0)
+        var positions = new List<Vector2I> { new(0, 0), new(1, 0) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Right);
+        Assert.Single(bearing);
+        Assert.Contains(new Vector2I(1, 0), bearing);
+    }
+
+    [Fact]
+    public void GetBearingCells_TTetromino_GravityUp_ReturnsTopProngTips()
+    {
+        // T-tetromino pointing up:
+        //   X       (0,0)
+        // X X X   (0,1),(1,1),(2,1)
+        // Gravity = Up. Bearing = cells whose UP neighbor is NOT in the set.
+        // (0,0): up = (0,-1) not in set → bearing
+        // (0,1): up = (0,0) IS in set → not bearing
+        // (1,1): up = (1,0) not in set → bearing
+        // (2,1): up = (2,0) not in set → bearing
+        var positions = new List<Vector2I> { new(0, 0), new(0, 1), new(1, 1), new(2, 1) };
+        var bearing = MetaGrid.GetBearingCells(positions, Vector2I.Up);
+        Assert.Equal(3, bearing.Count);
+        Assert.Contains(new Vector2I(0, 0), bearing);
+        Assert.Contains(new Vector2I(1, 1), bearing);
+        Assert.Contains(new Vector2I(2, 1), bearing);
+    }
+
+    // --- Gravity violations with non-Down direction ---
+
+    [Fact]
+    public void GravityViolations_LeftGravity_AtLeftWall_NoViolation()
+    {
+        // 3x3 Left-gravity bag at (0,0). Reagent at col 0 (leftmost wall) — supported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(0, 1) }; // Left wall
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void GravityViolations_LeftGravity_Floating_ReturnsViolation()
+    {
+        // 3x3 Left-gravity bag at (0,0). Reagent at col 2 (rightmost) with nothing to its left — unsupported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(2, 1) }; // Right side, nothing to left
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.GravityUnsupported, violations[0].Type);
+    }
+
+    [Fact]
+    public void GravityViolations_UpGravity_AtTopWall_NoViolation()
+    {
+        // 3x3 Up-gravity bag at (0,0). Reagent at row 0 (topmost wall) — supported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(1, 0) }; // Top wall
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void GravityViolations_UpGravity_Floating_ReturnsViolation()
+    {
+        // 3x3 Up-gravity bag at (0,0). Reagent at row 2 (bottom) with nothing above — unsupported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(1, 2) }; // Bottom row, nothing above
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.GravityUnsupported, violations[0].Type);
+    }
+
+    [Fact]
+    public void GravityViolations_RightGravity_AtRightWall_NoViolation()
+    {
+        // 3x3 Right-gravity bag at (0,0). Reagent at col 2 (rightmost wall) — supported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Right);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(2, 1) }; // Right wall
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Empty(violations);
+    }
+
+    [Fact]
+    public void GravityViolations_RightGravity_Floating_ReturnsViolation()
+    {
+        // 3x3 Right-gravity bag at (0,0). Reagent at col 0 (leftmost) with nothing to right — unsupported.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Right);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var positions = new List<Vector2I> { new(0, 1) }; // Left side, nothing to right
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.GravityUnsupported, violations[0].Type);
+    }
+
+    [Fact]
+    public void GravityViolations_LeftGravity_SupportedByOccupant_NoViolation()
+    {
+        // 3x3 Left-gravity bag at (0,0). Reagent at col 1, supported by reagent at col 0.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 3, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place a blocker at col 0, row 1
+        var blocker = new Reagent(new ReagentDefinition("b", "B", new bool[,] { { true } }));
+        grid.PlaceReagent(blocker, new Vector2I(0, 1));
+
+        // Now check positions at col 1, row 1
+        var positions = new List<Vector2I> { new(1, 1) };
+        var violations = grid.GetGravityViolations(positions);
+        Assert.Empty(violations); // Supported by occupant to the left
+    }
+
+    // --- Fall position with non-Down gravity ---
+
+    [Fact]
+    public void CalculateFallPosition_LeftGravity_FallsToLeftWall()
+    {
+        // 1x4 Left-gravity bag at (0,0). Reagent dropped at col 3 falls to col 0.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(1, 4, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(3, 0));
+        Assert.Equal(new Vector2I(0, 0), result); // Falls to leftmost col
+    }
+
+    [Fact]
+    public void CalculateFallPosition_RightGravity_FallsToRightWall()
+    {
+        // 1x4 Right-gravity bag at (0,0). Reagent dropped at col 0 falls to col 3.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(1, 4, GravityDirection.Right);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(0, 0));
+        Assert.Equal(new Vector2I(3, 0), result); // Falls to rightmost col
+    }
+
+    [Fact]
+    public void CalculateFallPosition_UpGravity_FallsToTopWall()
+    {
+        // 4x1 Up-gravity bag at (0,0). Reagent dropped at row 3 falls to row 0.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(4, 1, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(0, 3));
+        Assert.Equal(new Vector2I(0, 0), result); // Falls to top
+    }
+
+    [Fact]
+    public void CalculateFallPosition_DownGravity_FallsToBottomWall()
+    {
+        // 4x1 Down-gravity bag at (0,0). Reagent dropped at row 0 falls to row 3.
+        // This should match the default behavior.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(4, 1, GravityDirection.Down);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(0, 0));
+        Assert.Equal(new Vector2I(0, 3), result); // Falls to bottom
+    }
+
+    [Fact]
+    public void CalculateFallPosition_LeftGravity_BlockedByOccupant()
+    {
+        // 1x4 Left-gravity bag at (0,0). Blocker at col 0. Reagent at col 3 falls to col 1.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(1, 4, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var blocker = new Reagent(new ReagentDefinition("b", "B", new bool[,] { { true } }));
+        grid.PlaceReagent(blocker, new Vector2I(0, 0));
+
+        var reagent = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(3, 0));
+        Assert.Equal(new Vector2I(1, 0), result); // Stops next to blocker
+    }
+
+    [Fact]
+    public void CalculateFallPosition_UpGravity_MultiCellReagent()
+    {
+        // 4x2 Up-gravity bag. Vertical 2-cell reagent at row 2-3 falls to row 0-1.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(4, 2, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagentDef = new ReagentDefinition("r", "R", new bool[,] { { true }, { true } });
+        var reagent = new Reagent(reagentDef);
+        var result = grid.CalculateFallPosition(reagent, new Vector2I(0, 2));
+        Assert.Equal(new Vector2I(0, 0), result); // Falls to top
+    }
+
+    [Fact]
+    public void CalculateFallPosition_HeavyOutsideGravityBag_FallsDown()
+    {
+        // Heavy reagent in non-gravity bag always falls Down, not using bag direction.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3, no Gravity
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var result = grid.CalculateFallPosition(heavy, new Vector2I(1, 0));
+        Assert.Equal(new Vector2I(1, 2), result); // Falls down (default direction)
+    }
+
+    // --- Heavy violations with non-Down gravity ---
+
+    [Fact]
+    public void HeavyViolations_LeftGravity_HeavyNotAtLeftWall_ReturnsViolation()
+    {
+        // 1x3 Left-gravity bag. Non-heavy at col 0 (gravity wall), heavy at col 2.
+        // In left-gravity, heavy should be at the left side (gravity direction).
+        // Heavy at col 2 with non-heavy at col 0 (against gravity): heavy checks
+        // in gravity direction (left) — there's nothing there (col 1 is in bag but unoccupied).
+        // But non-heavy checks against gravity (right) — nothing either.
+        // Actually, the rule is: heavy cells should not have non-heavy cells in the gravity direction.
+        // Heavy at col 2, scan leftward: col 1 is empty, col 0 has non-heavy → violation.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(1, 3, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var nonHeavy = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        grid.PlaceReagent(nonHeavy, new Vector2I(0, 0)); // Non-heavy at left wall
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        // Check heavy violations: heavy at col 2 scans left (gravity dir) and finds non-heavy at col 0
+        var heavyPositions = new List<Vector2I> { new(2, 0) };
+        var violations = grid.GetHeavyViolations(heavy, heavyPositions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.HeavyAboveNonHeavy, violations[0].Type);
+    }
+
+    [Fact]
+    public void HeavyViolations_LeftGravity_HeavyAtLeftWall_NoViolation()
+    {
+        // 1x3 Left-gravity bag. Heavy at col 0 (gravity wall), non-heavy at col 2.
+        // Heavy at left wall, non-heavy is against gravity → valid.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(1, 3, GravityDirection.Left);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        grid.PlaceReagent(heavy, new Vector2I(0, 0)); // Heavy at left wall
+
+        var heavyPositions = new List<Vector2I> { new(0, 0) };
+        var violations = grid.GetHeavyViolations(heavy, heavyPositions);
+        Assert.Empty(violations); // Non-heavy is against gravity, OK
+    }
+
+    [Fact]
+    public void HeavyViolations_UpGravity_HeavyBelowNonHeavy_ReturnsViolation()
+    {
+        // 3x1 Up-gravity bag. Non-heavy at row 0 (top = gravity wall), heavy at row 2.
+        // In up-gravity, heavy should float to the top. Having heavy at bottom
+        // means non-heavy is at the gravity wall — violation.
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 1, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var nonHeavy = new Reagent(new ReagentDefinition("r", "R", new bool[,] { { true } }));
+        grid.PlaceReagent(nonHeavy, new Vector2I(0, 0)); // Non-heavy at top (gravity wall)
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        var heavyPositions = new List<Vector2I> { new(0, 2) };
+        var violations = grid.GetHeavyViolations(heavy, heavyPositions);
+        // Heavy at row 2, scans up (gravity dir): row 1 empty, row 0 has non-heavy → violation
+        Assert.Single(violations);
+    }
+
+    [Fact]
+    public void HeavyViolations_UpGravity_HeavyAtTop_NoViolation()
+    {
+        // 3x1 Up-gravity bag. Heavy at row 0 (top = gravity wall).
+        var grid = CreateGrid();
+        var bagDef = CreateDirectionalGravityBagDef(3, 1, GravityDirection.Up);
+        var bag = new Bag(bagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
+        grid.PlaceReagent(heavy, new Vector2I(0, 0)); // Heavy at top
+
+        var heavyPositions = new List<Vector2I> { new(0, 0) };
+        var violations = grid.GetHeavyViolations(heavy, heavyPositions);
+        Assert.Empty(violations);
+    }
+
+    // --- GravityDirection extensions ---
+
+    [Fact]
+    public void GravityDirection_ToVector_AllDirections()
+    {
+        Assert.Equal(Vector2I.Down, GravityDirection.Down.ToVector());
+        Assert.Equal(Vector2I.Up, GravityDirection.Up.ToVector());
+        Assert.Equal(Vector2I.Left, GravityDirection.Left.ToVector());
+        Assert.Equal(Vector2I.Right, GravityDirection.Right.ToVector());
+    }
+
+    [Fact]
+    public void GravityDirection_RotateCW_FullCycle()
+    {
+        Assert.Equal(GravityDirection.Left, GravityDirection.Down.RotateCW());
+        Assert.Equal(GravityDirection.Up, GravityDirection.Left.RotateCW());
+        Assert.Equal(GravityDirection.Right, GravityDirection.Up.RotateCW());
+        Assert.Equal(GravityDirection.Down, GravityDirection.Right.RotateCW());
+    }
+
+    [Fact]
+    public void BagDefinition_DefaultGravityDirection_IsDown()
+    {
+        var def = new BagDefinition("test", "Test", new bool[,] { { true } },
+            new[] { BagPropertyType.Gravity });
+        Assert.Equal(GravityDirection.Down, def.GravityDirection);
+    }
+
+    [Fact]
+    public void BagDefinition_CustomGravityDirection_Preserved()
+    {
+        var def = new BagDefinition("test", "Test", new bool[,] { { true } },
+            new[] { BagPropertyType.Gravity }, gravityDirection: GravityDirection.Left);
+        Assert.Equal(GravityDirection.Left, def.GravityDirection);
+    }
+
+    [Fact]
+    public void Bag_GravityDirection_DelegatesToDefinition()
+    {
+        var def = new BagDefinition("test", "Test", new bool[,] { { true } },
+            new[] { BagPropertyType.Gravity }, gravityDirection: GravityDirection.Right);
+        var bag = new Bag(def);
+        Assert.Equal(GravityDirection.Right, bag.GravityDirection);
     }
 }

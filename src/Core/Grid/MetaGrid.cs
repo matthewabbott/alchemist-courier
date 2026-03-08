@@ -243,7 +243,7 @@ public class MetaGrid
         if (!IsSharpConstraintValid(reagent, positions))
             return false;
 
-        // Check Fragile aspect constraint: Fragile reagents can't be placed in Gravity bags
+        // Check Fragile aspect constraint (currently no hard placement constraints)
         if (!IsFragileConstraintValid(reagent, positions))
             return false;
 
@@ -251,45 +251,112 @@ public class MetaGrid
     }
 
     /// <summary>
+    /// Compute the "bearing cells" for a set of positions relative to a gravity direction.
+    /// A bearing cell is one whose neighbor in the gravity direction is NOT part of the
+    /// position set — i.e., the exposed underside of the shape. These are the cells
+    /// that can provide or receive structural support.
+    /// </summary>
+    public static List<Vector2I> GetBearingCells(List<Vector2I> positions, Vector2I gravityDirection)
+    {
+        var positionSet = new HashSet<Vector2I>(positions);
+        var bearing = new List<Vector2I>();
+
+        foreach (var pos in positions)
+        {
+            var neighbor = pos + gravityDirection;
+            if (!positionSet.Contains(neighbor))
+                bearing.Add(pos);
+        }
+
+        return bearing;
+    }
+
+    /// <summary>
     /// Get detailed gravity constraint violations for the given positions.
-    /// A cell in a Gravity bag must be supported from below: at the bag bottom,
-    /// resting on an occupied cell, or self-supported by another position in the set.
+    /// Uses bearing cells: a reagent is supported if ANY of its bearing cells
+    /// (cells whose gravity-direction neighbor is not part of the same reagent)
+    /// have support — either at the bag floor or resting on an occupied cell.
+    /// The gravity direction comes from the bag containing the positions (A.3).
     /// </summary>
     public List<ConstraintViolation> GetGravityViolations(List<Vector2I> positions)
     {
         var violations = new List<ConstraintViolation>();
-        HashSet<Vector2I>? positionSet = null;
 
+        // Determine gravity direction from the bag containing these positions.
+        // If positions span multiple gravity bags (unusual), use the first one found.
+        var gravityDirection = GetGravityDirectionForPositions(positions);
+        if (gravityDirection == null)
+            return violations; // No positions in gravity bags
+
+        var gravDir = gravityDirection.Value;
+
+        // Filter to positions that are in gravity bags
+        var gravityPositions = new List<Vector2I>();
         foreach (var pos in positions)
         {
             var bag = GetBagAtCell(pos);
-            if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
-                continue;
-
-            var below = new Vector2I(pos.Col, pos.Row + 1);
-
-            // If the cell below is not part of this bag, we're at the bottom — supported
-            var belowBag = GetBagAtCell(below);
-            if (belowBag != bag)
-                continue;
-
-            // The cell below is in the same bag — check for support
-            var belowCell = GetCell(below);
-            if (belowCell != null && belowCell.IsOccupied)
-                continue;
-
-            // Check if another cell of the reagent being placed provides support
-            positionSet ??= new HashSet<Vector2I>(positions);
-            if (positionSet.Contains(below))
-                continue;
-
-            violations.Add(new ConstraintViolation(
-                ConstraintType.GravityUnsupported,
-                new List<Vector2I> { pos },
-                "Cell is unsupported in Gravity bag"));
+            if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
+                gravityPositions.Add(pos);
         }
 
+        if (gravityPositions.Count == 0)
+            return violations;
+
+        // Compute bearing cells from all positions (including non-gravity ones for self-support)
+        var bearingCells = GetBearingCells(positions, gravDir);
+
+        // Only consider bearing cells that are in gravity bags
+        var gravityBearingCells = new List<Vector2I>();
+        foreach (var cell in bearingCells)
+        {
+            var bag = GetBagAtCell(cell);
+            if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
+                gravityBearingCells.Add(cell);
+        }
+
+        if (gravityBearingCells.Count == 0)
+            return violations;
+
+        // Check if ANY bearing cell is supported
+        foreach (var pos in gravityBearingCells)
+        {
+            var bag = GetBagAtCell(pos);
+            var below = pos + gravDir;
+
+            // If the cell in the gravity direction is not part of this bag, we're at the bag floor — supported
+            var belowBag = GetBagAtCell(below);
+            if (belowBag != bag)
+                return violations; // At least one bearing cell supported → valid
+
+            // The cell in the gravity direction is in the same bag — check for support from other reagents
+            var belowCell = GetCell(below);
+            if (belowCell != null && belowCell.IsOccupied)
+                return violations; // At least one bearing cell supported → valid
+        }
+
+        // No bearing cell has support — report violation
+        violations.Add(new ConstraintViolation(
+            ConstraintType.GravityUnsupported,
+            gravityBearingCells,
+            "Reagent is unsupported in Gravity bag — no bearing cell has support"));
+
         return violations;
+    }
+
+    /// <summary>
+    /// Determine the gravity direction vector for a set of positions.
+    /// Returns the gravity direction from the first gravity bag found, or null
+    /// if no positions are in a gravity bag.
+    /// </summary>
+    private Vector2I? GetGravityDirectionForPositions(List<Vector2I> positions)
+    {
+        foreach (var pos in positions)
+        {
+            var bag = GetBagAtCell(pos);
+            if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
+                return bag.GravityDirection.ToVector();
+        }
+        return null;
     }
 
     private bool IsGravityValid(List<Vector2I> positions) =>
@@ -297,7 +364,8 @@ public class MetaGrid
 
     /// <summary>
     /// Get detailed Heavy constraint violations for the given reagent and positions.
-    /// In Gravity bags, Heavy reagent cells must be at or below all non-Heavy cells.
+    /// In Gravity bags, Heavy reagent cells must be at or "below" (in gravity direction)
+    /// all non-Heavy cells. The gravity direction comes from the bag (A.3).
     /// </summary>
     public List<ConstraintViolation> GetHeavyViolations(Reagent reagent, List<Vector2I> positions)
     {
@@ -310,11 +378,18 @@ public class MetaGrid
             if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
                 continue;
 
+            // Gravity direction for this bag (A.3)
+            var gravDir = bag.GravityDirection.ToVector();
+            // "Against gravity" is the opposite direction (checking upward from heavy,
+            // or downward from non-heavy, relative to gravity direction)
+            var againstGravity = new Vector2I(-gravDir.Col, -gravDir.Row);
+
             if (isHeavy)
             {
-                for (int row = pos.Row + 1; row < Height; row++)
+                // Heavy cell: scan in gravity direction — should not find non-heavy below
+                var checkPos = pos + gravDir;
+                while (IsInBounds(checkPos))
                 {
-                    var checkPos = new Vector2I(pos.Col, row);
                     var checkBag = GetBagAtCell(checkPos);
                     if (checkBag != bag)
                         break;
@@ -329,13 +404,16 @@ public class MetaGrid
                             AspectIds.Heavy));
                         break; // One violation per cell is enough
                     }
+
+                    checkPos = checkPos + gravDir;
                 }
             }
             else
             {
-                for (int row = pos.Row - 1; row >= 0; row--)
+                // Non-heavy cell: scan against gravity — should not find heavy above
+                var checkPos = pos + againstGravity;
+                while (IsInBounds(checkPos))
                 {
-                    var checkPos = new Vector2I(pos.Col, row);
                     var checkBag = GetBagAtCell(checkPos);
                     if (checkBag != bag)
                         break;
@@ -350,6 +428,8 @@ public class MetaGrid
                             AspectIds.Heavy));
                         break;
                     }
+
+                    checkPos = checkPos + againstGravity;
                 }
             }
         }
@@ -398,27 +478,17 @@ public class MetaGrid
 
     /// <summary>
     /// Get detailed Fragile constraint violations for the given reagent and positions.
-    /// Fragile reagents can't be placed in Gravity bags.
+    /// Fragile reagents are allowed in all bag types (including Gravity bags).
+    /// Future: will detect crushing (heavy resting on fragile), thermal fracture,
+    /// and piercing (sharp adjacency) as pre-confirm warnings.
     /// </summary>
     public List<ConstraintViolation> GetFragileViolations(Reagent reagent, List<Vector2I> positions)
     {
         var violations = new List<ConstraintViolation>();
 
-        if (!reagent.HasAspect(AspectIds.Fragile))
-            return violations;
-
-        foreach (var pos in positions)
-        {
-            var bag = GetBagAtCell(pos);
-            if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
-            {
-                violations.Add(new ConstraintViolation(
-                    ConstraintType.FragileInGravity,
-                    new List<Vector2I> { pos },
-                    "Fragile reagent cannot be placed in Gravity bag",
-                    AspectIds.Fragile));
-            }
-        }
+        // Fragile reagents have no hard placement constraints.
+        // Breaking conditions (crushing, thermal fracture, piercing) are
+        // evaluated as live warnings and at confirm time, not as placement blocks.
 
         return violations;
     }
@@ -518,21 +588,25 @@ public class MetaGrid
     }
 
     /// <summary>
-    /// Calculates the final resting position for a Heavy reagent falling in a Gravity bag.
-    /// Returns the input position if the reagent is not Heavy, not in a Gravity bag,
-    /// or cannot fall further.
+    /// Calculates the final resting position for a reagent subject to gravity.
+    /// Falling rules:
+    ///   - Inside gravity bags: ALL reagents fall in the bag's gravity direction (A.3).
+    ///   - Outside gravity bags: only Heavy reagents fall (downward by default).
+    ///   - Non-heavy in non-gravity bag: no falling.
+    /// The reagent falls until it cannot shift further (cell occupied, out of bag, etc.),
+    /// which naturally ensures at least one bearing cell has support.
+    /// Returns the input position if the reagent should not fall or cannot fall further.
     /// </summary>
     public Vector2I CalculateFallPosition(Reagent reagent, Vector2I dropPosition)
     {
-        if (!reagent.HasAspect(AspectIds.Heavy))
-            return dropPosition;
-
-        // Verify all cells at drop position are in the same Gravity bag
         var dropPositions = reagent.GetMetaGridPositions(dropPosition);
         if (dropPositions.Count == 0)
             return dropPosition;
 
-        Bag? gravityBag = null;
+        // Verify all cells are in a single bag and determine bag type
+        Bag? primaryBag = null;
+        bool allInGravityBag = true;
+
         foreach (var pos in dropPositions)
         {
             var cell = GetCell(pos);
@@ -540,27 +614,44 @@ public class MetaGrid
                 return dropPosition;
 
             var bag = GetBagAtCell(pos);
-            if (bag == null || !bag.HasProperty(BagPropertyType.Gravity))
+            if (bag == null)
                 return dropPosition;
 
-            if (gravityBag == null)
-                gravityBag = bag;
-            else if (bag != gravityBag)
+            if (primaryBag == null)
+                primaryBag = bag;
+            else if (bag != primaryBag)
                 return dropPosition; // Spans multiple bags — don't fall
+
+            if (!bag.HasProperty(BagPropertyType.Gravity))
+                allInGravityBag = false;
         }
 
-        // Shift down one row at a time, checking all cells fit
+        // Determine if reagent should fall:
+        // In gravity bag: ALL reagents fall
+        // Outside gravity bag: only Heavy reagents fall
+        bool shouldFall = allInGravityBag || reagent.HasAspect(AspectIds.Heavy);
+        if (!shouldFall)
+            return dropPosition;
+
+        // Gravity direction: use bag's direction if in gravity bag, otherwise default Down (A.3)
+        var gravityDirection = (allInGravityBag && primaryBag != null)
+            ? primaryBag.GravityDirection.ToVector()
+            : Vector2I.Down;
+
+        // Shift in gravity direction one step at a time, checking all cells fit
         var bestPos = dropPosition;
         for (int shift = 1; ; shift++)
         {
-            var candidate = new Vector2I(dropPosition.Col, dropPosition.Row + shift);
+            var candidate = new Vector2I(
+                dropPosition.Col + gravityDirection.Col * shift,
+                dropPosition.Row + gravityDirection.Row * shift);
             var candidatePositions = reagent.GetMetaGridPositions(candidate);
 
             bool valid = true;
             foreach (var pos in candidatePositions)
             {
                 var cell = GetCell(pos);
-                if (cell == null || !cell.IsInBag || GetBagAtCell(pos) != gravityBag || cell.IsOccupied)
+                if (cell == null || !cell.IsInBag || GetBagAtCell(pos) != primaryBag || cell.IsOccupied)
                 {
                     valid = false;
                     break;

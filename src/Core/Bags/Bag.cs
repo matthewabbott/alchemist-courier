@@ -35,6 +35,11 @@ public class Bag
     public bool HasProperty(BagPropertyType type) => Definition.HasProperty(type);
 
     /// <summary>
+    /// The gravity direction of this bag. Only meaningful when HasProperty(Gravity).
+    /// </summary>
+    public GravityDirection GravityDirection => Definition.GravityDirection;
+
+    /// <summary>
     /// Get all meta-grid positions this bag would occupy if placed at the given origin.
     /// </summary>
     public List<Vector2I> GetMetaGridPositions(Vector2I origin)
