@@ -1,5 +1,9 @@
 using Godot;
+using System;
+using System.Text.Json;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Inventory;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Tools;
@@ -7,11 +11,12 @@ namespace AlchemistCourier.Game.Tools;
 /// <summary>
 /// Standalone tool for assigning polyomino shapes to candidate sprite PNGs.
 /// Load a PNG, overlay a clickable grid, click cells to define the shape,
-/// and see the auto-detected canonical shape name.
+/// set aspect/metadata, preview at game size, and export as JSON catalog entry.
 /// </summary>
 public partial class SpriteAssigner : Control
 {
     private const int SpritePreviewSize = 256;
+    private const int MiniPreviewCellSize = 32;
     private const int GridLineWidth = 1;
 
     private static readonly Color ActiveCellColor = new(0.3f, 0.8f, 0.4f, 0.45f);
@@ -22,8 +27,41 @@ public partial class SpriteAssigner : Control
     private static readonly Color LabelColor = new(0.75f, 0.75f, 0.8f);
     private static readonly Color GoldColor = new(0.9f, 0.85f, 0.7f);
     private static readonly Color ButtonColor = new(0.25f, 0.35f, 0.5f);
+    private static readonly Color ExportButtonColor = new(0.25f, 0.45f, 0.3f);
     private static readonly Color StatusGoodColor = new(0.4f, 0.85f, 0.5f);
     private static readonly Color StatusNeutralColor = new(0.65f, 0.65f, 0.7f);
+
+    private static readonly string[] AspectOptions =
+    {
+        "", // None
+        AspectIds.Hot,
+        AspectIds.Cold,
+        AspectIds.Volatile,
+        AspectIds.Stable,
+        AspectIds.Heavy,
+        AspectIds.Toxic,
+        AspectIds.Sharp,
+        AspectIds.Fragile,
+        AspectIds.Catalytic,
+        AspectIds.Medicinal,
+    };
+
+    private static readonly string[] AspectDisplayNames =
+    {
+        "(None)",
+        "Hot",
+        "Cold",
+        "Volatile",
+        "Stable",
+        "Heavy",
+        "Toxic",
+        "Sharp",
+        "Fragile",
+        "Catalytic",
+        "Medicinal",
+    };
+
+    private static readonly string[] RarityOptions = { "Common", "Uncommon", "Rare", "VeryRare", "Quest" };
 
     // Sprite display
     private TextureRect _spriteDisplay = null!;
@@ -44,6 +82,18 @@ public partial class SpriteAssigner : Control
     private Label _cellCountLabel = null!;
     private Label _shapeNameLabel = null!;
     private Label _statusLabel = null!;
+
+    // Metadata fields (SA.2)
+    private LineEdit _itemNameField = null!;
+    private OptionButton _aspectDropdown = null!;
+    private OptionButton _rarityDropdown = null!;
+    private TextEdit _flavorTextField = null!;
+
+    // 32px preview (SA.2)
+    private Control _miniPreviewContainer = null!;
+
+    // Export (SA.2)
+    private string _exportDirectory = "";
 
     public override void _Ready()
     {
@@ -73,7 +123,7 @@ public partial class SpriteAssigner : Control
         // Header
         BuildHeader(mainVBox);
 
-        // Content: HBox with sprite area (left) and controls (right)
+        // Content: HBox with sprite area (left), controls (center), metadata+preview (right)
         var contentHBox = new HBoxContainer();
         contentHBox.AddThemeConstantOverride("separation", 16);
         contentHBox.SizeFlagsVertical = SizeFlags.ExpandFill;
@@ -81,6 +131,7 @@ public partial class SpriteAssigner : Control
 
         BuildSpriteArea(contentHBox);
         BuildControlsPanel(contentHBox);
+        BuildMetadataPanel(contentHBox);
 
         // Status bar at bottom
         BuildStatusBar(mainVBox);
@@ -108,6 +159,10 @@ public partial class SpriteAssigner : Control
         var loadButton = CreateStyledButton("Load PNG", ButtonColor);
         loadButton.Pressed += OnLoadPressed;
         headerHBox.AddChild(loadButton);
+
+        var exportButton = CreateStyledButton("Export JSON", ExportButtonColor);
+        exportButton.Pressed += OnExportPressed;
+        headerHBox.AddChild(exportButton);
 
         var clearButton = CreateStyledButton("Clear Grid", new Color(0.4f, 0.3f, 0.3f));
         clearButton.Pressed += OnClearGridPressed;
@@ -157,7 +212,7 @@ public partial class SpriteAssigner : Control
     {
         var panel = new VBoxContainer();
         panel.AddThemeConstantOverride("separation", 12);
-        panel.CustomMinimumSize = new Vector2(200, 0);
+        panel.CustomMinimumSize = new Vector2(180, 0);
         parent.AddChild(panel);
 
         // Resolution selector
@@ -208,6 +263,95 @@ public partial class SpriteAssigner : Control
         instrLabel.AddThemeColorOverride("font_color", new Color(0.5f, 0.5f, 0.55f));
         instrLabel.AddThemeFontSizeOverride("font_size", 11);
         panel.AddChild(instrLabel);
+    }
+
+    private void BuildMetadataPanel(HBoxContainer parent)
+    {
+        var scroll = new ScrollContainer();
+        scroll.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        scroll.SizeFlagsVertical = SizeFlags.ExpandFill;
+        parent.AddChild(scroll);
+
+        var panel = new VBoxContainer();
+        panel.AddThemeConstantOverride("separation", 8);
+        panel.CustomMinimumSize = new Vector2(220, 0);
+        panel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        scroll.AddChild(panel);
+
+        // --- Metadata section ---
+        var metaHeader = new Label { Text = "Item Metadata" };
+        metaHeader.AddThemeColorOverride("font_color", GoldColor);
+        metaHeader.AddThemeFontSizeOverride("font_size", 15);
+        panel.AddChild(metaHeader);
+
+        // Item name
+        AddFieldLabel(panel, "Item Name:");
+        _itemNameField = new LineEdit { PlaceholderText = "e.g. firevine" };
+        _itemNameField.CustomMinimumSize = new Vector2(0, 28);
+        panel.AddChild(_itemNameField);
+
+        // Aspect dropdown
+        AddFieldLabel(panel, "Aspect:");
+        _aspectDropdown = new OptionButton();
+        for (int i = 0; i < AspectOptions.Length; i++)
+            _aspectDropdown.AddItem(AspectDisplayNames[i], i);
+        _aspectDropdown.Selected = 0;
+        _aspectDropdown.ItemSelected += _ => RefreshMiniPreview();
+        panel.AddChild(_aspectDropdown);
+
+        // Rarity dropdown
+        AddFieldLabel(panel, "Rarity:");
+        _rarityDropdown = new OptionButton();
+        for (int i = 0; i < RarityOptions.Length; i++)
+            _rarityDropdown.AddItem(RarityOptions[i], i);
+        _rarityDropdown.Selected = 0; // Common
+        panel.AddChild(_rarityDropdown);
+
+        // Flavor text
+        AddFieldLabel(panel, "Flavor Text:");
+        _flavorTextField = new TextEdit();
+        _flavorTextField.CustomMinimumSize = new Vector2(0, 60);
+        _flavorTextField.PlaceholderText = "A short thematic description...";
+        panel.AddChild(_flavorTextField);
+
+        panel.AddChild(new HSeparator());
+
+        // --- 32px preview section ---
+        var previewHeader = new Label { Text = "Game Preview (32px/cell)" };
+        previewHeader.AddThemeColorOverride("font_color", GoldColor);
+        previewHeader.AddThemeFontSizeOverride("font_size", 15);
+        panel.AddChild(previewHeader);
+
+        _miniPreviewContainer = new Control
+        {
+            CustomMinimumSize = new Vector2(MiniPreviewCellSize * 4, MiniPreviewCellSize * 4),
+        };
+        // Dark background for the preview area
+        var previewBg = new ColorRect
+        {
+            Color = new Color(0.08f, 0.08f, 0.1f),
+            Position = Vector2.Zero,
+            Size = new Vector2(MiniPreviewCellSize * 4, MiniPreviewCellSize * 4),
+        };
+        _miniPreviewContainer.AddChild(previewBg);
+        panel.AddChild(_miniPreviewContainer);
+
+        var previewNote = new Label
+        {
+            Text = "Shows how the item looks at actual game cell size.",
+            AutowrapMode = TextServer.AutowrapMode.WordSmart,
+        };
+        previewNote.AddThemeColorOverride("font_color", new Color(0.5f, 0.5f, 0.55f));
+        previewNote.AddThemeFontSizeOverride("font_size", 10);
+        panel.AddChild(previewNote);
+    }
+
+    private static void AddFieldLabel(VBoxContainer parent, string text)
+    {
+        var label = new Label { Text = text };
+        label.AddThemeColorOverride("font_color", LabelColor);
+        label.AddThemeFontSizeOverride("font_size", 12);
+        parent.AddChild(label);
     }
 
     private void BuildStatusBar(VBoxContainer parent)
@@ -383,6 +527,7 @@ public partial class SpriteAssigner : Control
         _cells[row, col] = !_cells[row, col];
         UpdateCellColor(col, row);
         UpdateShapeInfo();
+        RefreshMiniPreview();
     }
 
     // --- Shape detection ---
@@ -493,6 +638,76 @@ public partial class SpriteAssigner : Control
         return true;
     }
 
+    // --- 32px mini preview ---
+
+    private void RefreshMiniPreview()
+    {
+        // Clear previous preview children (keep the background at index 0)
+        while (_miniPreviewContainer.GetChildCount() > 1)
+        {
+            var child = _miniPreviewContainer.GetChild(_miniPreviewContainer.GetChildCount() - 1);
+            _miniPreviewContainer.RemoveChild(child);
+            child.QueueFree();
+        }
+
+        var shape = GetTrimmedShape();
+        if (shape == null) return;
+
+        int rows = shape.GetLength(0);
+        int cols = shape.GetLength(1);
+
+        // Get the aspect color for cell tinting
+        string selectedAspectId = GetSelectedAspectId();
+        Color aspectColor = string.IsNullOrEmpty(selectedAspectId)
+            ? new Color(0.6f, 0.55f, 0.5f)
+            : GridConstants.GetAspectColor(selectedAspectId);
+
+        // Offset to center the preview
+        float totalWidth = cols * MiniPreviewCellSize;
+        float totalHeight = rows * MiniPreviewCellSize;
+        float maxArea = MiniPreviewCellSize * 4;
+        float offsetX = (maxArea - totalWidth) / 2f;
+        float offsetY = (maxArea - totalHeight) / 2f;
+        if (offsetX < 0) offsetX = 0;
+        if (offsetY < 0) offsetY = 0;
+
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                if (!shape[r, c]) continue;
+
+                var cellRect = new ColorRect
+                {
+                    Position = new Vector2(offsetX + c * MiniPreviewCellSize, offsetY + r * MiniPreviewCellSize),
+                    Size = new Vector2(MiniPreviewCellSize - 1, MiniPreviewCellSize - 1),
+                    Color = aspectColor,
+                };
+                _miniPreviewContainer.AddChild(cellRect);
+            }
+        }
+    }
+
+    private string GetSelectedAspectId()
+    {
+        int idx = _aspectDropdown.Selected;
+        if (idx < 0 || idx >= AspectOptions.Length) return "";
+        return AspectOptions[idx];
+    }
+
+    private Rarity GetSelectedRarity()
+    {
+        int idx = _rarityDropdown.Selected;
+        return idx switch
+        {
+            1 => Rarity.Uncommon,
+            2 => Rarity.Rare,
+            3 => Rarity.VeryRare,
+            4 => Rarity.Quest,
+            _ => Rarity.Common,
+        };
+    }
+
     // --- File loading ---
 
     private void OnLoadPressed()
@@ -536,6 +751,143 @@ public partial class SpriteAssigner : Control
         ClearGrid();
     }
 
+    // --- Export ---
+
+    private void OnExportPressed()
+    {
+        var shape = GetTrimmedShape();
+        if (shape == null)
+        {
+            _statusLabel.Text = "Cannot export: no cells selected.";
+            return;
+        }
+
+        string itemName = _itemNameField.Text.Trim();
+        if (string.IsNullOrEmpty(itemName))
+        {
+            _statusLabel.Text = "Cannot export: item name is required.";
+            return;
+        }
+
+        // Build the JSON catalog entry
+        string json = BuildExportJson(itemName, shape);
+
+        // Open a folder select dialog for the output directory
+        var dialog = new FileDialog
+        {
+            FileMode = FileDialog.FileModeEnum.SaveFile,
+            Access = FileDialog.AccessEnum.Filesystem,
+            Filters = new string[] { "*.json ; JSON Files" },
+            Title = "Export Catalog Entry",
+            CurrentFile = $"{SanitizeFilename(itemName)}.json",
+        };
+
+        if (!string.IsNullOrEmpty(_exportDirectory))
+            dialog.CurrentDir = _exportDirectory;
+
+        dialog.FileSelected += path =>
+        {
+            SaveExportJson(path, json);
+            _exportDirectory = System.IO.Path.GetDirectoryName(path) ?? "";
+            dialog.QueueFree();
+
+            // Batch workflow: clear selection but keep PNG loaded
+            ClearGridKeepImage();
+        };
+        dialog.Canceled += () => dialog.QueueFree();
+
+        AddChild(dialog);
+        dialog.PopupCentered(new Godot.Vector2I(700, 500));
+    }
+
+    private string BuildExportJson(string itemName, bool[,] shape)
+    {
+        int rows = shape.GetLength(0);
+        int cols = shape.GetLength(1);
+
+        // Convert bool[,] to bool[][] (jagged) for JSON
+        var jagged = new bool[rows][];
+        for (int r = 0; r < rows; r++)
+        {
+            jagged[r] = new bool[cols];
+            for (int c = 0; c < cols; c++)
+                jagged[r][c] = shape[r, c];
+        }
+
+        string aspectId = GetSelectedAspectId();
+        string rarity = GetSelectedRarity().ToString();
+        string flavorText = _flavorTextField.Text.Trim();
+        string shapeName = MatchCanonicalShape(shape) ?? "custom";
+
+        var entry = new
+        {
+            id = SanitizeId(itemName),
+            name = itemName,
+            shape = jagged,
+            shape_name = shapeName,
+            aspect = string.IsNullOrEmpty(aspectId) ? (string?)null : aspectId,
+            rarity,
+            flavor_text = string.IsNullOrEmpty(flavorText) ? (string?)null : flavorText,
+            sprite_source = _loadedFilePath,
+            exported_at = DateTime.UtcNow.ToString("o"),
+        };
+
+        return JsonSerializer.Serialize(entry, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+        });
+    }
+
+    private void SaveExportJson(string path, string json)
+    {
+        try
+        {
+            System.IO.File.WriteAllText(path, json);
+            _statusLabel.Text = $"Exported: {System.IO.Path.GetFileName(path)}";
+            _statusLabel.AddThemeColorOverride("font_color", StatusGoodColor);
+        }
+        catch (Exception ex)
+        {
+            _statusLabel.Text = $"Export failed: {ex.Message}";
+            _statusLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.3f, 0.3f));
+        }
+    }
+
+    private void ClearGridKeepImage()
+    {
+        // Batch workflow: clear grid and metadata but keep the PNG loaded
+        _cells = new bool[_gridResolution, _gridResolution];
+        _hoverPos = null;
+        RefreshGridDisplay();
+        UpdateShapeInfo();
+        RefreshMiniPreview();
+        _itemNameField.Text = "";
+        _aspectDropdown.Selected = 0;
+        _rarityDropdown.Selected = 0;
+        _flavorTextField.Text = "";
+    }
+
+    private static string SanitizeId(string name)
+    {
+        // Convert display name to snake_case ID
+        var sb = new System.Text.StringBuilder(name.Length);
+        for (int i = 0; i < name.Length; i++)
+        {
+            char ch = name[i];
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(char.ToLowerInvariant(ch));
+            else if (ch == ' ' || ch == '-' || ch == '_')
+                sb.Append('_');
+        }
+        return sb.ToString();
+    }
+
+    private static string SanitizeFilename(string name)
+    {
+        return SanitizeId(name);
+    }
+
     // --- Button handlers ---
 
     private void OnClearGridPressed()
@@ -549,6 +901,7 @@ public partial class SpriteAssigner : Control
         _hoverPos = null;
         RefreshGridDisplay();
         UpdateShapeInfo();
+        RefreshMiniPreview();
     }
 
     private void OnResolutionChanged(long index)
@@ -561,6 +914,7 @@ public partial class SpriteAssigner : Control
         _hoverPos = null;
         RebuildGridOverlay();
         UpdateShapeInfo();
+        RefreshMiniPreview();
     }
 
     // --- UI helpers ---
@@ -622,6 +976,21 @@ public partial class SpriteAssigner : Control
         }
     }
 
+    /// <summary>Currently selected aspect ID (empty string if None).</summary>
+    public string SelectedAspectId => GetSelectedAspectId();
+
+    /// <summary>Currently selected rarity.</summary>
+    public Rarity SelectedRarity => GetSelectedRarity();
+
+    /// <summary>Current item name text.</summary>
+    public string ItemName => _itemNameField?.Text ?? "";
+
+    /// <summary>Current flavor text.</summary>
+    public string FlavorText => _flavorTextField?.Text ?? "";
+
+    /// <summary>Last export directory used.</summary>
+    public string ExportDirectory => _exportDirectory;
+
     /// <summary>Programmatically toggle a cell (for testing).</summary>
     public void ToggleCell(int col, int row)
     {
@@ -629,11 +998,73 @@ public partial class SpriteAssigner : Control
         _cells[row, col] = !_cells[row, col];
         UpdateCellColor(col, row);
         UpdateShapeInfo();
+        RefreshMiniPreview();
     }
 
     /// <summary>Programmatically load a sprite from path (for testing).</summary>
     public void LoadSpriteFromPath(string path)
     {
         LoadSprite(path);
+    }
+
+    /// <summary>Programmatically set the item name (for testing).</summary>
+    public void SetItemName(string name)
+    {
+        _itemNameField.Text = name;
+    }
+
+    /// <summary>Programmatically set the aspect by index (for testing).</summary>
+    public void SetAspectIndex(int index)
+    {
+        if (index >= 0 && index < AspectOptions.Length)
+        {
+            _aspectDropdown.Selected = index;
+            RefreshMiniPreview();
+        }
+    }
+
+    /// <summary>Programmatically set the rarity by index (for testing).</summary>
+    public void SetRarityIndex(int index)
+    {
+        if (index >= 0 && index < RarityOptions.Length)
+            _rarityDropdown.Selected = index;
+    }
+
+    /// <summary>Programmatically set the flavor text (for testing).</summary>
+    public void SetFlavorText(string text)
+    {
+        _flavorTextField.Text = text;
+    }
+
+    /// <summary>Build export JSON string for the current state (for testing).</summary>
+    public string? BuildExportJsonForTesting()
+    {
+        var shape = GetTrimmedShape();
+        if (shape == null) return null;
+        string itemName = _itemNameField.Text.Trim();
+        if (string.IsNullOrEmpty(itemName)) return null;
+        return BuildExportJson(itemName, shape);
+    }
+
+    /// <summary>Programmatically export to a specific path (for testing).</summary>
+    public bool ExportToPath(string path)
+    {
+        var shape = GetTrimmedShape();
+        if (shape == null) return false;
+        string itemName = _itemNameField.Text.Trim();
+        if (string.IsNullOrEmpty(itemName)) return false;
+
+        string json = BuildExportJson(itemName, shape);
+        try
+        {
+            System.IO.File.WriteAllText(path, json);
+            _exportDirectory = System.IO.Path.GetDirectoryName(path) ?? "";
+            ClearGridKeepImage();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
