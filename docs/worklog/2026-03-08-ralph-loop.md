@@ -109,3 +109,12 @@ the bag's GravityDirection. Simple and clean — no new child nodes, just DrawPo
 vertices computed from the bag's bounding box center and direction enum. Semi-transparent purple
 matches the dev art style. Supports all four directions.
 Commit: ce08417
+
+## GO.7: Fragile damage visual indicator (pre-confirm)
+First task in the "live violation feedback" series: fragile reagents now show a red tint overlay
+on affected cells when they would be damaged by the current arrangement (crushed by heavy,
+thermal fracture from hot+cold adjacency, or pierced by sharp). Created DamageOverlay following
+the HighlightOverlay pooled-ColorRect pattern, wired into MetaGridView.RefreshDisplay() via
+ViolationTracker.ComputeAll(). The overlay updates automatically on every placement/removal
+since RefreshDisplay() is called by RefreshAfterGridChange() in both PuzzleScreen and WebDemoScreen.
+Commit: 69b4f6a

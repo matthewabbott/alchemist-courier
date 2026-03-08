@@ -896,3 +896,18 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: ce08417
 - Notes: Added _Draw() override to MetaGridView that draws a filled purple triangle (DrawPolygon) centered on each gravity bag, pointing in the bag's GravityDirection. Arrow is ~1.6 cells tall, 1.0 cells wide, semi-transparent purple (0.6, 0.3, 0.9, 0.7). Supports all four directions (Down/Up/Left/Right). QueueRedraw() called from RefreshDisplay() to keep arrows in sync with grid state. No Core changes — purely Game-layer UI. All 802 tests pass.
+
+## Integration Review — 2026-03-08b
+- Reviewed commits: cb0535a..0a9ff10 (GO.3, R3, GO.4, GO.5, GO.6)
+- Build: PASS (802/802 unit tests)
+- Harness: 33/33 tests pass, 0 failures (after adding 1 new test)
+- Visual: 41 screenshots verified, no regressions
+- Issues: 0
+- New test: Test_GravityBagArrow — verifies gravity bag property reconstruction and arrow rendering via screenshot
+- Coverage gaps: GO.3-GO.5 (bag movement with reagent carrying) are Core-only, no Game UI for bag manipulation yet. Will need integration tests when UI is wired.
+- Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label clipping, base thresholds in status bar.
+
+## GO.7 — D.3: Fragile damage visual indicator (pre-confirm)
+- Date: 2026-03-08
+- Commit: 69b4f6a
+- Notes: Created DamageOverlay (src/Game/Inventory/DamageOverlay.cs) — a Godot Control that renders red tint overlays on cells affected by fragile violations (FragileCrushed, FragileThermalFracture, FragilePierced). Follows HighlightOverlay pattern with pooled ColorRect children. Wired into MetaGridView.RefreshDisplay() via ViolationTracker.ComputeAll() so overlays update live on every placement/removal. Three distinct red tint colors per violation type (slight hue variation for visual differentiation). DamageOverlay at ZIndex 5 in MetaGridView. Integration test verifies: Sharp alone = 0 damage overlays, Sharp+Fragile adjacent = 2 damage overlays (both affected cells), Fragile removed = 0 overlays. All 802 unit tests pass, 34/34 integration tests pass.

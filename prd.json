@@ -1594,7 +1594,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. In web_demo: place fragile next to sharp -- red overlay appears on fragile. Remove sharp -- overlay disappears.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.8",
