@@ -146,6 +146,11 @@ group with a smooth sine-wave alpha oscillation (2s period, 0.08–0.25 range). 
 show no overlay. Placed at ZIndex 2 so the tint sits below hover/highlight/damage overlays.
 Commit: e2f390d
 
+## Code Review (d)
+Reviewed commits 55aea9c..660f6e9 (GO.11, volatile/bag-state/bag-movement integration tests).
+Found and fixed one P2 DRY violation: OnResetPressed and OnHintPressed in WebDemoScreen duplicated
+the 5-line refresh sequence already in RefreshAfterGridChange(). Replaced with method calls. 802 tests pass.
+
 ## GO.11: ViolationListPanel for live violation display
 Added a live violations panel to the WebDemoScreen sidebar — it shows all current placement
 issues (explosions, bag imbalances, breakage, etc.) in real time as reagents are placed and

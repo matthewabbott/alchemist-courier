@@ -931,3 +931,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 55aea9c
 - Notes: Created ViolationListPanel (PanelContainer) in the WebDemoScreen sidebar that shows a live list of current placement violations via ViolationTracker.ComputeAll(). Each violation entry is a clickable Button colored by severity (red=Danger, yellow=Warning) with transparent flat styling. Panel header shows "Issues (N)" count badge in amber when violations exist, or "No issues" in green when grid is clean. Entries emit ViolationClicked(int) signal for GO.12 cell-highlight integration. Wired into WebDemoScreen.BuildSidebar after AspectLegendPanel, refreshes on all grid-change paths (RefreshAfterGridChange, OnResetPressed, OnHintPressed). All 802 tests pass.
+
+## Code Review (d) — 2026-03-08
+- Reviewed commits: 55aea9c..660f6e9 (GO.11, integration tests)
+- Findings: 1 (P0: 0, P1: 0, P2: 1)
+- Fixed: 1, Tasks created: 0
