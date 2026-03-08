@@ -1538,7 +1538,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet test -- all tests pass including new MoveBag/RotateBag tests.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.3",

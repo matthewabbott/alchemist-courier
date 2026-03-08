@@ -38,3 +38,11 @@ Reviewed last 6 commits (SA.1, SA.2, GO.1 + chore). Found and removed dead `IsHe
 method left behind after GO.1 softened Heavy to advisory. SpriteAssigner.cs (1070 lines) is large
 but acceptable as a first-implementation standalone tool. No P0/P1 issues. 757 tests passing.
 Commit: 5d48583
+
+## GO.2: MetaGrid.MoveBag and RotateBag methods
+Core infrastructure for the bag-manipulation gameplay. MoveBag repositions a bag's cell ownership
+with full validation (bounds, overlap), and supports "sliding" moves where old and new footprints
+partially overlap. RotateBag adds a Rotation property to Bag (mirroring Reagent's existing pattern)
+and rotates the shape via ShapeUtil, updating cell mapping atomically with rollback on failure.
+Both methods reject if the bag has placed reagents — GO.3 will extend this with reagent carrying.
+Commit: 5ee4923

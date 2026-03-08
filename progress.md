@@ -845,3 +845,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: dde18aa..5650c92 (GO.1, SA.1, SA.2)
 - Findings: 2 (P0: 0, P1: 0, P2: 1, P4: 1)
 - Fixed: 1 (dead IsHeavyConstraintValid method), Tasks created: 0
+
+## GO.2 — B.1 core: MetaGrid.MoveBag and RotateBag methods
+- Date: 2026-03-08
+- Commit: 5ee4923
+- Notes: Added MoveBag(Bag, Vector2I) and RotateBag(Bag) to MetaGrid. MoveBag validates new position is in-bounds and doesn't overlap other bags, allows overlapping the bag's own previous cells for sliding moves. RotateBag uses new Bag.Rotation property (mirrors Reagent pattern, 0-3 normalized) with ShapeUtil.Rotate for 90° CW increments; reverts rotation on validation failure. Both methods reject if the bag contains any placed reagents — GO.3 will extend with reagent carrying. Updated Bag.GetMetaGridPositions and IsEdgeCell to use GetRotatedShape()/GetRotatedLocalCellPositions() accounting for rotation. BagDefinition unchanged (immutable). 16 new tests: valid move, out-of-bounds, overlap rejection, not-on-grid, reagent rejection, overlapping-own-position slide, L-shape move, rotation CW, cell mapping update, rotation out-of-bounds, rotation overlap, rotation with reagents, four-rotation cycle, rotation defaults, normalization, dimension swap, position accounting, edge cell accounting. All 776 tests pass (757 existing + 19 new).
