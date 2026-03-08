@@ -482,11 +482,7 @@ public partial class WebDemoScreen : Control
             r.IsHinted = false;
 
         _actionHistory.Clear();
-        _gridView.RefreshDisplay();
-        _reagentTray.RefreshDisplay();
-        UpdateUndoRedoButtons();
-        UpdateStatusThresholds();
-        _violationPanel.Refresh();
+        RefreshAfterGridChange();
         UpdateStatus("Puzzle reset. Select a reagent from the tray.");
     }
 
@@ -503,11 +499,7 @@ public partial class WebDemoScreen : Control
             // Hint modifies grid outside ActionHistory — clear to avoid inconsistent state
             _actionHistory.Clear();
             ClearSelectionState();
-            _gridView.RefreshDisplay();
-            _reagentTray.RefreshDisplay();
-            UpdateUndoRedoButtons();
-            UpdateStatusThresholds();
-            _violationPanel.Refresh();
+            RefreshAfterGridChange();
         }
 
         _hintCountLabel.Text = _hintOrchestrator.FormatHintCount();
