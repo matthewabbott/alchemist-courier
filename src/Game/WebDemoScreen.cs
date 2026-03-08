@@ -51,6 +51,7 @@ public partial class WebDemoScreen : Control
 
     // State
     private string? _legendSelectedAspect;
+    private int _selectedViolationIndex = -1;
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
     private List<ReactionResult> _lastReactions = new();
 
@@ -323,6 +324,7 @@ public partial class WebDemoScreen : Control
         _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
         _gridView.RejectionFlash += OnRejectionFlash;
         _legendPanel.AspectSelected += OnLegendAspectSelected;
+        _violationPanel.ViolationClicked += OnViolationClicked;
     }
 
     private void OnReagentSelected(int index)
@@ -396,6 +398,10 @@ public partial class WebDemoScreen : Control
 
     private void OnLegendAspectSelected(string aspectId)
     {
+        // Clear violation highlight if active
+        if (_selectedViolationIndex >= 0)
+            ClearViolationHighlight();
+
         if (_legendSelectedAspect == aspectId)
         {
             _legendSelectedAspect = null;
@@ -412,6 +418,56 @@ public partial class WebDemoScreen : Control
             var legendPos = _legendPanel.GlobalPosition;
             _aspectTooltip.ShowForAspect(aspectId, new Vector2(legendPos.X - 230, legendPos.Y));
         }
+    }
+
+    private void OnViolationClicked(int violationIndex)
+    {
+        if (violationIndex == _selectedViolationIndex)
+        {
+            // Toggle off
+            ClearViolationHighlight();
+            return;
+        }
+
+        var violations = _violationPanel.CurrentViolations;
+        if (violationIndex < 0 || violationIndex >= violations.Count)
+            return;
+
+        // Clear legend selection if active
+        if (_legendSelectedAspect != null)
+        {
+            _legendSelectedAspect = null;
+            _aspectTooltip.ForceHide();
+        }
+
+        _selectedViolationIndex = violationIndex;
+        var violation = violations[violationIndex];
+
+        // Highlight affected cells on grid
+        var highlights = HighlightEngine.ComputeViolationHighlights(violation);
+        _gridView.SetHighlights(highlights);
+
+        // Highlight affected reagents in tray
+        var affectedIndices = new HashSet<int>();
+        foreach (var cell in violation.AffectedCells)
+        {
+            var reagent = _metaGrid.GetReagentAtCell(cell);
+            if (reagent != null)
+            {
+                var idx = _trayReagents.IndexOf(reagent);
+                if (idx >= 0)
+                    affectedIndices.Add(idx);
+            }
+        }
+        _reagentTray.HighlightIndices(affectedIndices);
+    }
+
+    private void ClearViolationHighlight()
+    {
+        if (_selectedViolationIndex < 0) return;
+        _selectedViolationIndex = -1;
+        _gridView.SetHighlights(new HighlightSet());
+        _reagentTray.ClearSelection();
     }
 
     private void OnRejectionFlash(string aspectId)
@@ -525,10 +581,30 @@ public partial class WebDemoScreen : Control
         UpdateStatus("Redone.");
     }
 
+    public override void _UnhandledKeyInput(InputEvent @event)
+    {
+        if (@event is InputEventKey { Pressed: true, Keycode: Key.Escape })
+        {
+            if (_selectedViolationIndex >= 0)
+            {
+                ClearViolationHighlight();
+                GetViewport().SetInputAsHandled();
+            }
+            else if (_legendSelectedAspect != null)
+            {
+                _legendSelectedAspect = null;
+                _gridView.SetHighlights(new HighlightSet());
+                _aspectTooltip.ForceHide();
+                GetViewport().SetInputAsHandled();
+            }
+        }
+    }
+
     // --- Refresh helpers ---
 
     private void RefreshAfterGridChange()
     {
+        ClearViolationHighlight();
         _gridView.RefreshDisplay();
         _reagentTray.RefreshDisplay();
         UpdateUndoRedoButtons();

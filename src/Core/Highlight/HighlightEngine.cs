@@ -228,6 +228,34 @@ public static class HighlightEngine
     }
 
     /// <summary>
+    /// Converts a ViolationEntry's affected cells into a HighlightSet with
+    /// contiguous boundary edges for visual feedback when clicking a violation.
+    /// </summary>
+    public static HighlightSet ComputeViolationHighlights(ViolationEntry violation)
+    {
+        var highlightSet = new HighlightSet();
+        if (violation.AffectedCells.Count == 0)
+            return highlightSet;
+
+        var cells = violation.AffectedCells.ToList();
+        var boundary = ContiguousBoundary.Compute(cells);
+
+        foreach (var cell in cells)
+        {
+            var edges = boundary.TryGetValue(cell, out var e) ? e : CellEdge.All;
+            highlightSet.Add(new CellHighlight(
+                cell,
+                edges,
+                HighlightLayer.Interaction,
+                violation.Severity,
+                violation.AspectId,
+                violation.Description));
+        }
+
+        return highlightSet;
+    }
+
+    /// <summary>
     /// Builds a list of (ourAspect, theirAspect) interaction pairs from Adjacent rules.
     /// For 2-trigger rules: both orderings of the trigger pair.
     /// For 1-trigger rules (Volatile net-hot): pairs with Hot and Cold.

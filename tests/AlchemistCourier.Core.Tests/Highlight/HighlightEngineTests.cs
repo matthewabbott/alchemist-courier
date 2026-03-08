@@ -784,4 +784,88 @@ public class StatusThresholdsTests
         thresholds.Set("hot", 0, 1);
         Assert.Equal(HighlightSeverity.Warning, thresholds.GetSeverity("hot"));
     }
+
+    // --- ComputeViolationHighlights tests ---
+
+    [Fact]
+    public void ViolationHighlights_EmptyCells_ReturnsEmpty()
+    {
+        var violation = new ViolationEntry(
+            ViolationType.VolatileExplosion,
+            "test violation",
+            HighlightSeverity.Danger,
+            new List<Vector2I>(),
+            AspectIds.Volatile);
+
+        var highlights = HighlightEngine.ComputeViolationHighlights(violation);
+        Assert.True(highlights.IsEmpty);
+    }
+
+    [Fact]
+    public void ViolationHighlights_SingleCell_AllEdges()
+    {
+        var cells = new List<Vector2I> { new(2, 3) };
+        var violation = new ViolationEntry(
+            ViolationType.VolatileExplosion,
+            "Explosion here",
+            HighlightSeverity.Danger,
+            cells,
+            AspectIds.Volatile);
+
+        var highlights = HighlightEngine.ComputeViolationHighlights(violation);
+        var entries = highlights.GetByLayer(HighlightLayer.Interaction);
+
+        Assert.Single(entries);
+        Assert.Equal(new Vector2I(2, 3), entries[0].Position);
+        Assert.Equal(CellEdge.All, entries[0].Edges);
+        Assert.Equal(HighlightSeverity.Danger, entries[0].Severity);
+        Assert.Equal(AspectIds.Volatile, entries[0].AspectId);
+        Assert.Equal("Explosion here", entries[0].Reason);
+    }
+
+    [Fact]
+    public void ViolationHighlights_AdjacentCells_InternalEdgesExcluded()
+    {
+        // Two horizontally adjacent cells — internal shared edge excluded
+        var cells = new List<Vector2I> { new(1, 1), new(2, 1) };
+        var violation = new ViolationEntry(
+            ViolationType.BagTooHot,
+            "Bag 1: too hot",
+            HighlightSeverity.Warning,
+            cells,
+            AspectIds.Hot);
+
+        var highlights = HighlightEngine.ComputeViolationHighlights(violation);
+        var entries = highlights.GetByLayer(HighlightLayer.Interaction);
+
+        Assert.Equal(2, entries.Count);
+
+        // Left cell (1,1) should NOT have Right edge (shared with 2,1)
+        var left = entries.First(e => e.Position.Equals(new Vector2I(1, 1)));
+        Assert.False(left.Edges.HasFlag(CellEdge.Right));
+        Assert.True(left.Edges.HasFlag(CellEdge.Left));
+
+        // Right cell (2,1) should NOT have Left edge (shared with 1,1)
+        var right = entries.First(e => e.Position.Equals(new Vector2I(2, 1)));
+        Assert.False(right.Edges.HasFlag(CellEdge.Left));
+        Assert.True(right.Edges.HasFlag(CellEdge.Right));
+    }
+
+    [Fact]
+    public void ViolationHighlights_PreservesSeverityAndAspect()
+    {
+        var cells = new List<Vector2I> { new(0, 0) };
+        var violation = new ViolationEntry(
+            ViolationType.FragileCrushed,
+            "Crushed",
+            HighlightSeverity.Danger,
+            cells,
+            AspectIds.Fragile);
+
+        var highlights = HighlightEngine.ComputeViolationHighlights(violation);
+        var entry = highlights.GetByLayer(HighlightLayer.Interaction)[0];
+
+        Assert.Equal(HighlightSeverity.Danger, entry.Severity);
+        Assert.Equal(AspectIds.Fragile, entry.AspectId);
+    }
 }

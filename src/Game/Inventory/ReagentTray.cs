@@ -74,6 +74,18 @@ public partial class ReagentTray : VBoxContainer
         }
     }
 
+    /// <summary>
+    /// Highlight tray items for reagents whose indices are in the given set.
+    /// Used by violation click to mark affected reagents.
+    /// </summary>
+    public void HighlightIndices(HashSet<int> indices)
+    {
+        foreach (var item in _items)
+        {
+            item.SetSelected(indices.Contains(item.ReagentIndex));
+        }
+    }
+
     private void BuildItems()
     {
         for (int i = 0; i < _allReagents.Count; i++)
