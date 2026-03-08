@@ -46,3 +46,15 @@ partially overlap. RotateBag adds a Rotation property to Bag (mirroring Reagent'
 and rotates the shape via ShapeUtil, updating cell mapping atomically with rollback on failure.
 Both methods reject if the bag has placed reagents — GO.3 will extend this with reagent carrying.
 Commit: 5ee4923
+
+## GO.3: Bag movement carries contained reagents
+Extended MoveBag and RotateBag to carry fully-contained reagents instead of rejecting when
+reagents are present. "Fully contained" means all of a reagent's cells lie within the moving
+bag's footprint. Spanning reagents (cells in multiple bags) stay in place. MoveBag translates
+reagent PlacedPositions by the bag's delta. RotateBag applies the 90° CW cell transform
+(newCol = oldRows-1-row, newRow = col), increments reagent Rotation, and recomputes
+PlacedPosition as the min-corner of the transformed cells. Added ClearReagentCellOccupancy /
+RestoreReagentCellOccupancy helpers to temporarily unblock validation during bag movement.
+7 new tests covering multi-cell carrying, spanning reagent exclusion, multiple reagents,
+rotation transform, and rollback on invalid moves. 783 tests passing.
+Commit: 7594d9e

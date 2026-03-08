@@ -1550,7 +1550,7 @@
         "GO.2"
       ],
       "verification": "dotnet test -- all tests pass.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.4",
