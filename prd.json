@@ -1354,7 +1354,7 @@
         "SA.1"
       ],
       "verification": "dotnet build. Load PNG, select cells, set aspect/metadata, export JSON. Verify JSON file contents match selections. Verify 32px preview renders correctly.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.1",
