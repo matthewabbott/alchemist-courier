@@ -126,3 +126,13 @@ add the violation type to the filter and give it an orange tint distinct from th
 colors. No volatile placement blocking existed to remove; the design already allows free
 placement of dangerous combinations during play. Two-file, ten-line diff.
 Commit: bd232fb
+
+## GO.9: Error highlight pulse on confirm with violations
+When the player confirms with active violations (explosions, breakage, etc.), the affected
+cells now pulse red 3 times over 1 second before the reaction animation plays. This creates
+a clear visual beat — "here's what's wrong" (pulse) → "here's what happens" (explosion anim)
+→ "you failed" (result overlay). Added PulseViolations() to DamageOverlay using Godot Tween
+with modulate alpha oscillation, and a MetaGridView facade that computes violations and
+delegates. The pulse chains to ReactionAnimator via callback in both PuzzleScreen and
+WebDemoScreen. Clean 67-line change.
+Commit: 06046db

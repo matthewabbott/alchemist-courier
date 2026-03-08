@@ -916,3 +916,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: bd232fb
 - Notes: Extended DamageOverlay to also render VolatileExplosion violations with an orange tint (0.95, 0.5, 0.1, 0.4). Renamed IsFragileViolation to IsDamageViolation and added VolatileExplosion to the filter. ViolationTracker already detected VolatileExplosion from ChemistryEngine; this just wires the visual. No volatile placement blocking existed in CanPlaceReagent, so no removal needed — consistent with "invalid states freely allowed during play" design. Minimal 2-file change. All 802 tests pass.
+
+## GO.9 — F.1: Error highlight pulse on confirm with violations
+- Date: 2026-03-08
+- Commit: 06046db
+- Notes: Added PulseViolations() to DamageOverlay — renders violation cells then pulses them 3 times over 1 second using Godot Tween (alpha oscillates 0.2→1.0→0.2 per pulse, Finished callback chains to reaction animation). Added PulseViolations() facade on MetaGridView that computes violations via ViolationTracker.ComputeAll() and delegates to DamageOverlay. Wired into both PuzzleScreen.ConfirmPuzzle() and WebDemoScreen.OnConfirmPressed(): on HasReactions, violation pulse plays first, then chains to ReactionAnimator.PlayReactions via callback. Clean 67-line change across 4 files. All 802 tests pass.

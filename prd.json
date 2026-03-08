@@ -1614,7 +1614,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. In web_demo: place conflicting reagents, press confirm -- cells pulse red before fail overlay shows.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.10",
