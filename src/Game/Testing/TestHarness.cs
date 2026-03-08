@@ -316,6 +316,7 @@ public partial class TestHarness : Control
         }
 
         // Verify status bar starts at zero
+        // Note: Only Hot and Cold cumulative rules remain after I.3 removed Toxic/Poisoning
         var bar = _puzzleScreen.StatusBar;
         int hotBefore = bar.GetAspectTotal("hot");
         Log($"[STATE] hot_before={hotBefore} (expected=0)");
@@ -326,15 +327,7 @@ public partial class TestHarness : Control
         int hotAfterPebble = bar.GetAspectTotal("hot");
         Log($"[STATE] hot_after_fire_pebble={hotAfterPebble} (expected=2)");
 
-        // Place Poison Fang (index 2) — has 3 toxic + 1 sharp — at (4,1) in Reinforced Satchel
-        // (Sharp reagents need Reinforced bags to sit on edge cells)
-        TestActions.SelectAndPlace(_puzzleScreen, 2, 4, 1);
-
-        int toxicAfter = bar.GetAspectTotal("toxic");
-        Log($"[STATE] toxic_after_poison_fang={toxicAfter} (expected=3)");
-
         // Place Blast Jelly (index 3) — has 1 hot cell + 3 volatile cells — at (5,1) in Satchel
-        // (placed after Poison Fang to avoid overlap; T-shape at (5,1) occupies (5,1),(6,1),(7,1),(6,2))
         TestActions.SelectAndPlace(_puzzleScreen, 3, 5, 1);
 
         int hotAfterJelly = bar.GetAspectTotal("hot");
@@ -350,10 +343,9 @@ public partial class TestHarness : Control
         bool pass = hotBefore == 0
                  && hotAfterPebble == 2
                  && hotAfterJelly == 3
-                 && toxicAfter == 3
                  && hotAfterRemove == 1;
         EndTest("status_bar", pass, pass ? null
-            : $"hotBefore={hotBefore} hotAfterPebble={hotAfterPebble} hotAfterJelly={hotAfterJelly} toxicAfter={toxicAfter} hotAfterRemove={hotAfterRemove}");
+            : $"hotBefore={hotBefore} hotAfterPebble={hotAfterPebble} hotAfterJelly={hotAfterJelly} hotAfterRemove={hotAfterRemove}");
     }
 
     private async Task Test_ConfirmAndReset()
@@ -456,26 +448,8 @@ public partial class TestHarness : Control
         // Clean up via ResetPuzzle (handles rotated shapes whose anchor cell may be empty)
         _puzzleScreen.ResetPuzzle();
 
-        // Reagent index reference:
-        // 0=Fire Pebble (1x1, Hot=2)
-        // 1=Ice Shard (1x2 horiz, Cold×2)
-        // 2=Poison Fang (L-shape 3×2, Toxic×3+Sharp, needs Reinforced bag)
-        // 3=Blast Jelly (T-shape 2×3, Volatile×3+Hot×1)
-        // 4=Inert Crystal (1x2 horiz, Stable×2)
-        // 5=Cinnabar Block (2x2, Heavy×2+Medicinal+Catalytic)
-        //
-        // Layout constraints for WIN (zero reactions):
-        // - Hot+Cold must be in DIFFERENT bags (avoid Neutralization)
-        // - Fire Pebble must NOT be adjacent to Volatile cells (avoid Explosion)
-        // - Poison Fang (Sharp) must go in Reinforced Satchel
-        //
-        // SmallPouch (3×3 at (1,1)): Cinnabar(1,1), Inert Crystal vertical(3,1), Ice Shard horiz(1,3)
-        // Satchel (4×3 Reinforced at (4,1)): Blast Jelly unrotated(4,1), Poison Fang 270°(5,2),
-        //   Fire Pebble at (4,3) [WIN] or (4,2) [LOSS — adjacent to Volatile at (4,1) and (5,2)]
-
-        // --- LOSS PATH: Fire Pebble at (4,2) adjacent to Blast Jelly Volatile cells ---
-        // Blast Jelly unrotated at (4,1): Volatile@(4,1), Hot@(5,1), Volatile@(6,1), Volatile@(5,2)
-        // Fire Pebble(Hot=2) at (4,2) is adjacent to Volatile@(4,1) and Volatile@(5,2) → Explosion
+        // --- LOSS PATH using DemoPuzzle ---
+        // Fire Pebble(Hot=2) at (4,2) adjacent to Blast Jelly Volatile cells → Explosion
         TestActions.SelectAndPlace(_puzzleScreen, 5, 1, 1);                // Cinnabar Block at (1,1)
         TestActions.SelectRotateAndPlace(_puzzleScreen, 4, 1, 3, 1);       // Inert Crystal vertical at (3,1)
         TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 3);                // Ice Shard at (1,3)
@@ -505,17 +479,32 @@ public partial class TestHarness : Control
 
         await CaptureScreenshot("15_loss_confirm.png");
 
-        // --- WIN PATH: Same layout but Fire Pebble at (4,3) — not adjacent to any Volatile ---
-        _puzzleScreen.ResetPuzzle();
+        // --- WIN PATH using generated puzzle with known-good solution ---
+        // DemoPuzzle can't produce a Win under I.2 per-bag Hot/Cold balance rules,
+        // so we use PuzzleGenerator which guarantees a valid solution.
+        var generator = new PuzzleGenerator();
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Easy);
+        var winState = generator.Generate(99, difficulty);
 
-        TestActions.SelectAndPlace(_puzzleScreen, 5, 1, 1);                // Cinnabar Block at (1,1)
-        TestActions.SelectRotateAndPlace(_puzzleScreen, 4, 1, 3, 1);       // Inert Crystal vertical at (3,1)
-        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 3);                // Ice Shard at (1,3)
-        TestActions.SelectAndPlace(_puzzleScreen, 3, 4, 1);                // Blast Jelly unrotated at (4,1)
-        TestActions.SelectRotateAndPlace(_puzzleScreen, 2, 3, 5, 2);       // Poison Fang 270° at (5,2)
-        TestActions.SelectAndPlace(_puzzleScreen, 0, 4, 3);                // Fire Pebble at (4,3) ← SAFE
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = winState };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
 
-        int placedForWin = _puzzleScreen.Grid.PlacedReagents.Count;
+        // Apply the generator's solution (same pattern as Test_GeneratedPuzzle)
+        int placedForWin = _puzzleScreen.Grid.PlacedReagents.Count; // count pre-placed locked
+        foreach (var placement in winState.Solution)
+        {
+            var reagent = _puzzleScreen.TrayReagents[placement.ReagentIndex];
+            if (reagent.IsPlaced) continue; // Already placed (locked)
+
+            _puzzleScreen.SelectReagent(placement.ReagentIndex);
+            for (int r = 0; r < placement.Rotation; r++)
+                _puzzleScreen.RotateSelected();
+            bool placed = _puzzleScreen.PlaceSelectedAt(placement.PositionCol, placement.PositionRow);
+            if (placed) placedForWin++;
+        }
         Log($"[STATE] placed_for_win={placedForWin}");
 
         ConfirmResult winResult = ConfirmResult.None;
@@ -535,7 +524,7 @@ public partial class TestHarness : Control
         await CaptureScreenshot("16_win_confirm.png");
 
         // Verify both paths
-        bool lossPass = placedForLoss == _puzzleScreen.TrayReagents.Count
+        bool lossPass = placedForLoss == 6
                      && lossResult == ConfirmResult.HasReactions
                      && reactionCount > 0
                      && hasExplosion;
@@ -546,6 +535,13 @@ public partial class TestHarness : Control
         bool pass = lossPass && winPass;
         EndTest("win_loss_evaluation", pass, pass ? null
             : $"lossPass={lossPass}(placed={placedForLoss} result={lossResult} reactions={reactionCount} explosion={hasExplosion}) winPass={winPass}(placed={placedForWin} result={winResult} reactions={winReactionCount})");
+
+        // Restore DemoPuzzle for remaining tests
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
     }
 
     private async Task Test_GeneratedPuzzle()
@@ -908,10 +904,14 @@ public partial class TestHarness : Control
                         if (dislodgeList != null && dislodgeList.Contains(a))
                         {
                             dislodgeAttempted = true;
-                            var hintResult = _puzzleScreen.UseHint();
 
-                            // UseHint picks next target via PickNextHintTarget (auto-pick).
-                            // It may not pick B. Let's just verify if a dislodge happened.
+                            // Call HintEngine.ExecuteHint directly for reagent B to guarantee
+                            // we test the dislodge mechanic (UseHint auto-picks and may not choose B)
+                            var hintResult = HintEngine.ExecuteHint(
+                                _puzzleScreen.Grid,
+                                new System.Collections.Generic.List<AlchemistCourier.Core.Reagents.Reagent>(_puzzleScreen.TrayReagents),
+                                b, solB);
+
                             bool dislodgeOccurred = hintResult != null && hintResult.IsSuccess
                                 && hintResult.DislodgedReagentIndices.Count > 0;
                             bool dislodgedReturnsToTray = !reagentA.IsPlaced;
