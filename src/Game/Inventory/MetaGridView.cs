@@ -279,6 +279,9 @@ public partial class MetaGridView : Control
         }
     }
 
+    // Gravity arrow color
+    private static readonly Color GravityArrowColor = new(0.6f, 0.3f, 0.9f, 0.7f);
+
     public void RefreshDisplay()
     {
         // Clear old bag borders
@@ -335,6 +338,9 @@ public partial class MetaGridView : Control
 
         // Draw locked reagent borders
         CreateLockedBorders();
+
+        // Trigger _Draw() for gravity arrows
+        QueueRedraw();
     }
 
     private void CreateBagBorders(Dictionary<Bag, int> bagIndexMap)
@@ -374,6 +380,96 @@ public partial class MetaGridView : Control
     private void CreateLockedBorders()
     {
         CreateReagentBorders(_lockedBorders, r => r.IsLocked, 2, GridConstants.LockedBorderColor);
+    }
+
+    public override void _Draw()
+    {
+        if (_metaGrid == null) return;
+
+        foreach (var bag in _metaGrid.PlacedBags)
+        {
+            if (!bag.HasProperty(BagPropertyType.Gravity) || !bag.IsPlaced)
+                continue;
+
+            DrawGravityArrow(bag);
+        }
+    }
+
+    private void DrawGravityArrow(Bag bag)
+    {
+        // Compute the bag's pixel bounding box from its placed cells
+        var positions = bag.GetCurrentMetaGridPositions();
+        if (positions.Count == 0) return;
+
+        int minCol = int.MaxValue, maxCol = int.MinValue;
+        int minRow = int.MaxValue, maxRow = int.MinValue;
+        foreach (var pos in positions)
+        {
+            if (pos.Col < minCol) minCol = pos.Col;
+            if (pos.Col > maxCol) maxCol = pos.Col;
+            if (pos.Row < minRow) minRow = pos.Row;
+            if (pos.Row > maxRow) maxRow = pos.Row;
+        }
+
+        float cs = GridConstants.CellSize;
+        float bagPixelX = minCol * cs;
+        float bagPixelY = minRow * cs;
+        float bagPixelW = (maxCol - minCol + 1) * cs;
+        float bagPixelH = (maxRow - minRow + 1) * cs;
+
+        // Center of the bag in pixel coords
+        float cx = bagPixelX + bagPixelW / 2f;
+        float cy = bagPixelY + bagPixelH / 2f;
+
+        // Arrow size: about 2 cells tall, 1.2 cells wide
+        float arrowLength = cs * 1.6f;
+        float arrowWidth = cs * 1.0f;
+
+        // Build triangle points based on gravity direction
+        // The arrow points IN the direction of gravity (where things fall toward)
+        Godot.Vector2[] points;
+        var dir = bag.GravityDirection;
+
+        switch (dir)
+        {
+            case GravityDirection.Down:
+                points = new Godot.Vector2[]
+                {
+                    new(cx, cy + arrowLength / 2f),            // tip (bottom)
+                    new(cx - arrowWidth / 2f, cy - arrowLength / 2f), // top-left
+                    new(cx + arrowWidth / 2f, cy - arrowLength / 2f), // top-right
+                };
+                break;
+            case GravityDirection.Up:
+                points = new Godot.Vector2[]
+                {
+                    new(cx, cy - arrowLength / 2f),            // tip (top)
+                    new(cx + arrowWidth / 2f, cy + arrowLength / 2f), // bottom-right
+                    new(cx - arrowWidth / 2f, cy + arrowLength / 2f), // bottom-left
+                };
+                break;
+            case GravityDirection.Left:
+                points = new Godot.Vector2[]
+                {
+                    new(cx - arrowLength / 2f, cy),            // tip (left)
+                    new(cx + arrowLength / 2f, cy - arrowWidth / 2f), // top-right
+                    new(cx + arrowLength / 2f, cy + arrowWidth / 2f), // bottom-right
+                };
+                break;
+            case GravityDirection.Right:
+                points = new Godot.Vector2[]
+                {
+                    new(cx + arrowLength / 2f, cy),            // tip (right)
+                    new(cx - arrowLength / 2f, cy + arrowWidth / 2f), // bottom-left
+                    new(cx - arrowLength / 2f, cy - arrowWidth / 2f), // top-left
+                };
+                break;
+            default:
+                return;
+        }
+
+        var colors = new Color[] { GravityArrowColor, GravityArrowColor, GravityArrowColor };
+        DrawPolygon(points, colors);
     }
 
     private void CreateReagentBorders(List<ColorRect> borderList, System.Func<Reagent, bool> predicate, float borderWidth, Color color)
