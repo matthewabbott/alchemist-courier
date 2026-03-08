@@ -7,6 +7,7 @@ using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Game.Inventory;
 using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Core.Highlight;
+using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Puzzle;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
@@ -90,6 +91,9 @@ public partial class TestHarness : Control
         await Test_HoverFrameOverlay();
         await Test_GravityBagArrow();
         await Test_FragileDamageOverlay();
+        await Test_VolatileExplosionOverlay();
+        await Test_BagStateOverlay();
+        await Test_BagMovement();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2017,6 +2021,249 @@ public partial class TestHarness : Control
             && clearedCount == 0;
         EndTest("fragile_damage_overlay", pass, pass ? null
             : $"sharpPlaced={sharpPlaced} fragilePlaced={fragilePlaced} noDamage={noDamageCount} hasDamage={damageCount} cleared={clearedCount}");
+
+        // Restore DemoPuzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+    }
+
+    private async Task Test_VolatileExplosionOverlay()
+    {
+        BeginTest("volatile_explosion_overlay");
+
+        // Create a puzzle with a Volatile reagent and a Hot reagent
+        var state = new PuzzleState
+        {
+            Seed = 701,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true, true, true },
+                    { true, true, true, true, true },
+                    { true, true, true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                // Hot reagent (1x1)
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+                // Volatile reagent (1x1)
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "volatile" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 5, PositionRow = 3, Rotation = 0 },
+            },
+        };
+
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Place Hot at (3,2) — no danger yet
+        _puzzleScreen.SelectReagent(0);
+        bool hotPlaced = _puzzleScreen.PlaceSelectedAt(3, 2);
+        await WaitFrames(2);
+        int noDamage = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] hot_placed={hotPlaced} damage_before={noDamage}");
+
+        // Place Volatile at (4,2) — adjacent to Hot → explosion violation
+        _puzzleScreen.SelectReagent(1);
+        bool volPlaced = _puzzleScreen.PlaceSelectedAt(4, 2);
+        await WaitFrames(2);
+        int withDamage = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] volatile_placed={volPlaced} damage_after={withDamage}");
+
+        await CaptureScreenshot("43_volatile_explosion_overlay.png");
+
+        // Remove volatile — damage should clear
+        _puzzleScreen.RemoveReagentAt(4, 2);
+        await WaitFrames(2);
+        int cleared = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] damage_cleared={cleared}");
+
+        bool pass = hotPlaced && volPlaced
+            && noDamage == 0
+            && withDamage > 0
+            && cleared == 0;
+        EndTest("volatile_explosion_overlay", pass, pass ? null
+            : $"hot={hotPlaced} vol={volPlaced} noDamage={noDamage} withDamage={withDamage} cleared={cleared}");
+
+        // Restore DemoPuzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+    }
+
+    private async Task Test_BagStateOverlay()
+    {
+        BeginTest("bag_state_overlay");
+
+        // Create a puzzle where placing a Hot reagent triggers a per-bag heat imbalance
+        var state = new PuzzleState
+        {
+            Seed = 702,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                // Hot reagent with magnitude 2
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+            },
+        };
+
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Before placing: no bag tint
+        int tintBefore = _puzzleScreen.GridView.BagStateTintCount;
+        int groupsBefore = _puzzleScreen.GridView.BagStateActiveGroupCount;
+        Log($"[STATE] tint_before={tintBefore} groups_before={groupsBefore} (expected: 0, 0)");
+
+        // Place the Hot reagent — bag should show thermal imbalance (smoldering)
+        _puzzleScreen.SelectReagent(0);
+        bool placed = _puzzleScreen.PlaceSelectedAt(2, 2);
+        await WaitFrames(2);
+
+        int tintAfter = _puzzleScreen.GridView.BagStateTintCount;
+        int groupsAfter = _puzzleScreen.GridView.BagStateActiveGroupCount;
+        Log($"[STATE] placed={placed} tint_after={tintAfter} groups_after={groupsAfter} (expected: >0, 1)");
+
+        await CaptureScreenshot("44_bag_state_overlay.png");
+
+        // Remove the reagent — tint should clear
+        _puzzleScreen.RemoveReagentAt(2, 2);
+        await WaitFrames(2);
+
+        int tintCleared = _puzzleScreen.GridView.BagStateTintCount;
+        int groupsCleared = _puzzleScreen.GridView.BagStateActiveGroupCount;
+        Log($"[STATE] tint_cleared={tintCleared} groups_cleared={groupsCleared} (expected: 0, 0)");
+
+        bool pass = tintBefore == 0 && groupsBefore == 0
+            && placed
+            && tintAfter > 0 && groupsAfter == 1
+            && tintCleared == 0 && groupsCleared == 0;
+        EndTest("bag_state_overlay", pass, pass ? null
+            : $"tBefore={tintBefore} gBefore={groupsBefore} placed={placed} tAfter={tintAfter} gAfter={groupsAfter} tCleared={tintCleared} gCleared={groupsCleared}");
+
+        // Restore DemoPuzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+    }
+
+    private async Task Test_BagMovement()
+    {
+        BeginTest("bag_movement");
+
+        // Create a puzzle with two bags and a reagent
+        var state = new PuzzleState
+        {
+            Seed = 703,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true },
+                    { true, true },
+                }, col: 1, row: 1),
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true },
+                    { true, true },
+                }, col: 5, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+            },
+        };
+
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Place reagent in first bag at (1,1)
+        _puzzleScreen.SelectReagent(0);
+        bool placed = _puzzleScreen.PlaceSelectedAt(1, 1);
+        await WaitFrames(2);
+
+        var reagent = _puzzleScreen.TrayReagents[0];
+        var posBefore = reagent.PlacedPosition;
+        Log($"[STATE] placed={placed} pos_before=({posBefore?.Col},{posBefore?.Row})");
+
+        // Move first bag from (1,1) to (1,3) — shifts down by 2 rows
+        var bag = _puzzleScreen.Grid.PlacedBags[0];
+        bool moved = _puzzleScreen.Grid.MoveBag(bag, new CoreVec(1, 3));
+        _puzzleScreen.GridView.RefreshDisplay();
+        await WaitFrames(2);
+
+        var posAfter = reagent.PlacedPosition;
+        bool reagentMoved = posAfter?.Col == 1 && posAfter?.Row == 3;
+        Log($"[STATE] bag_moved={moved} pos_after=({posAfter?.Col},{posAfter?.Row}) reagent_moved={reagentMoved} (expected: 1,3)");
+
+        // Try invalid move — overlapping with second bag at (5,1)
+        bool invalidMove = _puzzleScreen.Grid.MoveBag(bag, new CoreVec(5, 1));
+        Log($"[STATE] invalid_move={invalidMove} (expected: false)");
+
+        // Rotate the bag
+        bool rotated = _puzzleScreen.Grid.RotateBag(bag);
+        _puzzleScreen.GridView.RefreshDisplay();
+        await WaitFrames(2);
+        var posAfterRotate = reagent.PlacedPosition;
+        bool stillPlaced = reagent.IsPlaced;
+        Log($"[STATE] rotated={rotated} still_placed={stillPlaced} pos_after_rotate=({posAfterRotate?.Col},{posAfterRotate?.Row})");
+
+        await CaptureScreenshot("45_bag_movement.png");
+
+        bool pass = placed && moved && reagentMoved
+            && !invalidMove
+            && rotated && stillPlaced;
+        EndTest("bag_movement", pass, pass ? null
+            : $"placed={placed} moved={moved} reagentMoved={reagentMoved} invalidMove={invalidMove} rotated={rotated} stillPlaced={stillPlaced}");
 
         // Restore DemoPuzzle
         _puzzleScreen.QueueFree();
