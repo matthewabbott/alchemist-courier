@@ -880,10 +880,10 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Heavy_RejectedIfNonHeavyBelow()
+    public void Heavy_AboveNonHeavy_AllowedButReportsViolation()
     {
-        // 3x3 Gravity bag. Place non-Heavy at bottom (1,2), then try Heavy at (1,1).
-        // Heavy above non-Heavy = bad (Heavy must be at bottom).
+        // 3x3 Gravity bag. Place non-Heavy at bottom (1,2), then Heavy at (1,1).
+        // Heavy above non-Heavy is now advisory — placement succeeds but violation reported.
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
@@ -892,8 +892,14 @@ public class MetaGridTests
         Assert.True(grid.PlaceReagent(nonHeavy, new Vector2I(1, 2))); // bottom row
 
         var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
-        // Heavy at (1,1) — non-Heavy at (1,2) is below: rejected
-        Assert.False(grid.CanPlaceReagent(heavy, new Vector2I(1, 1)));
+        // Heavy at (1,1) — placement now succeeds (advisory constraint)
+        Assert.True(grid.CanPlaceReagent(heavy, new Vector2I(1, 1)));
+
+        // But violations are still reported
+        var positions = heavy.GetMetaGridPositions(new Vector2I(1, 1));
+        var violations = grid.GetHeavyViolations(heavy, positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.HeavyAboveNonHeavy, violations[0].Type);
     }
 
     [Fact]
@@ -912,10 +918,10 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Heavy_NonHeavyRejectedBelowHeavy()
+    public void Heavy_NonHeavyBelowHeavy_AllowedButReportsViolation()
     {
-        // 4x1 Gravity bag. Place Heavy at row 2, then try non-Heavy at row 3 (below).
-        // Non-Heavy below Heavy = bad.
+        // 4x1 Gravity bag. Place Heavy at bottom, non-Heavy above, then Heavy above non-Heavy.
+        // All placements succeed (advisory constraint), but violations are reported.
         var shape = new bool[,] { { true }, { true }, { true }, { true } };
         var gravDef = new BagDefinition("tall_grav", "Tall Gravity", shape,
             new[] { BagPropertyType.Gravity });
@@ -926,16 +932,20 @@ public class MetaGridTests
         var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
         Assert.True(grid.PlaceReagent(heavy, new Vector2I(0, 3))); // bottom
 
-        // Try placing non-Heavy at (0,2) — above Heavy at (0,3) — should succeed
+        // Non-Heavy at (0,2) — above Heavy at (0,3) — succeeds
         var nonHeavy1 = new Reagent(ReagentDefinition.SingleCell);
         Assert.True(grid.CanPlaceReagent(nonHeavy1, new Vector2I(0, 2)));
-
-        // Now place non-Heavy at (0,2), then place Heavy at (0,1).
-        // Heavy at (0,1) with non-Heavy at (0,2) below — rejected.
         Assert.True(grid.PlaceReagent(nonHeavy1, new Vector2I(0, 2)));
 
+        // Heavy at (0,1) with non-Heavy at (0,2) below — now succeeds (advisory)
         var heavy2 = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
-        Assert.False(grid.CanPlaceReagent(heavy2, new Vector2I(0, 1)));
+        Assert.True(grid.CanPlaceReagent(heavy2, new Vector2I(0, 1)));
+
+        // But violations are still reported
+        var positions = heavy2.GetMetaGridPositions(new Vector2I(0, 1));
+        var violations = grid.GetHeavyViolations(heavy2, positions);
+        Assert.Single(violations);
+        Assert.Equal(ConstraintType.HeavyAboveNonHeavy, violations[0].Type);
     }
 
     [Fact]

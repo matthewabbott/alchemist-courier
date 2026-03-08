@@ -235,9 +235,8 @@ public class MetaGrid
         if (!IsGravityValid(positions))
             return false;
 
-        // Check Heavy aspect constraint in Gravity bags
-        if (!IsHeavyConstraintValid(reagent, positions))
-            return false;
+        // Heavy constraint is advisory only (warnings via GetHeavyViolations),
+        // not a hard placement gate.
 
         // Check Sharp aspect constraint: Sharp reagents can't be on edge cells of non-Reinforced bags
         if (!IsSharpConstraintValid(reagent, positions))
