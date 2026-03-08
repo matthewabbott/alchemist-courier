@@ -195,7 +195,8 @@ public class MetaGrid
     /// <summary>
     /// Move a bag to a new origin position on the meta-grid.
     /// Validates that the new position is in-bounds and does not overlap other bags.
-    /// Rejects the move if the bag contains any placed reagents (see GO.3 for reagent carrying).
+    /// Reagents fully contained within the bag are carried along (translated by the same delta).
+    /// Reagents spanning multiple bags are NOT moved — they stay in place.
     /// </summary>
     /// <returns>True if successfully moved, false if the move is invalid.</returns>
     public bool MoveBag(Bag bag, Vector2I newOrigin)
@@ -203,24 +204,34 @@ public class MetaGrid
         if (!_placedBags.Contains(bag))
             return false;
 
-        // Reject if bag contains any reagents
-        foreach (var cell in bag.OwnedCells)
-        {
-            if (cell.IsOccupied)
-                return false;
-        }
+        var origin = bag.PositionOnMetaGrid!.Value;
+        var delta = newOrigin - origin;
+
+        // Identify reagents fully contained within this bag
+        var contained = GetFullyContainedReagents(bag);
+
+        // Temporarily clear occupancy for contained reagents so their cells
+        // don't interfere with the bag move validation
+        foreach (var reagent in contained)
+            ClearReagentCellOccupancy(reagent);
 
         // Check new positions are valid
         var newPositions = bag.GetMetaGridPositions(newOrigin);
         foreach (var pos in newPositions)
         {
             if (!IsInBounds(pos))
+            {
+                RestoreReagentCellOccupancy(contained);
                 return false;
+            }
 
             var cell = GetCell(pos)!;
             // Cell must be free or already owned by this bag (for overlapping moves)
             if (cell.IsInBag && cell.BagOwner != bag)
+            {
+                RestoreReagentCellOccupancy(contained);
                 return false;
+            }
         }
 
         // Clear old cell ownership
@@ -239,6 +250,13 @@ public class MetaGrid
             bag.OwnedCells.Add(cell);
         }
 
+        // Translate contained reagent positions by the same delta
+        foreach (var reagent in contained)
+            reagent.PlacedPosition = reagent.PlacedPosition!.Value + delta;
+
+        // Restore cell occupancy at the new positions
+        RestoreReagentCellOccupancy(contained);
+
         return true;
     }
 
@@ -246,7 +264,8 @@ public class MetaGrid
     /// Rotate a bag 90 degrees clockwise in place. The bag stays at the same origin
     /// but its shape rotates, changing which cells it covers.
     /// Validates that the rotated position is in-bounds and does not overlap other bags.
-    /// Rejects the rotation if the bag contains any placed reagents (see GO.3 for reagent carrying).
+    /// Reagents fully contained within the bag are rotated along with it.
+    /// Reagents spanning multiple bags are NOT rotated — they stay in place.
     /// </summary>
     /// <returns>True if successfully rotated, false if the rotation is invalid.</returns>
     public bool RotateBag(Bag bag)
@@ -254,14 +273,18 @@ public class MetaGrid
         if (!_placedBags.Contains(bag))
             return false;
 
-        // Reject if bag contains any reagents
-        foreach (var cell in bag.OwnedCells)
-        {
-            if (cell.IsOccupied)
-                return false;
-        }
-
         var origin = bag.PositionOnMetaGrid!.Value;
+
+        // Identify contained reagents and record their current cell positions
+        var contained = GetFullyContainedReagents(bag);
+
+        // Record bag shape dimensions before rotation (needed for position transform)
+        var oldShape = bag.GetRotatedShape();
+        int oldShapeRows = oldShape.GetLength(0);
+
+        // Temporarily clear occupancy for contained reagents
+        foreach (var reagent in contained)
+            ClearReagentCellOccupancy(reagent);
 
         // Compute new positions after rotation
         var oldRotation = bag.Rotation;
@@ -274,6 +297,7 @@ public class MetaGrid
             if (!IsInBounds(pos))
             {
                 bag.Rotation = oldRotation; // Revert
+                RestoreReagentCellOccupancy(contained);
                 return false;
             }
 
@@ -281,6 +305,7 @@ public class MetaGrid
             if (cell.IsInBag && cell.BagOwner != bag)
             {
                 bag.Rotation = oldRotation; // Revert
+                RestoreReagentCellOccupancy(contained);
                 return false;
             }
         }
@@ -300,7 +325,106 @@ public class MetaGrid
             bag.OwnedCells.Add(cell);
         }
 
+        // Rotate contained reagent positions around the bag origin
+        foreach (var reagent in contained)
+        {
+            // Transform each of the reagent's old cell positions through the bag rotation
+            var oldCells = reagent.GetCurrentMetaGridPositions();
+            var newCells = new List<Vector2I>(oldCells.Count);
+            foreach (var cellPos in oldCells)
+            {
+                var local = cellPos - origin;
+                // 90° CW: (col, row) → (oldShapeRows - 1 - row, col)
+                var rotatedLocal = new Vector2I(oldShapeRows - 1 - local.Row, local.Col);
+                newCells.Add(origin + rotatedLocal);
+            }
+
+            // Rotate the reagent itself so its shape matches the new cell arrangement
+            reagent.Rotation = reagent.Rotation + 1;
+
+            // Set PlacedPosition to the min corner of the new cells
+            int minCol = newCells[0].Col, minRow = newCells[0].Row;
+            for (int i = 1; i < newCells.Count; i++)
+            {
+                if (newCells[i].Col < minCol) minCol = newCells[i].Col;
+                if (newCells[i].Row < minRow) minRow = newCells[i].Row;
+            }
+            reagent.PlacedPosition = new Vector2I(minCol, minRow);
+        }
+
+        // Restore cell occupancy at the new positions
+        RestoreReagentCellOccupancy(contained);
+
         return true;
+    }
+
+    /// <summary>
+    /// Get all reagents whose cells are ALL within the given bag.
+    /// Reagents spanning multiple bags are excluded.
+    /// </summary>
+    private List<Reagent> GetFullyContainedReagents(Bag bag)
+    {
+        var bagCellSet = new HashSet<Vector2I>();
+        foreach (var cell in bag.OwnedCells)
+            bagCellSet.Add(cell.Position);
+
+        // Collect unique reagents in this bag
+        var reagentsInBag = new HashSet<Reagent>();
+        foreach (var cell in bag.OwnedCells)
+        {
+            if (cell.OccupyingReagent is Reagent r)
+                reagentsInBag.Add(r);
+        }
+
+        // Filter to only those fully contained
+        var contained = new List<Reagent>();
+        foreach (var reagent in reagentsInBag)
+        {
+            var positions = reagent.GetCurrentMetaGridPositions();
+            bool allInBag = true;
+            foreach (var pos in positions)
+            {
+                if (!bagCellSet.Contains(pos))
+                {
+                    allInBag = false;
+                    break;
+                }
+            }
+            if (allInBag)
+                contained.Add(reagent);
+        }
+
+        return contained;
+    }
+
+    /// <summary>
+    /// Clear a reagent's cell occupancy from the grid without changing its PlacedPosition.
+    /// Used temporarily during bag movement to avoid interference.
+    /// </summary>
+    private void ClearReagentCellOccupancy(Reagent reagent)
+    {
+        foreach (var pos in reagent.GetCurrentMetaGridPositions())
+        {
+            var cell = GetCell(pos);
+            if (cell != null && cell.OccupyingReagent == reagent)
+                cell.OccupyingReagent = null;
+        }
+    }
+
+    /// <summary>
+    /// Restore cell occupancy for a list of reagents at their current PlacedPosition.
+    /// </summary>
+    private void RestoreReagentCellOccupancy(List<Reagent> reagents)
+    {
+        foreach (var reagent in reagents)
+        {
+            foreach (var pos in reagent.GetCurrentMetaGridPositions())
+            {
+                var cell = GetCell(pos);
+                if (cell != null)
+                    cell.OccupyingReagent = reagent;
+            }
+        }
     }
 
     /// <summary>Get all cells belonging to a specific bag.</summary>

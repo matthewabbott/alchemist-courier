@@ -2113,7 +2113,7 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void MoveBag_WithReagents_Rejected()
+    public void MoveBag_WithContainedReagent_CarriesReagent()
     {
         var grid = CreateGrid(10, 10);
         var bag = new Bag(BagDefinition.SmallPouch); // 3x3
@@ -2123,10 +2123,15 @@ public class MetaGridTests
 
         var result = grid.MoveBag(bag, new Vector2I(3, 3));
 
-        Assert.False(result);
-        // Bag and reagent should remain at original positions
-        Assert.Equal(new Vector2I(0, 0), bag.PositionOnMetaGrid);
-        Assert.True(reagent.IsPlaced);
+        Assert.True(result);
+        // Bag moved to new position
+        Assert.Equal(new Vector2I(3, 3), bag.PositionOnMetaGrid);
+        // Reagent carried along: (1,1) + delta(3,3) = (4,4)
+        Assert.Equal(new Vector2I(4, 4), reagent.PlacedPosition);
+        // Cell at new position has the reagent
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(4, 4)));
+        // Old cell is clear
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(1, 1)));
     }
 
     [Fact]
@@ -2272,7 +2277,7 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void RotateBag_WithReagents_Rejected()
+    public void RotateBag_WithContainedReagent_CarriesReagent()
     {
         var grid = CreateGrid(10, 10);
         var bag = new Bag(BagDefinition.SmallPouch); // 3x3
@@ -2282,8 +2287,12 @@ public class MetaGridTests
 
         var result = grid.RotateBag(bag);
 
-        Assert.False(result);
-        Assert.Equal(0, bag.Rotation);
+        Assert.True(result);
+        Assert.Equal(1, bag.Rotation);
+        // Single cell in 3x3 bag: (1,1) → rotate CW: (3-1-1, 1) = (1, 1)
+        // For a square bag, center stays in center
+        Assert.Equal(new Vector2I(1, 1), reagent.PlacedPosition);
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(1, 1)));
     }
 
     [Fact]
@@ -2314,6 +2323,185 @@ public class MetaGridTests
         Assert.Equal(0, bag.Rotation);
         var finalPositions = bag.GetCurrentMetaGridPositions().OrderBy(p => p.Col).ThenBy(p => p.Row).ToList();
         Assert.Equal(originalPositions, finalPositions);
+    }
+
+    // --- Bag movement carries contained reagents (GO.3) ---
+
+    [Fact]
+    public void MoveBag_MultiCellReagent_CarriesWithBag()
+    {
+        var grid = CreateGrid(12, 12);
+        var bag = new Bag(BagDefinition.Satchel); // 4x3 (3 rows × 4 cols)
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var reagent = new Reagent(ReagentDefinition.Domino); // 1×2 horizontal
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        var result = grid.MoveBag(bag, new Vector2I(5, 5));
+
+        Assert.True(result);
+        // Reagent moved by delta (5,5): (1,1)→(6,6)
+        Assert.Equal(new Vector2I(6, 6), reagent.PlacedPosition);
+        // Both cells occupied at new positions
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(6, 6)));
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(7, 6)));
+        // Old cells clear
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(1, 1)));
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(2, 1)));
+    }
+
+    [Fact]
+    public void MoveBag_SpanningReagent_StaysInPlace()
+    {
+        // Two adjacent bags; reagent spans both
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // Place a domino spanning bag1 and bag2: cells at (2,1) and (3,1)
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(2, 1));
+
+        // Move bag1 down — spanning reagent should NOT be carried
+        var result = grid.MoveBag(bag1, new Vector2I(0, 5));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(0, 5), bag1.PositionOnMetaGrid);
+        // Spanning reagent stays at original position
+        Assert.Equal(new Vector2I(2, 1), reagent.PlacedPosition);
+    }
+
+    [Fact]
+    public void MoveBag_MultipleContainedReagents_AllCarried()
+    {
+        var grid = CreateGrid(12, 12);
+        var bag = new Bag(BagDefinition.Satchel); // 3 rows × 4 cols
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(r1, new Vector2I(0, 0));
+        grid.PlaceReagent(r2, new Vector2I(3, 2));
+
+        var result = grid.MoveBag(bag, new Vector2I(4, 4));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(4, 4), r1.PlacedPosition);
+        Assert.Equal(new Vector2I(7, 6), r2.PlacedPosition);
+    }
+
+    [Fact]
+    public void RotateBag_DominoReagent_PositionAndRotationTransformed()
+    {
+        // L-bag at (0,0): shape is 3 rows × 2 cols
+        // Cells: (0,0),(1,0),(0,1),(1,1),(0,2),(1,2) — wait, L-shape:
+        // row0: [T, F], row1: [T, F], row2: [T, T]
+        // Cells (col,row): (0,0), (0,1), (0,2), (1,2)
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.LBag);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Place a vertical domino at (0,0) — occupies (0,0) and (0,1)
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        reagent.Rotation = 1; // Vertical: 2 rows × 1 col
+        grid.PlaceReagent(reagent, new Vector2I(0, 0));
+
+        var result = grid.RotateBag(bag);
+
+        Assert.True(result);
+        Assert.Equal(1, bag.Rotation);
+        // Old cells: (0,0) and (0,1)
+        // L-bag has 3 rows, so oldShapeRows = 3
+        // 90° CW: (0,0) → (3-1-0, 0) = (2, 0); (0,1) → (3-1-1, 0) = (1, 0)
+        // New cells: (2,0) and (1,0) — now horizontal
+        // Reagent rotation: 1 + 1 = 2
+        Assert.Equal(2, reagent.Rotation);
+        // PlacedPosition = min(col)=1, min(row)=0
+        Assert.Equal(new Vector2I(1, 0), reagent.PlacedPosition);
+        // Verify cell occupancy
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(1, 0)));
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(2, 0)));
+        // Old cells clear
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(0, 0)));
+        Assert.Null(grid.GetReagentAtCell(new Vector2I(0, 1)));
+    }
+
+    [Fact]
+    public void RotateBag_SpanningReagent_StaysInPlace()
+    {
+        // Two adjacent bags; reagent spans both
+        var grid = CreateGrid(12, 12);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3 at (0,0)
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3 at (3,0)
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(3, 0));
+
+        // Place a domino spanning both bags: cells at (2,1) and (3,1)
+        var reagent = new Reagent(ReagentDefinition.Domino);
+        grid.PlaceReagent(reagent, new Vector2I(2, 1));
+
+        // Rotate bag1 — spanning reagent should NOT be rotated
+        var result = grid.RotateBag(bag1);
+
+        Assert.True(result);
+        Assert.Equal(1, bag1.Rotation);
+        // Spanning reagent stays at original position and rotation
+        Assert.Equal(new Vector2I(2, 1), reagent.PlacedPosition);
+        Assert.Equal(0, reagent.Rotation);
+    }
+
+    [Fact]
+    public void MoveBag_InvalidDestination_ReagentsUnchanged()
+    {
+        // If MoveBag fails validation, contained reagents must remain at original positions
+        var grid = CreateGrid(6, 6);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        // Try to move out of bounds
+        var result = grid.MoveBag(bag, new Vector2I(5, 5));
+
+        Assert.False(result);
+        Assert.Equal(new Vector2I(0, 0), bag.PositionOnMetaGrid);
+        Assert.Equal(new Vector2I(1, 1), reagent.PlacedPosition);
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(1, 1)));
+    }
+
+    [Fact]
+    public void RotateBag_InvalidRotation_ReagentsUnchanged()
+    {
+        // If RotateBag fails validation, reagents must remain at original positions
+        // Use a tall 4×1 bag near the edge so rotation goes OOB
+        var tallBagDef = new BagDefinition("tall", "Tall", new bool[,]
+        {
+            { true },
+            { true },
+            { true },
+            { true },
+        });
+        var grid = CreateGrid(4, 4);
+        var bag = new Bag(tallBagDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(0, 1));
+
+        // Rotating a 4×1 at origin in a 4×4 grid → 1×4, needs cols 0-3 — fits,
+        // but occupies row 0 cols 0-3. Let's use a smaller grid.
+        var grid2 = CreateGrid(3, 4);
+        var bag2 = new Bag(tallBagDef);
+        grid2.PlaceBag(bag2, new Vector2I(0, 0));
+        var reagent2 = new Reagent(ReagentDefinition.SingleCell);
+        grid2.PlaceReagent(reagent2, new Vector2I(0, 1));
+
+        // After 90° CW: 4×1 becomes 1×4, needs 4 cols at origin but grid is only 3 wide
+        var result = grid2.RotateBag(bag2);
+
+        Assert.False(result);
+        Assert.Equal(0, bag2.Rotation);
+        Assert.Equal(new Vector2I(0, 1), reagent2.PlacedPosition);
+        Assert.Equal(reagent2, grid2.GetReagentAtCell(new Vector2I(0, 1)));
     }
 
     // --- Bag Rotation property tests ---
