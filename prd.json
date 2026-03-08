@@ -1527,7 +1527,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet test -- all tests pass. Heavy reagent can now be placed above non-heavy in gravity bags. GetHeavyViolations() still returns violations.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.2",

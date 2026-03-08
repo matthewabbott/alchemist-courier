@@ -16,3 +16,11 @@ clears the selection after export but keeps the PNG loaded, so the artist can qu
 different shape assignments for the same art. This completes the tool's core functionality
 for the human-in-the-loop sprite-to-catalog workflow.
 Commit: 8cdd8ce
+
+## GO.1: Soften Heavy constraint from hard block to warning
+First task in the gameplay-overhaul phase. The Heavy-above-non-Heavy constraint in gravity
+bags was a hard placement gate — CanPlaceReagent returned false. The overhaul design calls
+for "invalid states freely allowed during play" with advisory visual warnings instead. Removed
+the IsHeavyConstraintValid check from the placement path while keeping GetHeavyViolations()
+intact for the HighlightEngine to render warnings. Clean 2-file change, all 757 tests pass.
+Commit: dde18aa
