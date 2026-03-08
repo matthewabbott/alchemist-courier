@@ -2473,7 +2473,7 @@ public class MetaGridTests
     public void RotateBag_InvalidRotation_ReagentsUnchanged()
     {
         // If RotateBag fails validation, reagents must remain at original positions
-        // Use a tall 4×1 bag near the edge so rotation goes OOB
+        // Use a tall 4×1 bag in a 3-wide grid so rotation goes OOB
         var tallBagDef = new BagDefinition("tall", "Tall", new bool[,]
         {
             { true },
@@ -2481,27 +2481,19 @@ public class MetaGridTests
             { true },
             { true },
         });
-        var grid = CreateGrid(4, 4);
+        var grid = CreateGrid(3, 4);
         var bag = new Bag(tallBagDef);
         grid.PlaceBag(bag, new Vector2I(0, 0));
         var reagent = new Reagent(ReagentDefinition.SingleCell);
         grid.PlaceReagent(reagent, new Vector2I(0, 1));
 
-        // Rotating a 4×1 at origin in a 4×4 grid → 1×4, needs cols 0-3 — fits,
-        // but occupies row 0 cols 0-3. Let's use a smaller grid.
-        var grid2 = CreateGrid(3, 4);
-        var bag2 = new Bag(tallBagDef);
-        grid2.PlaceBag(bag2, new Vector2I(0, 0));
-        var reagent2 = new Reagent(ReagentDefinition.SingleCell);
-        grid2.PlaceReagent(reagent2, new Vector2I(0, 1));
-
         // After 90° CW: 4×1 becomes 1×4, needs 4 cols at origin but grid is only 3 wide
-        var result = grid2.RotateBag(bag2);
+        var result = grid.RotateBag(bag);
 
         Assert.False(result);
-        Assert.Equal(0, bag2.Rotation);
-        Assert.Equal(new Vector2I(0, 1), reagent2.PlacedPosition);
-        Assert.Equal(reagent2, grid2.GetReagentAtCell(new Vector2I(0, 1)));
+        Assert.Equal(0, bag.Rotation);
+        Assert.Equal(new Vector2I(0, 1), reagent.PlacedPosition);
+        Assert.Equal(reagent, grid.GetReagentAtCell(new Vector2I(0, 1)));
     }
 
     // --- Bag Rotation property tests ---

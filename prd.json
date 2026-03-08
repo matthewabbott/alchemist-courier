@@ -1647,6 +1647,17 @@
       ],
       "verification": "dotnet build succeeds. In web_demo: click violation -- affected cells highlight on grid and in tray. Click another -- highlight changes. Click outside -- highlight clears.",
       "status": "pending"
+    },
+    {
+      "id": "R3",
+      "title": "Handle spanning reagents when bag moves/rotates away",
+      "description": "When MoveBag or RotateBag succeeds and a spanning reagent (one that crosses multiple bags) stays in place, the cells that were in the moved bag now have OccupyingReagent set but BagOwner = null. This creates an inconsistent state — a reagent occupying cells with no bag. Fix: after bag move/rotate succeeds, check remaining (non-contained) reagents in the old cells. If any reagent now has cells outside any bag, force-remove it from the grid (call RemoveReagent or equivalent). Add unit tests verifying spanning reagents are removed when their bag moves away, and that the orphaned cells are cleaned up. Files: src/Core/Grid/MetaGrid.cs (MoveBag, RotateBag methods).",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet test passes. Spanning reagent is force-removed when one of its bags moves, no orphaned cell occupancy remains.",
+      "status": "pending",
+      "source": "code-review-2026-03-08"
     }
   ]
 }
