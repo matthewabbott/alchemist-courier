@@ -76,3 +76,13 @@ is gone. Key design choice: only remove reagents with actually-orphaned cells, n
 spanning reagents — a square bag rotation (SmallPouch) doesn't change cell coverage, so a
 spanning reagent that still has all cells in bags stays put. 789 tests passing.
 Commit: 4695d2d
+
+## GO.4: Invalid placements after bag movement — locked reagent protection
+Added a pre-check to MoveBag and RotateBag that rejects the operation if it would orphan a
+locked spanning reagent. Before any state is modified, HasLockedOrphanedReagent computes
+which cells the bag would "abandon" (old footprint minus new footprint) and scans for locked
+reagents in those cells. This protects puzzle integrity — locked reagents placed by the hint
+system or puzzle setup can't be silently removed by bag movement. Non-locked spanning
+reagents continue to be removed per R3. The pre-check pattern avoids complex rollback by
+rejecting before state mutation. 795 tests passing.
+Commit: 24d0d89
