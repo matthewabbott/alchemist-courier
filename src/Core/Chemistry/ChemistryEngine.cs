@@ -59,7 +59,10 @@ public static class ChemistryEngine
             }
         }
 
-        // Second pass: Fragile reagents break from ANY adjacent reaction
+        // Second pass: Fragile-specific breaking conditions (D.2)
+        EvaluateFragileThermalFracture(grid, results);
+        EvaluateFragileCrushing(grid, results);
+        // Existing: Fragile reagents break from ANY adjacent reaction
         EvaluateFragileVulnerability(grid, results);
 
         return results;
@@ -430,12 +433,81 @@ public static class ChemistryEngine
     }
 
     /// <summary>
-    /// Check if a cell's aspects are suppressed by being in a Null bag.
+    /// Check if a cell's aspects are suppressed. A cell is suppressed if:
+    /// (a) the cell itself is in a Null bag, OR
+    /// (b) the reagent occupying the cell has ANY cell in a Null bag (full nullification).
+    /// Full nullification means touching a Null bag with any part of a reagent
+    /// nullifies the entire reagent, even cells in non-null bags.
     /// </summary>
     public static bool IsAspectSuppressed(MetaGrid grid, Vector2I pos)
     {
         var bag = grid.GetBagAtCell(pos);
-        return bag != null && bag.HasProperty(BagPropertyType.Null);
+        if (bag != null && bag.HasProperty(BagPropertyType.Null))
+            return true;
+
+        // Full nullification: if the reagent at this cell has ANY cell in a Null bag,
+        // the entire reagent is nullified.
+        var reagent = grid.GetReagentAtCell(pos);
+        if (reagent != null)
+            return IsReagentNullified(grid, reagent);
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check if a reagent is fully nullified — i.e., any of its cells is in a Null bag.
+    /// When nullified, ALL of the reagent's aspects are suppressed on every cell.
+    /// </summary>
+    public static bool IsReagentNullified(MetaGrid grid, Reagent reagent)
+    {
+        foreach (var cellPos in reagent.GetCurrentMetaGridPositions())
+        {
+            var cellBag = grid.GetBagAtCell(cellPos);
+            if (cellBag != null && cellBag.HasProperty(BagPropertyType.Null))
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Check hot/cold balance in each non-null bag. Returns a violation for each bag
+    /// where total hot magnitude != total cold magnitude. Null bags and fully-nullified
+    /// reagents are excluded from the calculation.
+    /// </summary>
+    public static List<BagBalanceViolation> GetBagBalanceViolations(MetaGrid grid)
+    {
+        var violations = new List<BagBalanceViolation>();
+
+        foreach (var bag in grid.PlacedBags)
+        {
+            // Null bags suppress all aspects — skip entirely
+            if (bag.HasProperty(BagPropertyType.Null))
+                continue;
+
+            int hotTotal = 0;
+            int coldTotal = 0;
+
+            foreach (var cell in bag.OwnedCells)
+            {
+                if (cell.OccupyingReagent is not Reagent reagent)
+                    continue;
+
+                // Full nullification: skip reagents with any cell in a null bag
+                if (IsAspectSuppressed(grid, cell.Position))
+                    continue;
+
+                var aspects = reagent.GetAspectsAtMetaGridPosition(cell.Position);
+                hotTotal += aspects.GetMagnitude(AspectIds.Hot);
+                coldTotal += aspects.GetMagnitude(AspectIds.Cold);
+            }
+
+            if (hotTotal != coldTotal)
+            {
+                violations.Add(new BagBalanceViolation(bag, hotTotal, coldTotal));
+            }
+        }
+
+        return violations;
     }
 
     /// <summary>
@@ -474,6 +546,152 @@ public static class ChemistryEngine
     }
 
     /// <summary>
+    /// D.2: Thermal fracture — a Fragile reagent breaks if any of its cells are
+    /// simultaneously adjacent to at least one Hot cell AND at least one Cold cell
+    /// (from different reagents or same reagent). Adjacency is computed across the
+    /// entire reagent's cell footprint (convex hull of adjacencies).
+    /// </summary>
+    private static void EvaluateFragileThermalFracture(MetaGrid grid, List<ReactionResult> results)
+    {
+        foreach (var reagent in grid.PlacedReagents)
+        {
+            if (!reagent.HasAspect(AspectIds.Fragile))
+                continue;
+
+            if (IsReagentNullified(grid, reagent))
+                continue;
+
+            var reagentPositions = reagent.GetCurrentMetaGridPositions();
+
+            // Scan all adjacent cells across the entire reagent's footprint
+            bool hasAdjacentHot = false;
+            bool hasAdjacentCold = false;
+
+            foreach (var pos in reagentPositions)
+            {
+                foreach (var adjCell in grid.GetAdjacentCells(pos))
+                {
+                    var adjReagent = grid.GetReagentAtCell(adjCell.Position);
+                    if (adjReagent == null || adjReagent == reagent)
+                        continue;
+
+                    // Skip nullified reagents
+                    if (IsReagentNullified(grid, adjReagent))
+                        continue;
+
+                    // Check aspects on the adjacent cell
+                    var adjAspects = adjReagent.GetAspectsAtMetaGridPosition(adjCell.Position);
+                    if (adjAspects != null)
+                    {
+                        if (adjAspects.Has(AspectIds.Hot))
+                            hasAdjacentHot = true;
+                        if (adjAspects.Has(AspectIds.Cold))
+                            hasAdjacentCold = true;
+                    }
+
+                    if (hasAdjacentHot && hasAdjacentCold)
+                        break;
+                }
+
+                if (hasAdjacentHot && hasAdjacentCold)
+                    break;
+            }
+
+            if (hasAdjacentHot && hasAdjacentCold)
+            {
+                results.Add(new ReactionResult(
+                    ReactionResultType.ThermalFracture,
+                    1f,
+                    reagentPositions,
+                    new ReactionRule(
+                        name: "Thermal Fracture",
+                        triggerAspects: new List<string> { AspectIds.Fragile },
+                        sensitivity: SensitivityTier.Adjacent,
+                        granularity: Granularity.PerCell,
+                        threshold: 0,
+                        resultType: ReactionResultType.ThermalFracture)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// D.2: Crushing — a Fragile reagent breaks if a Heavy reagent's bearing cells
+    /// rest directly on it. "Directly on it" means the Heavy reagent's bearing cells
+    /// (in the gravity direction) sit on top of the Fragile reagent's cells.
+    /// Non-heavy reagents on top of Fragile do NOT crush it.
+    /// </summary>
+    private static void EvaluateFragileCrushing(MetaGrid grid, List<ReactionResult> results)
+    {
+        // Gather all Fragile reagents and their positions
+        var fragileReagents = new List<(Reagent reagent, HashSet<Vector2I> positions)>();
+        foreach (var reagent in grid.PlacedReagents)
+        {
+            if (!reagent.HasAspect(AspectIds.Fragile) || IsReagentNullified(grid, reagent))
+                continue;
+
+            fragileReagents.Add((reagent, new HashSet<Vector2I>(reagent.GetCurrentMetaGridPositions())));
+        }
+
+        if (fragileReagents.Count == 0)
+            return;
+
+        // For each Heavy reagent, compute bearing cells and check if they sit on any Fragile
+        var crushedFragile = new HashSet<Reagent>();
+
+        foreach (var heavyReagent in grid.PlacedReagents)
+        {
+            if (!heavyReagent.HasAspect(AspectIds.Heavy) || IsReagentNullified(grid, heavyReagent))
+                continue;
+
+            var heavyPositions = heavyReagent.GetCurrentMetaGridPositions();
+
+            // Determine gravity direction from the bag containing the heavy reagent
+            var gravDir = Vector2I.Down; // default
+            foreach (var pos in heavyPositions)
+            {
+                var bag = grid.GetBagAtCell(pos);
+                if (bag != null && bag.HasProperty(BagPropertyType.Gravity))
+                {
+                    gravDir = bag.GravityDirection.ToVector();
+                    break;
+                }
+            }
+
+            // Compute bearing cells for the heavy reagent
+            var bearingCells = MetaGrid.GetBearingCells(heavyPositions, gravDir);
+
+            // For each bearing cell, check the cell in the gravity direction ("below" it)
+            // If that cell belongs to a Fragile reagent, it's being crushed
+            foreach (var bearingCell in bearingCells)
+            {
+                var cellBelow = bearingCell + gravDir;
+                var belowReagent = grid.GetReagentAtCell(cellBelow);
+                if (belowReagent == null || belowReagent == heavyReagent)
+                    continue;
+
+                foreach (var (fragile, fragilePositions) in fragileReagents)
+                {
+                    if (fragile == belowReagent && !crushedFragile.Contains(fragile))
+                    {
+                        crushedFragile.Add(fragile);
+                        results.Add(new ReactionResult(
+                            ReactionResultType.Crushing,
+                            1f,
+                            fragile.GetCurrentMetaGridPositions(),
+                            new ReactionRule(
+                                name: "Crushing",
+                                triggerAspects: new List<string> { AspectIds.Fragile, AspectIds.Heavy },
+                                sensitivity: SensitivityTier.Adjacent,
+                                granularity: Granularity.PerCell,
+                                threshold: 0,
+                                resultType: ReactionResultType.Crushing)));
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Second pass: for each reaction result, check if any Fragile reagent has cells
     /// adjacent to the reaction's affected cells. If so, add a Breakage result.
     /// Only considers reactions from the first pass (no cascading).
@@ -498,6 +716,10 @@ public static class ChemistryEngine
         foreach (var reagent in grid.PlacedReagents)
         {
             if (!reagent.HasAspect(AspectIds.Fragile))
+                continue;
+
+            // Full nullification: reagent with any cell in Null bag has no aspects
+            if (IsReagentNullified(grid, reagent))
                 continue;
 
             // Check if any cell of this Fragile reagent is adjacent to a reaction cell

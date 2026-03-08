@@ -12,5 +12,15 @@ public enum ReactionResultType
     Overheating,
     Hypothermia,
     Poisoning,
-    ToxicCloud
+    ToxicCloud,
+
+    /// <summary>
+    /// D.2: Fragile breaks when adjacent to BOTH hot and cold cells simultaneously.
+    /// </summary>
+    ThermalFracture,
+
+    /// <summary>
+    /// D.2: Fragile breaks when a Heavy object's bearing cells rest directly on it.
+    /// </summary>
+    Crushing,
 }
