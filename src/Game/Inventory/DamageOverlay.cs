@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Grid;
@@ -15,8 +16,13 @@ public partial class DamageOverlay : Control
 {
     private readonly List<ColorRect> _fillRects = new();
 
+    private Tween? _pulseTween;
+
     /// <summary>Number of rendered damage fill elements, for testing.</summary>
     public int RenderedCount => _fillRects.Count;
+
+    /// <summary>Whether a pulse animation is currently playing.</summary>
+    public bool IsPulsing => _pulseTween?.IsRunning() == true;
 
     /// <summary>
     /// Render damage indicators for the given violation entries.
@@ -42,6 +48,39 @@ public partial class DamageOverlay : Control
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Renders violation cells and pulses them 3 times (red flash) over 1 second,
+    /// then calls onComplete. Used when the player confirms with active violations.
+    /// </summary>
+    public void PulseViolations(List<ViolationEntry> violations, Action? onComplete)
+    {
+        Render(violations);
+
+        if (_fillRects.Count == 0)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        _pulseTween?.Kill();
+
+        // Brighten all fill rects for each pulse
+        var baseAlpha = Modulate.A;
+        _pulseTween = CreateTween();
+        _pulseTween.SetLoops(3);
+        _pulseTween.TweenProperty(this, "modulate:a", 1.0f, 0.167f)
+            .From(0.2f)
+            .SetEase(Tween.EaseType.Out);
+        _pulseTween.TweenProperty(this, "modulate:a", 0.2f, 0.167f)
+            .SetEase(Tween.EaseType.In);
+
+        _pulseTween.Finished += () =>
+        {
+            Modulate = new Color(Modulate.R, Modulate.G, Modulate.B, baseAlpha);
+            onComplete?.Invoke();
+        };
     }
 
     /// <summary>

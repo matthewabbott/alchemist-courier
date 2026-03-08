@@ -439,8 +439,12 @@ public partial class WebDemoScreen : Control
                 break;
             case ConfirmResult.HasReactions:
                 UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
-                _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
-                _reactionAnimator.PlayReactions(_lastReactions);
+                // Pulse violation cells, then play reaction animations, then show failure overlay
+                _gridView.PulseViolations(() =>
+                {
+                    _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
+                    _reactionAnimator.PlayReactions(_lastReactions);
+                });
                 break;
             case ConfirmResult.Win:
                 _resultOverlay.ShowWin("Puzzle Complete!", result.Score);

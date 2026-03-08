@@ -588,9 +588,12 @@ public partial class PuzzleScreen : Control
                 break;
             case ConfirmResult.HasReactions:
                 UpdateStatus("Reactions detected! Rearrange reagents to avoid them.");
-                // Play reaction animations, then show failure overlay
-                _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
-                _reactionAnimator.PlayReactions(_lastReactions);
+                // Pulse violation cells, then play reaction animations, then show failure overlay
+                _gridView.PulseViolations(() =>
+                {
+                    _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
+                    _reactionAnimator.PlayReactions(_lastReactions);
+                });
                 break;
             case ConfirmResult.Win:
                 _resultOverlay.ShowWin("SUCCESS — All reagents placed safely!", result.Score);

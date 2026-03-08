@@ -414,6 +414,22 @@ public partial class MetaGridView : Control
     /// <summary>Number of damage overlay elements currently rendered, for testing.</summary>
     public int DamageOverlayCount => _damageOverlay.RenderedCount;
 
+    /// <summary>
+    /// Pulse-highlights all violation cells (3 red flashes over 1s), then calls onComplete.
+    /// Used when the player confirms with violations present.
+    /// </summary>
+    public void PulseViolations(System.Action? onComplete)
+    {
+        if (_reactionRules == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        var violations = ViolationTracker.ComputeAll(_metaGrid, _reactionRules);
+        _damageOverlay.PulseViolations(violations, onComplete);
+    }
+
     public override void _Draw()
     {
         if (_metaGrid == null) return;
