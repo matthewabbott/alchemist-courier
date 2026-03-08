@@ -871,3 +871,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 3c764b7..63be155 (GO.3 reagent carrying)
 - Findings: 3 (P0: 0, P1: 1, P2: 0, P3: 1, P4: 1)
 - Fixed: 1 (dead code in RotateBag_InvalidRotation test), Tasks created: 1 (R3: spanning reagent data integrity)
+
+## R3 — Handle spanning reagents when bag moves/rotates away
+- Date: 2026-03-08
+- Commit: 4695d2d
+- Notes: Added RemoveOrphanedReagents() and ForceRemoveReagent() helpers to MetaGrid. After MoveBag/RotateBag succeeds, scans all placed reagents (excluding those already carried) for cells with null BagOwner. Any such reagent is force-removed (bypassing IsLocked). Updated 2 existing tests (MoveBag/RotateBag spanning reagent tests now verify removal instead of staying in place). Added 5 new tests: locked spanning reagent still removed on move, contained reagent stays after move, other-bag reagent unaffected by move, rotate with non-square bag orphans spanning reagent, non-spanning reagent in other bag unaffected. All 789 tests pass (786 existing + 3 net new).

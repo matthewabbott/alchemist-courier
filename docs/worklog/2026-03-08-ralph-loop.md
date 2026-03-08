@@ -66,3 +66,13 @@ are left with OccupyingReagent set but no BagOwner — an inconsistent state. Cr
 Also cleaned up dead code in RotateBag_InvalidRotation test (unused grid/bag/reagent variables).
 RotateBag at 88 lines noted as slightly long (P3) but not actionable yet. 783 tests passing.
 Commit: 69baf0e
+
+## R3: Handle spanning reagents when bag moves/rotates away
+Fixed the P1 data integrity issue from the code review. When MoveBag or RotateBag succeeds,
+any spanning reagent left behind now gets force-removed if its cells end up outside any bag.
+Added RemoveOrphanedReagents() which scans all non-carried reagents for cells with null
+BagOwner, and ForceRemoveReagent() which bypasses the IsLocked check since the bag itself
+is gone. Key design choice: only remove reagents with actually-orphaned cells, not all
+spanning reagents — a square bag rotation (SmallPouch) doesn't change cell coverage, so a
+spanning reagent that still has all cells in bags stays put. 789 tests passing.
+Commit: 4695d2d

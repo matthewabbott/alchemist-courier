@@ -1656,7 +1656,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet test passes. Spanning reagent is force-removed when one of its bags moves, no orphaned cell occupancy remains.",
-      "status": "pending",
+      "status": "done",
       "source": "code-review-2026-03-08"
     }
   ]
