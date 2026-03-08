@@ -911,3 +911,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 69b4f6a
 - Notes: Created DamageOverlay (src/Game/Inventory/DamageOverlay.cs) — a Godot Control that renders red tint overlays on cells affected by fragile violations (FragileCrushed, FragileThermalFracture, FragilePierced). Follows HighlightOverlay pattern with pooled ColorRect children. Wired into MetaGridView.RefreshDisplay() via ViolationTracker.ComputeAll() so overlays update live on every placement/removal. Three distinct red tint colors per violation type (slight hue variation for visual differentiation). DamageOverlay at ZIndex 5 in MetaGridView. Integration test verifies: Sharp alone = 0 damage overlays, Sharp+Fragile adjacent = 2 damage overlays (both affected cells), Fragile removed = 0 overlays. All 802 unit tests pass, 34/34 integration tests pass.
+
+## GO.8 — E.1: Volatile explosion indicator (pre-confirm)
+- Date: 2026-03-08
+- Commit: bd232fb
+- Notes: Extended DamageOverlay to also render VolatileExplosion violations with an orange tint (0.95, 0.5, 0.1, 0.4). Renamed IsFragileViolation to IsDamageViolation and added VolatileExplosion to the filter. ViolationTracker already detected VolatileExplosion from ChemistryEngine; this just wires the visual. No volatile placement blocking existed in CanPlaceReagent, so no removal needed — consistent with "invalid states freely allowed during play" design. Minimal 2-file change. All 802 tests pass.

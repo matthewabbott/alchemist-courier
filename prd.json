@@ -1604,7 +1604,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. In web_demo: place volatile next to hot -- orange explosion indicator appears. Volatile can be placed (not blocked).",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.9",

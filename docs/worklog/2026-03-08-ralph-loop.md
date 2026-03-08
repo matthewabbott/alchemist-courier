@@ -118,3 +118,11 @@ the HighlightOverlay pooled-ColorRect pattern, wired into MetaGridView.RefreshDi
 ViolationTracker.ComputeAll(). The overlay updates automatically on every placement/removal
 since RefreshDisplay() is called by RefreshAfterGridChange() in both PuzzleScreen and WebDemoScreen.
 Commit: 69b4f6a
+
+## GO.8: Volatile explosion indicator (pre-confirm)
+Extended the DamageOverlay from GO.7 to also render volatile explosion warnings. Since
+ViolationTracker already detected VolatileExplosion violations, this was a minimal change —
+add the violation type to the filter and give it an orange tint distinct from the red fragile
+colors. No volatile placement blocking existed to remove; the design already allows free
+placement of dangerous combinations during play. Two-file, ten-line diff.
+Commit: bd232fb
