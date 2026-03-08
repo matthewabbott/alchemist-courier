@@ -58,3 +58,11 @@ RestoreReagentCellOccupancy helpers to temporarily unblock validation during bag
 7 new tests covering multi-cell carrying, spanning reagent exclusion, multiple reagents,
 rotation transform, and rollback on invalid moves. 783 tests passing.
 Commit: 7594d9e
+
+## Code Review (b)
+Reviewed GO.3 reagent carrying implementation in MetaGrid.cs. Found a P1 data integrity issue:
+when a bag moves away from a spanning reagent, the spanning reagent's cells in the old bag position
+are left with OccupyingReagent set but no BagOwner — an inconsistent state. Created task R3.
+Also cleaned up dead code in RotateBag_InvalidRotation test (unused grid/bag/reagent variables).
+RotateBag at 88 lines noted as slightly long (P3) but not actionable yet. 783 tests passing.
+Commit: 69baf0e

@@ -866,3 +866,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: cb0535a
 - Coverage gaps: GO.2 (MoveBag/RotateBag), D.2 (thermal fracture/crushing), A.3 (per-bag gravity direction), J.3 (ViolationTracker) have unit tests but no integration tests — Core features not yet wired to game UI.
 - Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
+
+## Code Review — 2026-03-08b
+- Reviewed commits: 3c764b7..63be155 (GO.3 reagent carrying)
+- Findings: 3 (P0: 0, P1: 1, P2: 0, P3: 1, P4: 1)
+- Fixed: 1 (dead code in RotateBag_InvalidRotation test), Tasks created: 1 (R3: spanning reagent data integrity)
