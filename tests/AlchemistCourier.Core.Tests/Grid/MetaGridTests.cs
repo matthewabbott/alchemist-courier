@@ -2045,4 +2045,366 @@ public class MetaGridTests
         var bag = new Bag(def);
         Assert.Equal(GravityDirection.Right, bag.GravityDirection);
     }
+
+    // --- MoveBag tests ---
+
+    [Fact]
+    public void MoveBag_ValidPosition_Succeeds()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var result = grid.MoveBag(bag, new Vector2I(3, 3));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(3, 3), bag.PositionOnMetaGrid);
+        Assert.Equal(9, bag.OwnedCells.Count);
+        // Old cells should be cleared
+        Assert.Null(grid.GetBagAtCell(new Vector2I(0, 0)));
+        Assert.Null(grid.GetBagAtCell(new Vector2I(2, 2)));
+        // New cells should be assigned
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(3, 3)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(5, 5)));
+    }
+
+    [Fact]
+    public void MoveBag_OutOfBounds_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var result = grid.MoveBag(bag, new Vector2I(8, 8));
+
+        Assert.False(result);
+        // Bag should remain at original position
+        Assert.Equal(new Vector2I(0, 0), bag.PositionOnMetaGrid);
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void MoveBag_OverlappingAnotherBag_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag1 = new Bag(BagDefinition.SmallPouch); // 3x3
+        var bag2 = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+        grid.PlaceBag(bag2, new Vector2I(5, 5));
+
+        var result = grid.MoveBag(bag1, new Vector2I(4, 4));
+
+        Assert.False(result);
+        // Bag1 should remain at original position
+        Assert.Equal(new Vector2I(0, 0), bag1.PositionOnMetaGrid);
+        Assert.Equal(bag1, grid.GetBagAtCell(new Vector2I(0, 0)));
+    }
+
+    [Fact]
+    public void MoveBag_NotOnGrid_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch);
+        // Not placed on grid
+
+        var result = grid.MoveBag(bag, new Vector2I(0, 0));
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void MoveBag_WithReagents_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        var result = grid.MoveBag(bag, new Vector2I(3, 3));
+
+        Assert.False(result);
+        // Bag and reagent should remain at original positions
+        Assert.Equal(new Vector2I(0, 0), bag.PositionOnMetaGrid);
+        Assert.True(reagent.IsPlaced);
+    }
+
+    [Fact]
+    public void MoveBag_OverlappingOwnPosition_Succeeds()
+    {
+        // Moving a bag one cell right — overlaps its own previous cells
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var result = grid.MoveBag(bag, new Vector2I(1, 0));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(1, 0), bag.PositionOnMetaGrid);
+        // Old column 0 should be cleared
+        Assert.Null(grid.GetBagAtCell(new Vector2I(0, 0)));
+        Assert.Null(grid.GetBagAtCell(new Vector2I(0, 1)));
+        Assert.Null(grid.GetBagAtCell(new Vector2I(0, 2)));
+        // New cells should be assigned
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(1, 0)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(3, 2)));
+    }
+
+    [Fact]
+    public void MoveBag_LShapedBag_Succeeds()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.LBag);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var result = grid.MoveBag(bag, new Vector2I(5, 5));
+
+        Assert.True(result);
+        Assert.Equal(new Vector2I(5, 5), bag.PositionOnMetaGrid);
+        // L-shape: (5,5), (5,6), (5,7), (6,7)
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(5, 5)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(5, 6)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(5, 7)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(6, 7)));
+        // Void cell should not be a bag cell
+        Assert.Null(grid.GetBagAtCell(new Vector2I(6, 5)));
+    }
+
+    // --- RotateBag tests ---
+
+    [Fact]
+    public void RotateBag_CW_Succeeds()
+    {
+        var grid = CreateGrid(10, 10);
+        // L-bag: 3 rows × 2 cols
+        // { true, false },
+        // { true, false },
+        // { true, true  }
+        var bag = new Bag(BagDefinition.LBag);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var result = grid.RotateBag(bag);
+
+        Assert.True(result);
+        Assert.Equal(1, bag.Rotation);
+        // After 90° CW of the L-bag (3×2), the rotated shape is 2×3:
+        // { true,  true,  true },
+        // { true,  false, false }
+        // Positions at origin (0,0): (0,0),(1,0),(2,0),(0,1)
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(0, 0)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(1, 0)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(2, 0)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(0, 1)));
+        // These should not be in the bag
+        Assert.Null(grid.GetBagAtCell(new Vector2I(1, 1)));
+        Assert.Null(grid.GetBagAtCell(new Vector2I(2, 1)));
+    }
+
+    [Fact]
+    public void RotateBag_UpdatesCellMapping()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.LBag);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Original cells for L-bag at (0,0): (0,0),(0,1),(0,2),(1,2)
+        Assert.Equal(4, bag.OwnedCells.Count);
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(0, 0)));
+        Assert.Equal(bag, grid.GetBagAtCell(new Vector2I(1, 2)));
+
+        grid.RotateBag(bag);
+
+        // After rotation, cell count should still be 4
+        Assert.Equal(4, bag.OwnedCells.Count);
+        // Old cell (1,2) should no longer be in the bag
+        Assert.Null(grid.GetBagAtCell(new Vector2I(1, 2)));
+    }
+
+    [Fact]
+    public void RotateBag_OutOfBoundsAfterRotation_Rejected()
+    {
+        // Place a tall thin bag near the right edge; after rotation it becomes wide and overflows
+        var tallDef = new BagDefinition("tall", "Tall", new bool[,]
+        {
+            { true },
+            { true },
+            { true },
+            { true },
+        });
+        var grid = CreateGrid(4, 10);
+        var bag = new Bag(tallDef);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // After 90° CW rotation: becomes 1×4, placed at origin (0,0)
+        // Would need cells (0,0),(1,0),(2,0),(3,0) — just fits in width=4
+        var result1 = grid.RotateBag(bag);
+        Assert.True(result1);
+
+        // Now it's 1×4. Rotate again: becomes 4×1, needs (0,0)-(0,3) — fits in height=10
+        var result2 = grid.RotateBag(bag);
+        Assert.True(result2);
+
+        // Place at col 3 so that next rotation (to 1×4) would need cols 3-6 → out of bounds
+        grid.MoveBag(bag, new Vector2I(3, 0));
+        var result3 = grid.RotateBag(bag);
+        Assert.False(result3);
+        Assert.Equal(2, bag.Rotation); // Rotation should be reverted
+    }
+
+    [Fact]
+    public void RotateBag_OverlappingAfterRotation_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        // Horizontal bar 1×4
+        var hBarDef = new BagDefinition("hbar", "HBar", new bool[,] { { true, true, true, true } });
+        var bag1 = new Bag(hBarDef);
+        grid.PlaceBag(bag1, new Vector2I(0, 0));
+
+        // Place a blocker at (0,2) area
+        var blocker = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(blocker, new Vector2I(0, 2));
+
+        // Rotating bag1 90° CW: 1×4 → 4×1 at (0,0), needs (0,0)-(0,3)
+        // (0,2) and (0,3) overlap with blocker
+        var result = grid.RotateBag(bag1);
+        Assert.False(result);
+        Assert.Equal(0, bag1.Rotation);
+    }
+
+    [Fact]
+    public void RotateBag_WithReagents_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        grid.PlaceReagent(reagent, new Vector2I(1, 1));
+
+        var result = grid.RotateBag(bag);
+
+        Assert.False(result);
+        Assert.Equal(0, bag.Rotation);
+    }
+
+    [Fact]
+    public void RotateBag_NotOnGrid_Rejected()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch);
+
+        var result = grid.RotateBag(bag);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void RotateBag_SquareBag_FourRotationsReturnToOriginal()
+    {
+        var grid = CreateGrid(10, 10);
+        var bag = new Bag(BagDefinition.SmallPouch); // 3x3 square
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // Get original cells
+        var originalPositions = bag.GetCurrentMetaGridPositions().OrderBy(p => p.Col).ThenBy(p => p.Row).ToList();
+
+        // Rotate 4 times
+        for (int i = 0; i < 4; i++)
+            Assert.True(grid.RotateBag(bag));
+
+        Assert.Equal(0, bag.Rotation);
+        var finalPositions = bag.GetCurrentMetaGridPositions().OrderBy(p => p.Col).ThenBy(p => p.Row).ToList();
+        Assert.Equal(originalPositions, finalPositions);
+    }
+
+    // --- Bag Rotation property tests ---
+
+    [Fact]
+    public void Bag_Rotation_DefaultsToZero()
+    {
+        var bag = new Bag(BagDefinition.SmallPouch);
+        Assert.Equal(0, bag.Rotation);
+    }
+
+    [Fact]
+    public void Bag_Rotation_NormalizesTo0Through3()
+    {
+        var bag = new Bag(BagDefinition.SmallPouch);
+        bag.Rotation = 5;
+        Assert.Equal(1, bag.Rotation);
+        bag.Rotation = -1;
+        Assert.Equal(3, bag.Rotation);
+    }
+
+    [Fact]
+    public void Bag_GetRotatedShape_ReturnsCorrectDimensions()
+    {
+        // L-bag is 3 rows × 2 cols
+        var bag = new Bag(BagDefinition.LBag);
+        var original = bag.GetRotatedShape();
+        Assert.Equal(3, original.GetLength(0)); // rows
+        Assert.Equal(2, original.GetLength(1)); // cols
+
+        bag.Rotation = 1;
+        var rotated = bag.GetRotatedShape();
+        Assert.Equal(2, rotated.GetLength(0)); // rows
+        Assert.Equal(3, rotated.GetLength(1)); // cols
+    }
+
+    [Fact]
+    public void Bag_GetMetaGridPositions_AccountsForRotation()
+    {
+        // BeltPouch is 1×4 horizontal strip
+        var bag = new Bag(BagDefinition.BeltPouch);
+        var origin = new Vector2I(0, 0);
+
+        // Unrotated: (0,0),(1,0),(2,0),(3,0)
+        var pos0 = bag.GetMetaGridPositions(origin);
+        Assert.Equal(4, pos0.Count);
+        Assert.Contains(new Vector2I(3, 0), pos0);
+
+        // Rotated 90° CW: becomes 4×1 vertical
+        bag.Rotation = 1;
+        var pos1 = bag.GetMetaGridPositions(origin);
+        Assert.Equal(4, pos1.Count);
+        Assert.Contains(new Vector2I(0, 3), pos1);
+        Assert.DoesNotContain(new Vector2I(3, 0), pos1);
+    }
+
+    [Fact]
+    public void Bag_IsEdgeCell_AccountsForRotation()
+    {
+        var grid = CreateGrid(10, 10);
+        // L-bag at (0,0), unrotated:
+        // (0,0) (1,0) is void
+        // (0,1) (1,1) is void
+        // (0,2) (1,2) — all are edge cells in L-shape
+        var bag = new Bag(BagDefinition.LBag);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        // All 4 cells of L-bag are edge cells (it's an L-shape, everything is on the edge)
+        Assert.True(bag.IsEdgeCell(new Vector2I(0, 0)));
+        Assert.True(bag.IsEdgeCell(new Vector2I(0, 2)));
+
+        // Now rotate — clear and re-place
+        foreach (var cell in bag.OwnedCells)
+            cell.BagOwner = null;
+        bag.OwnedCells.Clear();
+        bag.Rotation = 1;
+        bag.PositionOnMetaGrid = new Vector2I(0, 0);
+        var newPositions = bag.GetMetaGridPositions(new Vector2I(0, 0));
+        foreach (var pos in newPositions)
+        {
+            var cell = grid.GetCell(pos)!;
+            cell.BagOwner = bag;
+            bag.OwnedCells.Add(cell);
+        }
+
+        // After 90° CW rotation of L-bag, shape is:
+        // { true,  true,  true },
+        // { true,  false, false }
+        // (0,0) is edge (has neighbor to left that's out of shape)
+        Assert.True(bag.IsEdgeCell(new Vector2I(0, 0)));
+        // (2,0) is edge (right side and bottom are void)
+        Assert.True(bag.IsEdgeCell(new Vector2I(2, 0)));
+    }
 }

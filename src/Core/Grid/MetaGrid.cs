@@ -192,6 +192,117 @@ public class MetaGrid
         return true;
     }
 
+    /// <summary>
+    /// Move a bag to a new origin position on the meta-grid.
+    /// Validates that the new position is in-bounds and does not overlap other bags.
+    /// Rejects the move if the bag contains any placed reagents (see GO.3 for reagent carrying).
+    /// </summary>
+    /// <returns>True if successfully moved, false if the move is invalid.</returns>
+    public bool MoveBag(Bag bag, Vector2I newOrigin)
+    {
+        if (!_placedBags.Contains(bag))
+            return false;
+
+        // Reject if bag contains any reagents
+        foreach (var cell in bag.OwnedCells)
+        {
+            if (cell.IsOccupied)
+                return false;
+        }
+
+        // Check new positions are valid
+        var newPositions = bag.GetMetaGridPositions(newOrigin);
+        foreach (var pos in newPositions)
+        {
+            if (!IsInBounds(pos))
+                return false;
+
+            var cell = GetCell(pos)!;
+            // Cell must be free or already owned by this bag (for overlapping moves)
+            if (cell.IsInBag && cell.BagOwner != bag)
+                return false;
+        }
+
+        // Clear old cell ownership
+        foreach (var cell in bag.OwnedCells)
+        {
+            cell.BagOwner = null;
+        }
+        bag.OwnedCells.Clear();
+
+        // Assign new cell ownership
+        bag.PositionOnMetaGrid = newOrigin;
+        foreach (var pos in newPositions)
+        {
+            var cell = GetCell(pos)!;
+            cell.BagOwner = bag;
+            bag.OwnedCells.Add(cell);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Rotate a bag 90 degrees clockwise in place. The bag stays at the same origin
+    /// but its shape rotates, changing which cells it covers.
+    /// Validates that the rotated position is in-bounds and does not overlap other bags.
+    /// Rejects the rotation if the bag contains any placed reagents (see GO.3 for reagent carrying).
+    /// </summary>
+    /// <returns>True if successfully rotated, false if the rotation is invalid.</returns>
+    public bool RotateBag(Bag bag)
+    {
+        if (!_placedBags.Contains(bag))
+            return false;
+
+        // Reject if bag contains any reagents
+        foreach (var cell in bag.OwnedCells)
+        {
+            if (cell.IsOccupied)
+                return false;
+        }
+
+        var origin = bag.PositionOnMetaGrid!.Value;
+
+        // Compute new positions after rotation
+        var oldRotation = bag.Rotation;
+        bag.Rotation = oldRotation + 1;
+        var newPositions = bag.GetMetaGridPositions(origin);
+
+        // Validate new positions
+        foreach (var pos in newPositions)
+        {
+            if (!IsInBounds(pos))
+            {
+                bag.Rotation = oldRotation; // Revert
+                return false;
+            }
+
+            var cell = GetCell(pos)!;
+            if (cell.IsInBag && cell.BagOwner != bag)
+            {
+                bag.Rotation = oldRotation; // Revert
+                return false;
+            }
+        }
+
+        // Clear old cell ownership
+        foreach (var cell in bag.OwnedCells)
+        {
+            cell.BagOwner = null;
+        }
+        bag.OwnedCells.Clear();
+
+        // Assign new cell ownership with rotated shape
+        foreach (var pos in newPositions)
+        {
+            var cell = GetCell(pos)!;
+            cell.BagOwner = bag;
+            bag.OwnedCells.Add(cell);
+        }
+
+        return true;
+    }
+
     /// <summary>Get all cells belonging to a specific bag.</summary>
     public List<GridCell> GetBagCells(Bag bag) => bag.OwnedCells;
 
