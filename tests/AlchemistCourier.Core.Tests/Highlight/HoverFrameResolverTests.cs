@@ -191,6 +191,46 @@ public class HoverFrameResolverTests
     }
 
     [Fact]
+    public void GetPerimeterEdges_AllRotations_AsymmetricShape_ProduceDifferentEdges()
+    {
+        // C.1 regression: verify that each rotation of an asymmetric shape
+        // produces different perimeter edges, confirming rotation is applied.
+        // L-triomino: {{true, false}, {true, true}} — asymmetric, all 4 rotations differ
+        var reagent = new Reagent(ReagentCatalog.GetById("magma_slug")!);
+
+        var edgesByRotation = new Dictionary<int, Dictionary<Vector2I, CellEdge>>();
+        for (int r = 0; r < 4; r++)
+        {
+            reagent.Rotation = r;
+            edgesByRotation[r] = HoverFrameResolver.GetPerimeterEdges(reagent);
+        }
+
+        // Each pair of rotations should produce different edge dictionaries
+        // (cell positions differ for asymmetric shapes)
+        for (int a = 0; a < 4; a++)
+        {
+            for (int b = a + 1; b < 4; b++)
+            {
+                bool areDifferent = edgesByRotation[a].Count != edgesByRotation[b].Count;
+                if (!areDifferent)
+                {
+                    // Same count — check if keys or values differ
+                    foreach (var kvp in edgesByRotation[a])
+                    {
+                        if (!edgesByRotation[b].TryGetValue(kvp.Key, out var bEdge) || bEdge != kvp.Value)
+                        {
+                            areDifferent = true;
+                            break;
+                        }
+                    }
+                }
+                Assert.True(areDifferent,
+                    $"Rotation {a} and {b} should produce different perimeter edges for asymmetric shape");
+            }
+        }
+    }
+
+    [Fact]
     public void GetPerimeterEdges_ShapeOverload_MatchesReagentOverload()
     {
         var def = ReagentCatalog.GetById("blight_moss")!;

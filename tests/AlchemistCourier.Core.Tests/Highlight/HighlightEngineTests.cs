@@ -132,8 +132,9 @@ public class HighlightEngineTests
     }
 
     [Fact]
-    public void FragileInGravityBag_ProducesWarningHighlight()
+    public void FragileInGravityBag_NoConstraintHighlight()
     {
+        // D.1: Fragile reagents are now allowed in Gravity bags — no constraint highlight
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
@@ -141,14 +142,9 @@ public class HighlightEngineTests
         var fragile = new Reagent(CreateFragileReagentDef(new bool[,] { { true } }));
         var highlights = HighlightEngine.ComputeConstraintHighlights(grid, fragile, new Vector2I(1, 2));
 
-        Assert.False(highlights.IsEmpty);
         var constraintHighlights = highlights.GetByLayer(HighlightLayer.Constraint);
-        Assert.Single(constraintHighlights);
-
-        var h = constraintHighlights[0];
-        Assert.Equal(new Vector2I(1, 2), h.Position);
-        Assert.Equal(HighlightSeverity.Warning, h.Severity);
-        Assert.Equal(AspectIds.Fragile, h.AspectId);
+        // No Fragile constraint violations — gravity bag is allowed
+        Assert.DoesNotContain(constraintHighlights, h => h.AspectId == AspectIds.Fragile);
     }
 
     [Fact]
@@ -676,8 +672,9 @@ public class HighlightEngineTests
     }
 
     [Fact]
-    public void GhostConstraint_FragileInGravity_ProducesGhostOverlayWarning()
+    public void GhostConstraint_FragileInGravity_NoGhostOverlayWarning()
     {
+        // D.1: Fragile reagents allowed in Gravity bags — no ghost overlay warning
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
@@ -686,9 +683,8 @@ public class HighlightEngineTests
         var highlights = HighlightEngine.ComputeGhostConstraintHighlights(grid, fragile, new Vector2I(1, 2));
 
         var ghostHighlights = highlights.GetByLayer(HighlightLayer.GhostOverlay);
-        Assert.Single(ghostHighlights);
-        Assert.Equal(HighlightSeverity.Warning, ghostHighlights[0].Severity);
-        Assert.Equal(HighlightLayer.GhostOverlay, ghostHighlights[0].Layer);
+        // No FragileInGravity warnings — may still have gravity unsupported warnings
+        Assert.DoesNotContain(ghostHighlights, h => h.AspectId == AspectIds.Fragile);
     }
 
     [Fact]

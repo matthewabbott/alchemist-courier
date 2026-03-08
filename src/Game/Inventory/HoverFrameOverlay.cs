@@ -136,7 +136,8 @@ public partial class HoverFrameOverlay : Control
         var shapeName = ReagentCatalog.GetShapeName(reagent.Definition);
         if (shapeName == null) return;
 
-        var texture = LoadFrameTexture(aspectId, shapeName);
+        // Include rotation in texture lookup so rotated shapes get correct frames
+        var texture = LoadFrameTexture(aspectId, shapeName, reagent.Rotation);
         if (texture != null)
         {
             var rect = new TextureRect
@@ -152,6 +153,7 @@ public partial class HoverFrameOverlay : Control
         }
         else
         {
+            // Edge fallback uses GetPerimeterEdges which is rotation-aware
             CreateEdgeFallback(reagent, gridPixelPosition, aspectId);
         }
     }
@@ -230,18 +232,28 @@ public partial class HoverFrameOverlay : Control
         _currentReagent = null;
     }
 
-    private static Texture2D? LoadFrameTexture(string aspectId, string shapeName)
+    private static Texture2D? LoadFrameTexture(string aspectId, string shapeName, int rotation)
     {
-        string key = $"{aspectId}_{shapeName}";
-        if (_textureCache.TryGetValue(key, out var cached))
+        // Try rotation-specific key first: e.g., "fire_L_r1"
+        string rotatedKey = $"{aspectId}_{shapeName}_r{rotation}";
+        if (_textureCache.TryGetValue(rotatedKey, out var cached))
             return cached;
 
-        string path = $"{FrameBasePath}{key}.png";
+        string path = $"{FrameBasePath}{rotatedKey}.png";
         Texture2D? texture = null;
         if (ResourceLoader.Exists(path))
             texture = GD.Load<Texture2D>(path);
 
-        _textureCache[key] = texture;
+        // Backward compat: for rotation 0, also try base key without suffix
+        if (texture == null && rotation == 0)
+        {
+            string baseKey = $"{aspectId}_{shapeName}";
+            string basePath = $"{FrameBasePath}{baseKey}.png";
+            if (ResourceLoader.Exists(basePath))
+                texture = GD.Load<Texture2D>(basePath);
+        }
+
+        _textureCache[rotatedKey] = texture;
         return texture;
     }
 

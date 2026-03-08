@@ -25,8 +25,7 @@ public static class AspectMetadataDatabase
             new(AspectIds.Toxic, "Toxic", "Contributes to cumulative poisoning; two Toxic items in the same bag create a cloud.", SchoolType.Physical),
             new(AspectIds.Sharp, "Sharp", "Cuts through containers and breaks fragile items on contact.", SchoolType.Physical,
                 constraintText: "Cannot be placed on edge cells of non-Reinforced bags."),
-            new(AspectIds.Fragile, "Fragile", "Breaks from any adjacent reaction and shatters on contact with Sharp.", SchoolType.Physical,
-                constraintText: "Cannot be placed in Gravity bags."),
+            new(AspectIds.Fragile, "Fragile", "Breaks from crushing (heavy resting on it), thermal fracture (adjacent hot and cold), piercing (sharp contact), or adjacent volatile reactions.", SchoolType.Physical),
             new(AspectIds.Catalytic, "Catalytic", "Lowers thresholds of adjacent reactions, making them easier to trigger.", SchoolType.Physical),
             new(AspectIds.Medicinal, "Medicinal", "Passively raises cumulative thresholds across the whole inventory.", SchoolType.Physical),
         };

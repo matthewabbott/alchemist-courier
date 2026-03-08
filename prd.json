@@ -1331,6 +1331,126 @@
       "status": "pending"
     },
     {
+      "id": "WD.1",
+      "title": "HoverDebounce utility class",
+      "description": "Create src/Game/Inventory/HoverDebounce.cs — a timer-based hover debounce utility (~40 lines). Constructor takes float hideDelaySeconds (default 0.25f). OnMouseEntered() cancels any pending hide timer and fires OnShow event if not already showing. OnMouseExited() starts the hide countdown. Process(float delta) ticks the countdown and fires OnHide event when elapsed. Properties: IsShowing (bool), IsTimerActive (bool). Also add constants to GridConstants.cs: HoverDebounceDelay = 0.25f, TooltipFadeInDuration = 0.15f, TooltipFadeOutDuration = 0.1f. Add 2-3 unit tests: verify OnShow fires on enter, verify OnHide fires after delay on exit, verify re-enter cancels pending hide.",
+      "priority": 85,
+      "phase": "web-demo",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes new HoverDebounce tests",
+      "status": "pending"
+    },
+    {
+      "id": "WD.2",
+      "title": "FloatingTooltip base class with fade and viewport clamping",
+      "description": "Create src/Game/Inventory/FloatingTooltip.cs — a PanelContainer subclass (~120 lines). Starts with Modulate.A=0 and Visible=false. ShowAt(Vector2 anchorPos) sets position, clamps to viewport bounds via GetViewportRect(), sets Visible=true, tweens alpha 0→1 over GridConstants.TooltipFadeInDuration. HideAnimated() tweens alpha→0 over GridConstants.TooltipFadeOutDuration, then sets Visible=false. MouseFilter=Ignore so tooltips don't block grid interaction. Kill active tween before starting new one (tween?.Kill()). Style: dark semi-transparent background matching ItemDetailPanel pattern (lines 28-45).",
+      "priority": 86,
+      "phase": "web-demo",
+      "depends_on": ["WD.1"],
+      "verification": "dotnet build succeeds",
+      "status": "pending"
+    },
+    {
+      "id": "WD.3",
+      "title": "FloatingDetailTooltip for reagent inspection",
+      "description": "Create src/Game/Inventory/FloatingDetailTooltip.cs extending FloatingTooltip (~100 lines). Contains same visual content as ItemDetailPanel: shape preview (DetailShapePreview), name label, flavor text label, aspect breakdown list. ShowForReagent(Reagent?, Vector2 anchorPosition) — if null, calls HideAnimated(). If non-null, rebuilds content (reuse ItemDetailPanel.BuildAspectBreakdown logic at lines 141-193) and calls ShowAt(anchorPosition). Position: right of grid reagent bounding box for grid hover, left of tray for tray hover. Internal HoverDebounce instance manages show/hide timing.",
+      "priority": 87,
+      "phase": "web-demo",
+      "depends_on": ["WD.2"],
+      "verification": "dotnet build succeeds",
+      "status": "pending"
+    },
+    {
+      "id": "WD.4",
+      "title": "FloatingAspectTooltip for aspect info",
+      "description": "Create src/Game/Inventory/FloatingAspectTooltip.cs extending FloatingTooltip (~80 lines). Shows single aspect details: colored icon, name, description, constraint text, relevant reaction rules. ShowForAspect(string aspectId, Vector2 anchorPosition) looks up AspectMetadataDatabase for aspect info and renders it. Reuse detail rendering pattern from AspectLegendEntry.BuildDetail() (lines 223-278). Internal HoverDebounce instance.",
+      "priority": 88,
+      "phase": "web-demo",
+      "depends_on": ["WD.2"],
+      "verification": "dotnet build succeeds",
+      "status": "pending"
+    },
+    {
+      "id": "WD.5",
+      "title": "WebDemoScreen core layout and signal wiring",
+      "description": "Create src/Game/WebDemoScreen.cs (~400 lines) and scenes/web_demo.tscn. Layout: MarginContainer(FullRect) → VBox → Header('Alchemist Courier' + subtle '?' tutorial button) → HBox(CenterContainer→MetaGridView, fixed-width sidebar VBox) → ButtonBar → StatusLabel. Sidebar contains: ReagentTray(scrollable, ExpandFill), ObjectivePanel, compact AspectLegend(icon+name rows only, hover→FloatingAspectTooltip), StatusBarPanel. Tooltip layer: Control(FullRect, MouseFilter=Ignore, ZIndex=100) with FloatingDetailTooltip and FloatingAspectTooltip instances. On _Ready(): generate Medium puzzle via PuzzleGenerator with timestamp seed. Wire all signals following PuzzleScreen pattern (lines 394-470) but route hover events through debounce to floating tooltips instead of inline panels. Include ResultOverlayPanel for win/fail.",
+      "priority": 89,
+      "phase": "web-demo",
+      "depends_on": ["WD.3", "WD.4"],
+      "verification": "dotnet build succeeds. Run scenes/web_demo.tscn via Godot MCP: puzzle loads, reagents placeable, floating tooltips appear on hover with debounce, sidebar is stable.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.6",
+      "title": "Hover debounce integration into MetaGridView",
+      "description": "Modify src/Game/Inventory/MetaGridView.cs (~20 lines added). Add optional HoverDebounce? _hoverDebounce field and SetHoverDebounce(HoverDebounce) method. When set: HandleMouseMotion() (line 593-597) routes mouse-leave through debounce instead of instant UpdateHoveredReagent(null). _Process() ticks debounce if set. When null: behavior unchanged (backward compatible — PuzzleScreen unaffected, all existing tests pass). WebDemoScreen sets the debounce; PuzzleScreen does not.",
+      "priority": 90,
+      "phase": "web-demo",
+      "depends_on": ["WD.1"],
+      "verification": "dotnet build succeeds, dotnet test passes (all existing integration tests unaffected)",
+      "status": "pending"
+    },
+    {
+      "id": "WD.7",
+      "title": "Animated expand/collapse for AspectLegendPanel",
+      "description": "Modify src/Game/Inventory/AspectLegendPanel.cs (~30 lines). In AspectLegendEntry.ToggleExpand() (line 281-285): replace instant _detail.Visible toggle with tween-based animation. Set ClipContents=true on the entry. On expand: set _detail.Visible=true, measure natural height via GetCombinedMinimumSize().Y, set CustomMinimumSize=Vector2(0,0) then tween custom_minimum_size:y to natural height over 0.2s with Sine/Out. On collapse: tween custom_minimum_size:y to 0 over 0.15s with Sine/In, then set _detail.Visible=false in tween callback. Benefits both PuzzleScreen and WebDemoScreen.",
+      "priority": 91,
+      "phase": "web-demo",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes. In puzzle scene, clicking aspect legend entry smoothly expands/collapses.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.8",
+      "title": "New Puzzle button and puzzle regeneration",
+      "description": "In WebDemoScreen, add 'New Puzzle' button (distinct muted-blue color). On press: generate new random puzzle (increment seed or timestamp), tear down MetaGridView and tray, rebuild with new puzzle data. Difficulty cycles Easy→Medium→Hard→Easy with subtle label. Clear undo history, hide result overlay, reset all state. Use same teardown/rebuild pattern as TutorialScreen.LoadCurrentLesson().",
+      "priority": 92,
+      "phase": "web-demo",
+      "depends_on": ["WD.5"],
+      "verification": "dotnet build succeeds. In web demo: 'New Puzzle' generates different puzzle, difficulty cycles, all UI resets cleanly.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.9",
+      "title": "WebTutorialOverlay contextual tutorial system",
+      "description": "Create src/Game/WebTutorialOverlay.cs (~250 lines). Control overlay with state machine: Step 0 'Click a reagent to select it' highlights tray with pulsing border + tooltip. Step 1 'Click the grid to place it' highlights grid. Step 2 'Right-click to remove' tooltip near grid. Step 3 'Hover to see aspects' advances after 3s or on tooltip show. Step 4 'Watch aspect bars' highlights status bar. Step 5 'Press Confirm when done' highlights confirm button. Each step: styled PanelContainer tooltip + pulsing highlight (reuse HoverFrameOverlay sinusoidal pattern). Default OFF, toggled via header '?' button. Auto-hides on completion. Listens to WebDemoScreen signals for advancement.",
+      "priority": 93,
+      "phase": "web-demo",
+      "depends_on": ["WD.5"],
+      "verification": "dotnet build succeeds. Toggle tutorial on: steps appear sequentially, highlighting correct UI areas.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.10",
+      "title": "Viewport responsiveness for WebDemoScreen",
+      "description": "In WebDemoScreen, handle NotificationWMSizeChanged: reposition visible tooltips within bounds, reflow for narrow viewports. Add to project.godot: viewport 960x640, stretch mode canvas_items, aspect expand. Optional compact sidebar mode for windows < 700px wide.",
+      "priority": 94,
+      "phase": "web-demo",
+      "depends_on": ["WD.5"],
+      "verification": "dotnet build succeeds. Resize window: layout adjusts without overlapping, tooltips stay in bounds.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.11",
+      "title": "Web export configuration",
+      "description": "Create export_presets.cfg for HTML5 export. Preset name 'Web', run scene scenes/web_demo.tscn. Add responsive meta viewport tag in HTML head. Export path export/web/index.html. Add GameScreen.WebDemo enum value to src/Game/GameScreen.cs. Note: actual export requires Godot editor + .NET web template.",
+      "priority": 95,
+      "phase": "web-demo",
+      "depends_on": ["WD.5"],
+      "verification": "dotnet build succeeds. export_presets.cfg exists and is valid.",
+      "status": "pending"
+    },
+    {
+      "id": "WD.12",
+      "title": "Integration tests for WebDemoScreen",
+      "description": "Add integration test cases to src/Game/Testing/TestHarness.cs: WebDemo_PuzzleLoads (instantiate WebDemoScreen, verify grid and tray populated), WebDemo_FloatingTooltipOnHover (set hover position on placed reagent, verify tooltip visible with correct content after debounce), WebDemo_TooltipHidesWithDebounce (hover then off, verify tooltip persists briefly then hides), WebDemo_NewPuzzleButton (trigger new puzzle, verify grid changes), WebDemo_TutorialToggle (toggle on, verify overlay visible).",
+      "priority": 96,
+      "phase": "web-demo",
+      "depends_on": ["WD.5", "WD.8", "WD.9"],
+      "verification": "Run test harness: all WebDemo tests pass.",
+      "status": "pending"
+    },
+    {
       "id": "SB.1",
       "title": "Create SandboxScreen with catalog mode",
       "description": "Create src/Game/Tools/SandboxScreen.cs + scenes/sandbox.tscn. Catalog view: scrollable grid showing all 72 reagent sprites grouped by species (8 rows, 9 shapes each). Filter by aspect and shape. Visual state toggle radio buttons (cycle through Normal/Heated/Cooled/ThermalStress/Crushed/Breaking/Exploding). Each sprite cell shows the reagent at current visual state using ReagentSpriteSheet + SpriteStateRenderer. Falls back to colored rectangles if no sprite PNGs exist. Species headers with aspect icon. Tab bar at top: Catalog | Playground.",

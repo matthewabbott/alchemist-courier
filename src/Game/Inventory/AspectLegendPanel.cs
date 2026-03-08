@@ -145,9 +145,11 @@ public partial class AspectLegendEntry : VBoxContainer
     private VBoxContainer _detail = null!;
     private bool _isExpanded;
     private bool _isHighlighted;
+    private bool _isAnimating;
     private StyleBoxFlat _normalBg = null!;
     private StyleBoxFlat _highlightBg = null!;
     private PanelContainer _headerPanel = null!;
+    private Tween? _expandTween;
 
     public event System.Action? Clicked;
 
@@ -281,7 +283,55 @@ public partial class AspectLegendEntry : VBoxContainer
     public void ToggleExpand()
     {
         _isExpanded = !_isExpanded;
-        _detail.Visible = _isExpanded;
+
+        // Kill any in-progress animation
+        _expandTween?.Kill();
+        _expandTween = null;
+
+        if (_isExpanded)
+        {
+            // Expanding: make visible, measure natural height, tween from 0
+            _detail.Visible = true;
+            ClipContents = true;
+
+            // Temporarily remove size constraint to measure natural height
+            _detail.CustomMinimumSize = new Vector2(0, 0);
+            var naturalHeight = _detail.GetCombinedMinimumSize().Y;
+
+            // Start from zero height and tween to natural
+            _detail.CustomMinimumSize = new Vector2(0, 0);
+            _isAnimating = true;
+            _expandTween = CreateTween();
+            _expandTween.TweenProperty(_detail, "custom_minimum_size:y", naturalHeight, 0.2)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.Out);
+            _expandTween.TweenCallback(Callable.From(() =>
+            {
+                _isAnimating = false;
+                ClipContents = false;
+                // Clear minimum size so layout can be natural
+                _detail.CustomMinimumSize = new Vector2(0, 0);
+            }));
+        }
+        else
+        {
+            // Collapsing: tween height to 0, then hide
+            ClipContents = true;
+            var currentHeight = _detail.GetCombinedMinimumSize().Y;
+            _detail.CustomMinimumSize = new Vector2(0, currentHeight);
+            _isAnimating = true;
+            _expandTween = CreateTween();
+            _expandTween.TweenProperty(_detail, "custom_minimum_size:y", 0.0f, 0.15)
+                .SetTrans(Tween.TransitionType.Sine)
+                .SetEase(Tween.EaseType.In);
+            _expandTween.TweenCallback(Callable.From(() =>
+            {
+                _isAnimating = false;
+                _detail.Visible = false;
+                ClipContents = false;
+                _detail.CustomMinimumSize = new Vector2(0, 0);
+            }));
+        }
     }
 
     public void SetHighlighted(bool highlighted)

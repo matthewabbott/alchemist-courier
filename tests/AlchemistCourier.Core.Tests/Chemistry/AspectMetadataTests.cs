@@ -53,7 +53,6 @@ public class AspectMetadataTests
     [Theory]
     [InlineData(AspectIds.Sharp)]
     [InlineData(AspectIds.Heavy)]
-    [InlineData(AspectIds.Fragile)]
     public void ConstrainedAspects_HaveConstraintText(string id)
     {
         var metadata = AspectMetadataDatabase.Get(id);
@@ -68,6 +67,7 @@ public class AspectMetadataTests
     [InlineData(AspectIds.Volatile)]
     [InlineData(AspectIds.Stable)]
     [InlineData(AspectIds.Toxic)]
+    [InlineData(AspectIds.Fragile)]
     [InlineData(AspectIds.Catalytic)]
     [InlineData(AspectIds.Medicinal)]
     public void UnconstrainedAspects_HaveNullConstraintText(string id)

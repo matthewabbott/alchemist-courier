@@ -29,6 +29,11 @@ public static class GridConstants
     // Locked reagent indicator
     public static readonly Color LockedBorderColor = new(0.7f, 0.6f, 0.3f);
 
+    // Hover debounce & floating tooltips
+    public const float HoverDebounceDelay = 0.25f;
+    public const float TooltipFadeInDuration = 0.15f;
+    public const float TooltipFadeOutDuration = 0.1f;
+
     // Hover frame overlay
     public const float FramePulseAlphaMin = 0.25f;
     public const float FramePulseAlphaMax = 0.55f;

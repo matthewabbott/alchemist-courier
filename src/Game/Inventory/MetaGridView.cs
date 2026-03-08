@@ -83,6 +83,9 @@ public partial class MetaGridView : Control
     // Hover tracking for placed reagents
     private Reagent? _hoveredPlacedReagent;
 
+    // Optional hover debounce (set by WebDemoScreen, null = instant behavior for PuzzleScreen)
+    private HoverDebounce? _hoverDebounce;
+
     // Rejection tooltip state
     private PanelContainer? _rejectionTooltip;
     private Label? _rejectionLabel;
@@ -157,6 +160,17 @@ public partial class MetaGridView : Control
 
     /// <summary>The placed reagent currently being hovered over (if any).</summary>
     public Reagent? HoveredPlacedReagent => _hoveredPlacedReagent;
+
+    /// <summary>
+    /// Set an optional hover debounce for delayed hover-off behavior.
+    /// When set, mouse-leave from the grid delays clearing the hovered reagent.
+    /// When null (default), behavior is instant (backward compatible with PuzzleScreen).
+    /// </summary>
+    public void SetHoverDebounce(HoverDebounce debounce)
+    {
+        _hoverDebounce = debounce;
+        _hoverDebounce.OnHide += () => UpdateHoveredReagent(null);
+    }
 
     /// <summary>The highlight overlay (for testing).</summary>
     public HighlightOverlay Highlights => _highlightOverlay;
@@ -586,6 +600,7 @@ public partial class MetaGridView : Control
             _mouseInsideGrid = true;
             _hoverGridPos = gridPos;
             UpdateGhostPreview();
+            _hoverDebounce?.OnMouseEntered();
             UpdateHoveredReagent(gridPos);
         }
         else if (_mouseInsideGrid)
@@ -593,7 +608,16 @@ public partial class MetaGridView : Control
             _mouseInsideGrid = false;
             _hoverGridPos = null;
             ClearGhost();
-            UpdateHoveredReagent(null);
+            if (_hoverDebounce != null)
+            {
+                // Debounced: delay clearing hovered reagent
+                _hoverDebounce.OnMouseExited();
+            }
+            else
+            {
+                // Instant (backward compatible)
+                UpdateHoveredReagent(null);
+            }
         }
     }
 
@@ -957,6 +981,8 @@ public partial class MetaGridView : Control
 
     public override void _Process(double delta)
     {
+        _hoverDebounce?.Process((float)delta);
+
         if (_tooltipTimer > 0)
         {
             _tooltipTimer -= (float)delta;
