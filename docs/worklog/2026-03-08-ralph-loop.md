@@ -86,3 +86,13 @@ system or puzzle setup can't be silently removed by bag movement. Non-locked spa
 reagents continue to be removed per R3. The pre-check pattern avoids complex rollback by
 rejecting before state mutation. 795 tests passing.
 Commit: 24d0d89
+
+## GO.5: Cross-bag reagent placement verification tests
+Regression test suite confirming cross-bag placement works correctly after all the B.1-B.3
+bag movement changes. Seven tests cover the full matrix: spanning adjacent bags succeeds,
+non-adjacent bags (gap) rejected, spanning reagent removed on bag move away, spanning
+survives overlapping move where cells are still covered, new placement after moving bags
+together, and rotation orphan cleanup. A nice edge case: when a Satchel (3r×4c) slides
+down one row, a spanning domino at the boundary survives because both its cells remain
+within their respective bags. 802 tests passing.
+Commit: 96fadc0

@@ -881,3 +881,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 24d0d89
 - Notes: Added HasLockedOrphanedReagent pre-check to both MoveBag and RotateBag. Before modifying grid state, computes which bag cells would be "abandoned" (old coverage minus new coverage). If any locked non-contained reagent has cells in abandoned positions, the move/rotate is rejected and all state is restored (bag position, contained reagent occupancy). Non-locked spanning reagents continue to be removed as before (R3 behavior). Updated 1 existing test (locked spanning reagent now blocks move instead of being force-removed). Added 6 new tests: locked spanning blocks move with full state restore, unlocked spanning still removed on move, locked spanning blocks rotation, rotation with locked spanning restores contained reagent, locked contained reagent allows move (carried with bag), unlocked spanning still removed on rotation. All 795 tests pass (789 existing + 6 new).
+
+## GO.5 — B.4: Cross-bag reagent placement verification tests
+- Date: 2026-03-08
+- Commit: 96fadc0
+- Notes: Added 7 regression tests verifying cross-bag reagent placement still works correctly after B.1-B.3 bag movement changes. Tests cover: domino spanning two adjacent bags places successfully, single-cell reagents on each side of bag boundary, placement fails when bags have a gap (non-adjacent), spanning reagent removed when bag moves away (orphan cleanup), spanning reagent survives when bag move still covers its cells (overlapping move), new cross-bag placement works after moving bags to be adjacent, rotation of non-square bag orphans and cleans up spanning reagent. All 802 tests pass (795 existing + 7 new).
