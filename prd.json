@@ -719,7 +719,7 @@
     {
       "id": "HINT.7",
       "title": "Hint button UI in PuzzleScreen",
-      "description": "Add the hint button to PuzzleScreen's UI layout. In the BuildUI() method (around line 248 where Confirm/Reset buttons are created): create _hintButton as a styled Button with purple tint (Color(0.4f, 0.35f, 0.55f)), 'Hint' text, same sizing pattern as Confirm/Reset. Add _hintCountLabel as a Label next to the button showing 'N/M' format (e.g., '0/3'). Position in the button bar (HBoxContainer) \u00e2\u20ac\u201d place Hint button before or after Reset. When hints exhausted and no snap-backs available, set _hintButton.Disabled = true and apply dimmed styling. When MaxHints == 0 (old puzzles with no hint support), hide the button entirely.",
+      "description": "Add the hint button to PuzzleScreen's UI layout. In the BuildUI() method (around line 248 where Confirm/Reset buttons are created): create _hintButton as a styled Button with purple tint (Color(0.4f, 0.35f, 0.55f)), 'Hint' text, same sizing pattern as Confirm/Reset. Add _hintCountLabel as a Label next to the button showing 'N/M' format (e.g., '0/3'). Position in the button bar (HBoxContainer) â€” place Hint button before or after Reset. When hints exhausted and no snap-backs available, set _hintButton.Disabled = true and apply dimmed styling. When MaxHints == 0 (old puzzles with no hint support), hide the button entirely.",
       "priority": 64,
       "phase": "hint-system",
       "depends_on": [
@@ -1161,7 +1161,7 @@
     {
       "id": "R1",
       "title": "Extract RefreshAfterGridChange helper in PuzzleScreen",
-      "description": "PuzzleScreen.cs has 6+ near-identical refresh sequences (RefreshDisplay x2, Refresh, UpdateStatusThresholds, RefreshEagleSense, UpdateUndoRedoButtons) across OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, UseHint, Undo, and Redo. Extract a private RefreshAfterGridChange(bool updateHints = false) helper to consolidate. ResetPuzzle is a variant that skips some calls \u00e2\u20ac\u201d handle as a separate path or with a parameter. File: src/Game/Inventory/PuzzleScreen.cs.",
+      "description": "PuzzleScreen.cs has 6+ near-identical refresh sequences (RefreshDisplay x2, Refresh, UpdateStatusThresholds, RefreshEagleSense, UpdateUndoRedoButtons) across OnReagentPlaced, OnReagentRemoved, RemoveReagentAt, UseHint, Undo, and Redo. Extract a private RefreshAfterGridChange(bool updateHints = false) helper to consolidate. ResetPuzzle is a variant that skips some calls â€” handle as a separate path or with a parameter. File: src/Game/Inventory/PuzzleScreen.cs.",
       "priority": 0,
       "phase": "review-fix",
       "depends_on": [],
@@ -1206,7 +1206,9 @@
       "description": "Two doc updates: (1) In docs/core-mechanics.md, replace the 'Canonical Reagent Catalog' section (8 species x 9 shapes = 72) with the item-first model referencing docs/item-catalog-design.md. Keep naming convention, puzzle generation rules, and visual states sections. (2) In docs/visual-polish-design.md, add Section 13: Hover Frames specification — perimeter-only aspect-themed overlays, pulse animation (alpha 0.25-0.55, 1.5s period), implementation architecture (HoverFrameResolver, HoverFrameOverlay, DevSpriteGenerator extension), Z-order placement, frame texture organization.",
       "priority": 73,
       "phase": "item-art-direction",
-      "depends_on": ["IA.2"],
+      "depends_on": [
+        "IA.2"
+      ],
       "verification": "Both files updated, core-mechanics.md references item-catalog-design.md, visual-polish-design.md has Section 13",
       "status": "done"
     },
@@ -1216,7 +1218,9 @@
       "description": "Replace the 8 species x 9 shapes (72 entries) catalog in src/Core/Reagents/ReagentCatalog.cs with ~24 unique items as defined in docs/item-catalog-design.md. Each item has ONE shape. Keep the same public API surface (GetAll, GetById, GetByAspect, GetByShape, FindMatch) but with fewer entries. Update the internal data model: remove the nested species x shape loops, replace with individual item definitions. Item IDs use snake_case (e.g., 'ember_seed', 'firevine', 'frozen_teardrop'). All cells in each item still have the same single aspect (same as before). Weight = cellCount, Value = cellCount, Rarity based on size (1-2 cells = Common, 3 = Uncommon, 4 = Rare). Preserve GetByShape() functionality — it returns all items with that shape. Preserve FindMatch(aspectId, shape) — returns items matching aspect + shape matrix.",
       "priority": 74,
       "phase": "catalog-refactor",
-      "depends_on": ["IA.2"],
+      "depends_on": [
+        "IA.2"
+      ],
       "verification": "dotnet build succeeds, ReagentCatalog.GetAll() returns ~24 items, all items have correct aspects and shapes",
       "status": "done"
     },
@@ -1226,7 +1230,9 @@
       "description": "Update tests in tests/AlchemistCourier.Core.Tests/ that reference the old 72-entry catalog. Key changes: (1) ReagentCatalogTests: update expected counts (GetAll = ~24, GetByAspect = 2-3 per aspect, GetByShape = varies), update specific ID references (e.g., 'firevine_domino' stays, 'firevine_monomino' becomes 'ember_seed'). (2) Any tests using hardcoded reagent IDs from the old catalog need updating to new IDs. (3) The test AllDefinitions_HaveConsistentAspectAcrossCells should still pass (all cells same aspect). (4) Add a new test verifying all 9 shapes are covered across the catalog. (5) Search all test files for old species_shape IDs and update.",
       "priority": 75,
       "phase": "catalog-refactor",
-      "depends_on": ["CR.1"],
+      "depends_on": [
+        "CR.1"
+      ],
       "verification": "dotnet test — all tests pass with new catalog",
       "status": "done"
     },
@@ -1236,7 +1242,9 @@
       "description": "Update game systems that reference specific catalog entries: (1) src/Core/Puzzle/PuzzleGenerator.cs — update reagent selection logic. GetByAspect now returns 2-3 items per aspect instead of 9. Ensure shape selection still works (may need to pick from what's available rather than requesting specific shapes). (2) Tutorial puzzles — search for hardcoded reagent IDs in tutorial/puzzle data and update to new catalog IDs. (3) Save/load — if SaveData references reagent IDs, ensure old saves gracefully handle missing IDs. (4) PuzzleSearchSolver — verify it works with the reduced catalog. (5) EditorScreen/ReagentEditorPanel — update any catalog browsing UI.",
       "priority": 76,
       "phase": "catalog-refactor",
-      "depends_on": ["CR.1"],
+      "depends_on": [
+        "CR.1"
+      ],
       "verification": "dotnet build && dotnet test pass, tutorial generates valid puzzles with new catalog items",
       "status": "done"
     },
@@ -1246,7 +1254,9 @@
       "description": "Update src/Game/Tools/DevSpriteGenerator.cs to generate sprite sheets for the new ~24 catalog items (instead of 72). Run the generator to produce new sprite PNGs in art/sprites/reagents/. Each item gets a sprite sheet (7 visual state rows x up to 4 frames). Remove old sprite files that no longer have catalog entries. Update art/sprites/reagents/sprite_specs.json. Naming: {item_id}_{shape}.png (e.g., ember_seed_monomino.png, firevine_domino.png).",
       "priority": 77,
       "phase": "catalog-refactor",
-      "depends_on": ["CR.1"],
+      "depends_on": [
+        "CR.1"
+      ],
       "verification": "dotnet build, run DevSpriteGenerator, art/sprites/reagents/ contains ~24 sprite PNGs matching new catalog",
       "status": "done"
     },
@@ -1256,7 +1266,11 @@
       "description": "Run the full integration test harness to verify the game works end-to-end with the new 24-item catalog. Steps: (1) dotnet build (2) dotnet test — all unit tests pass (3) Run scenes/test_harness.tscn via Godot MCP (4) Parse structured output — all tests should pass (5) Read screenshots to verify visual correctness (6) If any tests fail, fix the issues and re-run. This is a checkpoint task — its purpose is to catch integration issues after the catalog refactor.",
       "priority": 78,
       "phase": "catalog-refactor",
-      "depends_on": ["CR.2", "CR.3", "CR.4"],
+      "depends_on": [
+        "CR.2",
+        "CR.3",
+        "CR.4"
+      ],
       "verification": "All integration tests pass ([HARNESS_DONE passed=N failed=0]), screenshots show correct rendering",
       "status": "done"
     },
@@ -1266,7 +1280,9 @@
       "description": "Two parts: (1) Create src/Core/Highlight/HoverFrameResolver.cs — a pure C# static class. Method: GetFrameKey(Reagent reagent) returns a string key like 'hot_monomino_r0' (aspect + shape + rotation). Uses ContiguousBoundary.Compute() to determine perimeter edges. Also: GetPerimeterEdges(Reagent reagent) returns Dictionary<Vector2I, CellEdge> for the reagent's cells, with only external (perimeter) edges flagged. Internal edges between cells of the same reagent are NOT flagged. (2) Extend src/Game/Tools/DevSpriteGenerator.cs to generate frame textures: for each unique shape in the catalog, generate a PNG with a 4px colored outline on perimeter edges only, transparent interior. Output to art/sprites/frames/dev/{aspect}_{shape}.png. Use aspect color from GridConstants with a white 1px inner edge for contrast. Generate for all 4 rotations (or just rotation 0 and rotate at runtime). Add unit tests for HoverFrameResolver: verify perimeter edges for monomino (all 4 edges), domino (shared edge excluded), l_tri (corner edges correct).",
       "priority": 79,
       "phase": "hover-frames",
-      "depends_on": ["CR.4"],
+      "depends_on": [
+        "CR.4"
+      ],
       "verification": "dotnet test — HoverFrameResolver tests pass. Frame PNGs generated in art/sprites/frames/dev/",
       "status": "done"
     },
@@ -1276,7 +1292,9 @@
       "description": "Create src/Game/Inventory/HoverFrameOverlay.cs — a Godot Control node that renders a frame texture over a reagent. API: ShowFrame(Reagent reagent, Vector2 gridPixelPosition) — loads the appropriate frame texture, positions it, starts pulse animation. HideFrame() — fades out and hides. Pulse: uses Godot Tween to oscillate Modulate alpha between 0.25 and 0.55 with 1.5s period (sinusoidal). On selection: alpha range shifts to 0.35-0.65. On drag: steady 0.50, no pulse. Add constants to GridConstants.cs: FramePulseAlphaMin=0.25f, FramePulseAlphaMax=0.55f, FramePulsePeriod=1.5f, FrameSelectedAlphaMin=0.35f, FrameSelectedAlphaMax=0.65f, FrameDragAlpha=0.50f, FrameFadeDuration=0.15f.",
       "priority": 80,
       "phase": "hover-frames",
-      "depends_on": ["HF.1"],
+      "depends_on": [
+        "HF.1"
+      ],
       "verification": "dotnet build succeeds, HoverFrameOverlay compiles with correct API",
       "status": "done"
     },
@@ -1286,7 +1304,9 @@
       "description": "Wire the hover frame system into the game: (1) In MetaGridView, add a HoverFrameOverlay child node at Z-index 3 (between sprite renderers and ghost cells). (2) In UpdateHoveredReagent(): when _hoveredPlacedReagent changes, call HoverFrameOverlay.ShowFrame() for the new reagent or HideFrame() if null. (3) When _selectedReagent is set (during placement), show frame on the selected reagent with selection alpha. (4) Add a test to TestHarness: place a reagent, programmatically set hover, verify HoverFrameOverlay is visible. (5) Run full integration test harness via Godot MCP to verify no regressions.",
       "priority": 81,
       "phase": "hover-frames",
-      "depends_on": ["HF.2"],
+      "depends_on": [
+        "HF.2"
+      ],
       "verification": "dotnet build && dotnet test pass. Integration harness passes. Hover frames visible when hovering placed reagents.",
       "status": "done"
     },
@@ -1296,7 +1316,9 @@
       "description": "BLOCKED: Requires human-in-the-loop RetroDiffusion art generation. Generate aspect-themed frame textures (Celtic knotwork for general, ice crystals for Cold, vine tendrils for Hot, etc.) at 128x128 per shape, downsampled to 32x32 per cell. Must maintain clear perimeter edges for shape readability.",
       "priority": 90,
       "phase": "art-pipeline",
-      "depends_on": ["HF.3"],
+      "depends_on": [
+        "HF.3"
+      ],
       "verification": "Frame textures in art/sprites/frames/production/, visually distinct per aspect",
       "status": "blocked"
     },
@@ -1306,7 +1328,9 @@
       "description": "BLOCKED: Requires human-in-the-loop RetroDiffusion art generation. For each aspect, generate loose-prompted item art at 128x128. Curate variants that naturally conform to needed polyomino shapes. Workflow: (1) identify which shapes need coverage per aspect, (2) write loose prompts with gentle shape suggestions, (3) generate many variants, (4) curate close-enough matches, (5) assign shapes based on what art naturally suggests.",
       "priority": 91,
       "phase": "art-pipeline",
-      "depends_on": ["CR.4"],
+      "depends_on": [
+        "CR.4"
+      ],
       "verification": "Item sprites in art/sprites/reagents/ replacing dev art, each loosely matching its assigned polyomino shape",
       "status": "blocked"
     },
@@ -1326,7 +1350,9 @@
       "description": "Extend SpriteAssigner with: (1) Right panel: aspect dropdown (reuse pattern from ReagentEditorPanel.cs lines 17-31), rarity dropdown (Common/Uncommon/Rare), flavor text field. (2) 32px preview panel: show the loaded sprite downscaled to actual game cell size on a mock grid with the selected cells highlighted — shows what the player will actually see. (3) JSON export: button writes catalog entry JSON to a configurable output directory. Format: {id, name, shape (bool[][]), aspect, rarity, flavor_text, sprite_source (path), exported_at (ISO timestamp)}. Shape is the minimal bounding box of selected cells. (4) Batch workflow: after export, clear selection but keep the PNG loaded for re-assignment (in case user wants to try a different shape for the same art).",
       "priority": 83,
       "phase": "sprite-tools",
-      "depends_on": ["SA.1"],
+      "depends_on": [
+        "SA.1"
+      ],
       "verification": "dotnet build. Load PNG, select cells, set aspect/metadata, export JSON. Verify JSON file contents match selections. Verify 32px preview renders correctly.",
       "status": "pending"
     },
@@ -1338,7 +1364,7 @@
       "phase": "web-demo",
       "depends_on": [],
       "verification": "dotnet build succeeds, dotnet test passes new HoverDebounce tests",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.2",
@@ -1346,9 +1372,11 @@
       "description": "Create src/Game/Inventory/FloatingTooltip.cs — a PanelContainer subclass (~120 lines). Starts with Modulate.A=0 and Visible=false. ShowAt(Vector2 anchorPos) sets position, clamps to viewport bounds via GetViewportRect(), sets Visible=true, tweens alpha 0→1 over GridConstants.TooltipFadeInDuration. HideAnimated() tweens alpha→0 over GridConstants.TooltipFadeOutDuration, then sets Visible=false. MouseFilter=Ignore so tooltips don't block grid interaction. Kill active tween before starting new one (tween?.Kill()). Style: dark semi-transparent background matching ItemDetailPanel pattern (lines 28-45).",
       "priority": 86,
       "phase": "web-demo",
-      "depends_on": ["WD.1"],
+      "depends_on": [
+        "WD.1"
+      ],
       "verification": "dotnet build succeeds",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.3",
@@ -1356,9 +1384,11 @@
       "description": "Create src/Game/Inventory/FloatingDetailTooltip.cs extending FloatingTooltip (~100 lines). Contains same visual content as ItemDetailPanel: shape preview (DetailShapePreview), name label, flavor text label, aspect breakdown list. ShowForReagent(Reagent?, Vector2 anchorPosition) — if null, calls HideAnimated(). If non-null, rebuilds content (reuse ItemDetailPanel.BuildAspectBreakdown logic at lines 141-193) and calls ShowAt(anchorPosition). Position: right of grid reagent bounding box for grid hover, left of tray for tray hover. Internal HoverDebounce instance manages show/hide timing.",
       "priority": 87,
       "phase": "web-demo",
-      "depends_on": ["WD.2"],
+      "depends_on": [
+        "WD.2"
+      ],
       "verification": "dotnet build succeeds",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.4",
@@ -1366,9 +1396,11 @@
       "description": "Create src/Game/Inventory/FloatingAspectTooltip.cs extending FloatingTooltip (~80 lines). Shows single aspect details: colored icon, name, description, constraint text, relevant reaction rules. ShowForAspect(string aspectId, Vector2 anchorPosition) looks up AspectMetadataDatabase for aspect info and renders it. Reuse detail rendering pattern from AspectLegendEntry.BuildDetail() (lines 223-278). Internal HoverDebounce instance.",
       "priority": 88,
       "phase": "web-demo",
-      "depends_on": ["WD.2"],
+      "depends_on": [
+        "WD.2"
+      ],
       "verification": "dotnet build succeeds",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.5",
@@ -1376,9 +1408,12 @@
       "description": "Create src/Game/WebDemoScreen.cs (~400 lines) and scenes/web_demo.tscn. Layout: MarginContainer(FullRect) → VBox → Header('Alchemist Courier' + subtle '?' tutorial button) → HBox(CenterContainer→MetaGridView, fixed-width sidebar VBox) → ButtonBar → StatusLabel. Sidebar contains: ReagentTray(scrollable, ExpandFill), ObjectivePanel, compact AspectLegend(icon+name rows only, hover→FloatingAspectTooltip), StatusBarPanel. Tooltip layer: Control(FullRect, MouseFilter=Ignore, ZIndex=100) with FloatingDetailTooltip and FloatingAspectTooltip instances. On _Ready(): generate Medium puzzle via PuzzleGenerator with timestamp seed. Wire all signals following PuzzleScreen pattern (lines 394-470) but route hover events through debounce to floating tooltips instead of inline panels. Include ResultOverlayPanel for win/fail.",
       "priority": 89,
       "phase": "web-demo",
-      "depends_on": ["WD.3", "WD.4"],
+      "depends_on": [
+        "WD.3",
+        "WD.4"
+      ],
       "verification": "dotnet build succeeds. Run scenes/web_demo.tscn via Godot MCP: puzzle loads, reagents placeable, floating tooltips appear on hover with debounce, sidebar is stable.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.6",
@@ -1386,9 +1421,11 @@
       "description": "Modify src/Game/Inventory/MetaGridView.cs (~20 lines added). Add optional HoverDebounce? _hoverDebounce field and SetHoverDebounce(HoverDebounce) method. When set: HandleMouseMotion() (line 593-597) routes mouse-leave through debounce instead of instant UpdateHoveredReagent(null). _Process() ticks debounce if set. When null: behavior unchanged (backward compatible — PuzzleScreen unaffected, all existing tests pass). WebDemoScreen sets the debounce; PuzzleScreen does not.",
       "priority": 90,
       "phase": "web-demo",
-      "depends_on": ["WD.1"],
+      "depends_on": [
+        "WD.1"
+      ],
       "verification": "dotnet build succeeds, dotnet test passes (all existing integration tests unaffected)",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.7",
@@ -1398,57 +1435,69 @@
       "phase": "web-demo",
       "depends_on": [],
       "verification": "dotnet build succeeds, dotnet test passes. In puzzle scene, clicking aspect legend entry smoothly expands/collapses.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.8",
-      "title": "New Puzzle button and puzzle regeneration",
+      "title": "New Puzzle button and puzzle regeneration (superseded by overhaul plan)",
       "description": "In WebDemoScreen, add 'New Puzzle' button (distinct muted-blue color). On press: generate new random puzzle (increment seed or timestamp), tear down MetaGridView and tray, rebuild with new puzzle data. Difficulty cycles Easy→Medium→Hard→Easy with subtle label. Clear undo history, hide result overlay, reset all state. Use same teardown/rebuild pattern as TutorialScreen.LoadCurrentLesson().",
       "priority": 92,
       "phase": "web-demo",
-      "depends_on": ["WD.5"],
+      "depends_on": [
+        "WD.5"
+      ],
       "verification": "dotnet build succeeds. In web demo: 'New Puzzle' generates different puzzle, difficulty cycles, all UI resets cleanly.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.9",
-      "title": "WebTutorialOverlay contextual tutorial system",
+      "title": "WebTutorialOverlay contextual tutorial system (superseded by overhaul plan)",
       "description": "Create src/Game/WebTutorialOverlay.cs (~250 lines). Control overlay with state machine: Step 0 'Click a reagent to select it' highlights tray with pulsing border + tooltip. Step 1 'Click the grid to place it' highlights grid. Step 2 'Right-click to remove' tooltip near grid. Step 3 'Hover to see aspects' advances after 3s or on tooltip show. Step 4 'Watch aspect bars' highlights status bar. Step 5 'Press Confirm when done' highlights confirm button. Each step: styled PanelContainer tooltip + pulsing highlight (reuse HoverFrameOverlay sinusoidal pattern). Default OFF, toggled via header '?' button. Auto-hides on completion. Listens to WebDemoScreen signals for advancement.",
       "priority": 93,
       "phase": "web-demo",
-      "depends_on": ["WD.5"],
+      "depends_on": [
+        "WD.5"
+      ],
       "verification": "dotnet build succeeds. Toggle tutorial on: steps appear sequentially, highlighting correct UI areas.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.10",
-      "title": "Viewport responsiveness for WebDemoScreen",
+      "title": "Viewport responsiveness for WebDemoScreen (superseded by overhaul plan)",
       "description": "In WebDemoScreen, handle NotificationWMSizeChanged: reposition visible tooltips within bounds, reflow for narrow viewports. Add to project.godot: viewport 960x640, stretch mode canvas_items, aspect expand. Optional compact sidebar mode for windows < 700px wide.",
       "priority": 94,
       "phase": "web-demo",
-      "depends_on": ["WD.5"],
+      "depends_on": [
+        "WD.5"
+      ],
       "verification": "dotnet build succeeds. Resize window: layout adjusts without overlapping, tooltips stay in bounds.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.11",
-      "title": "Web export configuration",
+      "title": "Web export configuration (superseded by overhaul plan)",
       "description": "Create export_presets.cfg for HTML5 export. Preset name 'Web', run scene scenes/web_demo.tscn. Add responsive meta viewport tag in HTML head. Export path export/web/index.html. Add GameScreen.WebDemo enum value to src/Game/GameScreen.cs. Note: actual export requires Godot editor + .NET web template.",
       "priority": 95,
       "phase": "web-demo",
-      "depends_on": ["WD.5"],
+      "depends_on": [
+        "WD.5"
+      ],
       "verification": "dotnet build succeeds. export_presets.cfg exists and is valid.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "WD.12",
-      "title": "Integration tests for WebDemoScreen",
+      "title": "Integration tests for WebDemoScreen (superseded by overhaul plan)",
       "description": "Add integration test cases to src/Game/Testing/TestHarness.cs: WebDemo_PuzzleLoads (instantiate WebDemoScreen, verify grid and tray populated), WebDemo_FloatingTooltipOnHover (set hover position on placed reagent, verify tooltip visible with correct content after debounce), WebDemo_TooltipHidesWithDebounce (hover then off, verify tooltip persists briefly then hides), WebDemo_NewPuzzleButton (trigger new puzzle, verify grid changes), WebDemo_TutorialToggle (toggle on, verify overlay visible).",
       "priority": 96,
       "phase": "web-demo",
-      "depends_on": ["WD.5", "WD.8", "WD.9"],
+      "depends_on": [
+        "WD.5",
+        "WD.8",
+        "WD.9"
+      ],
       "verification": "Run test harness: all WebDemo tests pass.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SB.1",
@@ -1469,6 +1518,134 @@
         "SB.1"
       ],
       "verification": "Run scenes/sandbox.tscn, switch to Playground, draw custom bag, place reagents, confirm triggers reactions, undo/redo works"
+    },
+    {
+      "id": "GO.1",
+      "title": "Soften Heavy constraint from hard block to warning",
+      "description": "Currently GetHeavyViolations() blocks placement via IsHeavyConstraintValid() in CanPlaceReagent() (MetaGrid.cs ~line 239). The gameplay overhaul plan says 'invalid states freely allowed during play.' Change: Remove the IsHeavyConstraintValid check from CanPlaceReagent(). Keep GetHeavyViolations() itself intact -- it is still used by HighlightEngine for visual warnings. Update any tests that assert placement is blocked due to Heavy-above-non-Heavy -- these should now assert placement succeeds but violations are reported. The Heavy constraint should become advisory (like bag balance), not a hard gate. Files: src/Core/Grid/MetaGrid.cs, tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs.",
+      "priority": 100,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet test -- all tests pass. Heavy reagent can now be placed above non-heavy in gravity bags. GetHeavyViolations() still returns violations.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.2",
+      "title": "B.1 core: MetaGrid.MoveBag and RotateBag methods",
+      "description": "Add MoveBag(Bag bag, Vector2I newOrigin) and RotateBag(Bag bag) methods to MetaGrid. MoveBag repositions a bag origin on the grid -- validates new position is in-bounds and does not overlap other bags. RotateBag rotates the bag shape 90 degrees CW and updates its grid cells. Both methods update the internal bag-to-cell mapping. Return bool success. Add comprehensive tests: move bag to valid position, move bag out of bounds (rejected), move bag overlapping another bag (rejected), rotate bag CW, rotate bag updates cell mapping. Note: this task is CORE ONLY -- do not add UI interaction. Files: src/Core/Grid/MetaGrid.cs, src/Core/Bags/BagDefinition.cs (may need RotateCW on shape), tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs.",
+      "priority": 101,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet test -- all tests pass including new MoveBag/RotateBag tests.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.3",
+      "title": "B.2 core: Bag movement carries contained reagents",
+      "description": "Extend MoveBag() and RotateBag() in MetaGrid to also move/rotate all reagents fully contained within the bag. A reagent is 'fully contained' if ALL of its cells are within the moving bag. Reagents spanning multiple bags do NOT move (they stay in place). When moving: translate each contained reagent position by the same delta as the bag. When rotating: rotate each contained reagent cells around the bag center. Files: src/Core/Grid/MetaGrid.cs (extend MoveBag/RotateBag), tests for: single-bag reagent moves with bag, split reagent stays when one bag moves, rotation transforms reagent positions correctly.",
+      "priority": 102,
+      "phase": "gameplay-overhaul",
+      "depends_on": [
+        "GO.2"
+      ],
+      "verification": "dotnet test -- all tests pass.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.4",
+      "title": "B.3 core: Invalid placements after bag movement",
+      "description": "After MoveBag()/RotateBag(), check all reagents that were NOT moved (e.g., split reagents, or reagents in other bags that now overlap). Any reagent whose cells are no longer within any bag should be removed from the grid (simulating 'returned to tray'). EXCEPTION: if a locked reagent (reagent.IsLocked) would become invalid, reject the entire move/rotate and restore the pre-move state. Implementation: snapshot grid state before move, validate after, restore if locked reagent invalidated. Files: src/Core/Grid/MetaGrid.cs, tests for: split reagent removed after bag move, locked reagent blocks bag move, state restored cleanly after rejected move.",
+      "priority": 103,
+      "phase": "gameplay-overhaul",
+      "depends_on": [
+        "GO.3"
+      ],
+      "verification": "dotnet test -- all tests pass.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.5",
+      "title": "B.4: Cross-bag reagent placement verification tests",
+      "description": "Add explicit regression tests confirming that cross-bag reagent placement still works correctly after B.1-B.3 changes. Test scenarios: reagent spanning two adjacent bags places successfully, reagent spanning two bags after one bag moves (reagent stays, becomes single-bag), reagent placement across bags where bags are not adjacent (rejected). This is primarily a test-only task to ensure B.1-B.3 did not break existing functionality. Files: tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs.",
+      "priority": 104,
+      "phase": "gameplay-overhaul",
+      "depends_on": [
+        "GO.4"
+      ],
+      "verification": "dotnet test -- all tests pass.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.6",
+      "title": "A.4: Gravity direction indicator arrow on gravity bags",
+      "description": "Gravity bags should display a procedural arrow indicating the gravity direction. In MetaGridView, during the bag rendering pass in _Draw(), add arrow drawing for bags that have BagPropertyType.Gravity. Draw a simple filled triangle/chevron pointing in the bag GravityDirection. Use purple color (Color(0.6f, 0.3f, 0.9f)) to match dev art style. Arrow should be centered in the bag, sized proportionally (about 2 cells tall). Access bag.GravityDirection from src/Core/Bags/GravityDirection.cs (enum: Down/Up/Left/Right with ToVector()). Files: src/Game/Inventory/MetaGridView.cs -- add to _Draw() after bag cell rendering.",
+      "priority": 105,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. Run scenes/web_demo.tscn via Godot MCP -- gravity bags show a purple directional arrow.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.7",
+      "title": "D.3: Fragile damage visual indicator (pre-confirm)",
+      "description": "If a fragile reagent WOULD be crushed/fractured/pierced in the current arrangement, show a red visual overlay immediately (before confirm). Use ViolationTracker.ComputeAll() (already implemented in src/Core/Highlight/ViolationTracker.cs) to detect fragile violations (FragileCrushed, FragileThermalFracture, FragilePierced). Render affected cells with a red tint overlay. Implementation: after each reagent place/remove, call ViolationTracker.ComputeAll(), filter for fragile violation types, pass AffectedCells to a damage overlay. Follow existing HighlightOverlay pattern in src/Game/Inventory/HighlightOverlay.cs. Files: src/Game/Inventory/MetaGridView.cs (call ViolationTracker on state change, draw damage overlay), or create new src/Game/Inventory/DamageOverlay.cs following HighlightOverlay pattern. Also reference src/Core/Chemistry/ReactionRuleDatabase.cs for GetMvpRules().",
+      "priority": 106,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. In web_demo: place fragile next to sharp -- red overlay appears on fragile. Remove sharp -- overlay disappears.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.8",
+      "title": "E.1: Volatile explosion indicator (pre-confirm)",
+      "description": "Show 'about to explode' visual indicator on volatile cells when volatile is adjacent to hot. Use ViolationTracker.ComputeAll() to detect VolatileExplosion violations. Render affected cells with an orange/red pulsing overlay (explosion-themed). Also: if volatile placement is currently blocked by prospective evaluation in CanPlaceReagent, remove that block -- the plan says 'invalid states freely allowed during play.' The explosion should be a warning, not a placement blocker. Implementation similar to GO.7 -- filter ViolationTracker results for VolatileExplosion type. Files: src/Game/Inventory/MetaGridView.cs (or DamageOverlay if created in GO.7), possibly src/Core/Grid/MetaGrid.cs if prospective volatile check needs removal.",
+      "priority": 107,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. In web_demo: place volatile next to hot -- orange explosion indicator appears. Volatile can be placed (not blocked).",
+      "status": "pending"
+    },
+    {
+      "id": "GO.9",
+      "title": "F.1: Error highlight pulse on confirm with violations",
+      "description": "When the player presses Confirm with active violations, pulse-animate all cells from ViolationTracker.ComputeAll() results before showing the fail result. Use HighlightOverlay existing infrastructure or create a pulse tween: red flash on affected cells, 3 pulses over 1 second, then show ResultOverlayPanel with fail state. Implementation: in the confirm handler (WebDemoScreen.cs or PuzzleScreen.cs), before calling ChemistryEngine.Evaluate(), call ViolationTracker.ComputeAll(). If violations exist, trigger pulse animation on AffectedCells, then proceed to fail result. Files: src/Game/WebDemoScreen.cs (confirm flow), src/Game/Inventory/MetaGridView.cs or HighlightOverlay (pulse animation).",
+      "priority": 108,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. In web_demo: place conflicting reagents, press confirm -- cells pulse red before fail overlay shows.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.10",
+      "title": "J.1: Bag state visual indicators (smoldering/icy)",
+      "description": "Bags with thermal imbalance show live visual state. Too hot (hot > cold): red/orange tint overlay on bag cells with flickering opacity. Too cold (cold > hot): blue tint overlay with icy appearance. Balanced: normal. Use ChemistryEngine.GetBagBalanceViolations(grid) (already implemented) to compute per-bag imbalance. Render as a colored ColorRect overlay on each bag cell, with alpha oscillating via Process() (sine wave, period ~2s). Red for hot imbalance, blue for cold. Clear overlay when balanced. Update on every reagent place/remove. Files: src/Game/Inventory/MetaGridView.cs or new src/Game/Inventory/BagStateOverlay.cs.",
+      "priority": 109,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. In web_demo: place hot reagent -- bag tints red. Add cold to balance -- tint clears. Place cold without hot -- bag tints blue.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.11",
+      "title": "J.3 UI: ViolationListPanel for live violation display",
+      "description": "Create new src/Game/Inventory/ViolationListPanel.cs -- a PanelContainer with a vertical list of current violations. Uses ViolationTracker.ComputeAll() (already implemented in src/Core/Highlight/ViolationTracker.cs). Each entry is a Label showing ViolationEntry.Description, colored by severity: Warning=yellow text, Danger=red text. Panel header: 'Issues' with count badge. Empty state: shows 'No issues' in green. Updates on every reagent place/remove signal. Follow existing panel patterns from AspectLegendPanel (src/Game/Inventory/AspectLegendPanel.cs) and StatusBarPanel (src/Game/Inventory/StatusBarPanel.cs). Wire into WebDemoScreen.cs layout -- place below or beside AspectLegendPanel. Each entry should emit a signal when clicked (for GO.12). Files: new src/Game/Inventory/ViolationListPanel.cs, modify src/Game/WebDemoScreen.cs to add panel to layout and wire signals.",
+      "priority": 110,
+      "phase": "gameplay-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. In web_demo: place conflicting reagents -- violations appear in panel. Remove reagent -- violations update. Empty grid -- 'No issues'.",
+      "status": "pending"
+    },
+    {
+      "id": "GO.12",
+      "title": "J.4: Violation click highlights affected cells",
+      "description": "Clicking a violation entry in ViolationListPanel highlights the relevant cells on the grid AND relevant reagents in the tray. Use ViolationEntry.AffectedCells to drive HighlightOverlay highlight set. For tray: identify which reagents contain the affected cells and highlight their tray items. Implementation: ViolationListPanel emits ViolationClicked(ViolationEntry) signal. WebDemoScreen connects this signal, calls HighlightOverlay to show affected cells, and highlights matching ReagentTrayItems. Clicking another violation replaces the highlight. Clicking outside or pressing Escape clears. Files: src/Game/Inventory/ViolationListPanel.cs (emit signal), src/Game/WebDemoScreen.cs (connect and route), src/Game/Inventory/HighlightOverlay.cs or MetaGridView (show highlights), src/Game/Inventory/ReagentTrayItem.cs (highlight support).",
+      "priority": 111,
+      "phase": "gameplay-overhaul",
+      "depends_on": [
+        "GO.11"
+      ],
+      "verification": "dotnet build succeeds. In web_demo: click violation -- affected cells highlight on grid and in tray. Click another -- highlight changes. Click outside -- highlight clears.",
+      "status": "pending"
     }
   ]
 }
