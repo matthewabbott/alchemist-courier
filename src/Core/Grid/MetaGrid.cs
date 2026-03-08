@@ -257,6 +257,9 @@ public class MetaGrid
         // Restore cell occupancy at the new positions
         RestoreReagentCellOccupancy(contained);
 
+        // Remove spanning reagents that now have cells outside any bag
+        RemoveOrphanedReagents(contained);
+
         return true;
     }
 
@@ -355,6 +358,9 @@ public class MetaGrid
         // Restore cell occupancy at the new positions
         RestoreReagentCellOccupancy(contained);
 
+        // Remove spanning reagents that now have cells outside any bag
+        RemoveOrphanedReagents(contained);
+
         return true;
     }
 
@@ -425,6 +431,54 @@ public class MetaGrid
                     cell.OccupyingReagent = reagent;
             }
         }
+    }
+
+    /// <summary>
+    /// After a bag move/rotate, remove any placed reagents that now have cells
+    /// outside any bag. These are spanning reagents that were left in place when
+    /// one of their bags moved away. Bypasses IsLocked since the bag is gone.
+    /// </summary>
+    private void RemoveOrphanedReagents(List<Reagent> excluded)
+    {
+        var excludedSet = new HashSet<Reagent>(excluded);
+        // Snapshot to avoid modifying list during iteration
+        var snapshot = new List<Reagent>(_placedReagents);
+        foreach (var reagent in snapshot)
+        {
+            if (excludedSet.Contains(reagent))
+                continue;
+
+            var positions = reagent.GetCurrentMetaGridPositions();
+            bool hasOrphanedCell = false;
+            foreach (var pos in positions)
+            {
+                var cell = GetCell(pos);
+                if (cell == null || cell.BagOwner == null)
+                {
+                    hasOrphanedCell = true;
+                    break;
+                }
+            }
+
+            if (hasOrphanedCell)
+                ForceRemoveReagent(reagent);
+        }
+    }
+
+    /// <summary>
+    /// Force-remove a reagent from the grid, bypassing IsLocked.
+    /// Used for cleanup when a bag moves away from under a spanning reagent.
+    /// </summary>
+    private void ForceRemoveReagent(Reagent reagent)
+    {
+        _placedReagents.Remove(reagent);
+        foreach (var pos in reagent.GetCurrentMetaGridPositions())
+        {
+            var cell = GetCell(pos);
+            if (cell != null && cell.OccupyingReagent == reagent)
+                cell.OccupyingReagent = null;
+        }
+        reagent.PlacedPosition = null;
     }
 
     /// <summary>Get all cells belonging to a specific bag.</summary>
