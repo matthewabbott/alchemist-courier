@@ -96,3 +96,8 @@ together, and rotation orphan cleanup. A nice edge case: when a Satchel (3r×4c)
 down one row, a spanning domino at the boundary survives because both its cells remain
 within their respective bags. 802 tests passing.
 Commit: 96fadc0
+
+## Code Review (c)
+Reviewed R3, GO.4, GO.5 commits (63be155..888fdfd). Code is clean — no P0/P1/P2 issues found.
+HasLockedOrphanedReagent pre-check pattern is well-designed (rejects before state mutation).
+RotateBag growing to ~100 lines noted as P3 but not actionable. 802 tests passing.
