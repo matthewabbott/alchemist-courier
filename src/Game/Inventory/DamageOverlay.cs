@@ -7,8 +7,8 @@ using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 namespace AlchemistCourier.Game.Inventory;
 
 /// <summary>
-/// Godot Control that renders red tint overlays on cells affected by
-/// fragile damage violations (crushed, thermal fracture, pierced).
+/// Godot Control that renders tint overlays on cells affected by
+/// damage violations (fragile crushed/fracture/pierced, volatile explosion).
 /// Follows the HighlightOverlay pattern with pooled ColorRect children.
 /// </summary>
 public partial class DamageOverlay : Control
@@ -20,7 +20,7 @@ public partial class DamageOverlay : Control
 
     /// <summary>
     /// Render damage indicators for the given violation entries.
-    /// Only fragile violation types are rendered; others are ignored.
+    /// Renders fragile and volatile explosion violation types; others are ignored.
     /// </summary>
     public void Render(List<ViolationEntry> violations)
     {
@@ -30,7 +30,7 @@ public partial class DamageOverlay : Control
 
         foreach (var violation in violations)
         {
-            if (!IsFragileViolation(violation.Type))
+            if (!IsDamageViolation(violation.Type))
                 continue;
 
             foreach (var cell in violation.AffectedCells)
@@ -69,11 +69,12 @@ public partial class DamageOverlay : Control
         _fillRects.Add(rect);
     }
 
-    private static bool IsFragileViolation(ViolationType type)
+    private static bool IsDamageViolation(ViolationType type)
     {
         return type == ViolationType.FragileCrushed
             || type == ViolationType.FragileThermalFracture
-            || type == ViolationType.FragilePierced;
+            || type == ViolationType.FragilePierced
+            || type == ViolationType.VolatileExplosion;
     }
 
     private static Color GetDamageColor(ViolationType type)
@@ -83,6 +84,7 @@ public partial class DamageOverlay : Control
             ViolationType.FragileCrushed => new Color(0.9f, 0.15f, 0.15f, 0.35f),
             ViolationType.FragileThermalFracture => new Color(0.85f, 0.2f, 0.3f, 0.35f),
             ViolationType.FragilePierced => new Color(0.9f, 0.1f, 0.1f, 0.35f),
+            ViolationType.VolatileExplosion => new Color(0.95f, 0.5f, 0.1f, 0.4f),
             _ => new Color(0.9f, 0.2f, 0.2f, 0.35f),
         };
     }

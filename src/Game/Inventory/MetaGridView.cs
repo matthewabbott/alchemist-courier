@@ -349,7 +349,7 @@ public partial class MetaGridView : Control
         // Draw locked reagent borders
         CreateLockedBorders();
 
-        // Update fragile damage indicators
+        // Update damage indicators (fragile + volatile explosion)
         UpdateDamageOverlay();
 
         // Trigger _Draw() for gravity arrows
@@ -396,7 +396,7 @@ public partial class MetaGridView : Control
     }
 
     /// <summary>
-    /// Computes fragile damage violations and renders red overlays on affected cells.
+    /// Computes damage violations (fragile + volatile) and renders overlays on affected cells.
     /// Called from RefreshDisplay() so overlays update on every placement/removal.
     /// </summary>
     private void UpdateDamageOverlay()
