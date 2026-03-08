@@ -850,3 +850,14 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 5ee4923
 - Notes: Added MoveBag(Bag, Vector2I) and RotateBag(Bag) to MetaGrid. MoveBag validates new position is in-bounds and doesn't overlap other bags, allows overlapping the bag's own previous cells for sliding moves. RotateBag uses new Bag.Rotation property (mirrors Reagent pattern, 0-3 normalized) with ShapeUtil.Rotate for 90° CW increments; reverts rotation on validation failure. Both methods reject if the bag contains any placed reagents — GO.3 will extend with reagent carrying. Updated Bag.GetMetaGridPositions and IsEdgeCell to use GetRotatedShape()/GetRotatedLocalCellPositions() accounting for rotation. BagDefinition unchanged (immutable). 16 new tests: valid move, out-of-bounds, overlap rejection, not-on-grid, reagent rejection, overlapping-own-position slide, L-shape move, rotation CW, cell mapping update, rotation out-of-bounds, rotation overlap, rotation with reagents, four-rotation cycle, rotation defaults, normalization, dimension swap, position accounting, edge cell accounting. All 776 tests pass (757 existing + 19 new).
+
+## Integration Review — 2026-03-08
+- Reviewed commits: 7d7f708..cb0535a (CR.1-CR.5, HF.1-HF.3, SA.1-SA.2, GO.1-GO.2, SB.1, I.1-I.4, D.1-D.2, A.3, C.1, J.3)
+- Build: PASS (776/776 unit tests)
+- Harness: 32/32 tests pass, 0 failures (after fix)
+- Visual: 40+ screenshots verified, no regressions
+- Issues: 3 (P0: 0, P1: 0, P2: 0) — all test infrastructure bugs
+- Fixed: 3 (status_bar Toxic assertion removed for I.3, win_loss_evaluation uses generated puzzle for I.2, hint_system dislodge calls HintEngine directly)
+- Commit: cb0535a
+- Coverage gaps: GO.2 (MoveBag/RotateBag), D.2 (thermal fracture/crushing), A.3 (per-bag gravity direction), J.3 (ViolationTracker) have unit tests but no integration tests — Core features not yet wired to game UI.
+- Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
