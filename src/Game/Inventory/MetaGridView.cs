@@ -62,6 +62,9 @@ public partial class MetaGridView : Control
     private DamageOverlay _damageOverlay = null!;
     private StatusThresholds? _statusThresholds;
 
+    // Bag state overlay (thermal tint for hot/cold imbalance)
+    private BagStateOverlay _bagStateOverlay = null!;
+
     // Chemistry warning state
     private List<ReactionRule>? _reactionRules;
     private HashSet<string>? _reactiveAspectIds;
@@ -138,6 +141,13 @@ public partial class MetaGridView : Control
             MouseFilter = MouseFilterEnum.Ignore,
         };
         AddChild(_highlightOverlay);
+
+        _bagStateOverlay = new BagStateOverlay
+        {
+            ZIndex = 2,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_bagStateOverlay);
 
         _damageOverlay = new DamageOverlay
         {
@@ -349,6 +359,9 @@ public partial class MetaGridView : Control
         // Draw locked reagent borders
         CreateLockedBorders();
 
+        // Update bag thermal state indicators (hot/cold imbalance)
+        UpdateBagStateOverlay();
+
         // Update damage indicators (fragile + volatile explosion)
         UpdateDamageOverlay();
 
@@ -394,6 +407,22 @@ public partial class MetaGridView : Control
     {
         CreateReagentBorders(_lockedBorders, r => r.IsLocked, 2, GridConstants.LockedBorderColor);
     }
+
+    /// <summary>
+    /// Computes bag thermal imbalance and renders animated tint overlays.
+    /// Called from RefreshDisplay() so overlays update on every placement/removal.
+    /// </summary>
+    private void UpdateBagStateOverlay()
+    {
+        var violations = ChemistryEngine.GetBagBalanceViolations(_metaGrid);
+        _bagStateOverlay.Render(violations);
+    }
+
+    /// <summary>Number of bag state tint elements currently rendered, for testing.</summary>
+    public int BagStateTintCount => _bagStateOverlay.RenderedCount;
+
+    /// <summary>Number of bags with active thermal tint, for testing.</summary>
+    public int BagStateActiveGroupCount => _bagStateOverlay.ActiveGroupCount;
 
     /// <summary>
     /// Computes damage violations (fragile + volatile) and renders overlays on affected cells.
