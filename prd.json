@@ -1624,7 +1624,7 @@
       "phase": "gameplay-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. In web_demo: place hot reagent -- bag tints red. Add cold to balance -- tint clears. Place cold without hot -- bag tints blue.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GO.11",

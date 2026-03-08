@@ -921,3 +921,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 06046db
 - Notes: Added PulseViolations() to DamageOverlay — renders violation cells then pulses them 3 times over 1 second using Godot Tween (alpha oscillates 0.2→1.0→0.2 per pulse, Finished callback chains to reaction animation). Added PulseViolations() facade on MetaGridView that computes violations via ViolationTracker.ComputeAll() and delegates to DamageOverlay. Wired into both PuzzleScreen.ConfirmPuzzle() and WebDemoScreen.OnConfirmPressed(): on HasReactions, violation pulse plays first, then chains to ReactionAnimator.PlayReactions via callback. Clean 67-line change across 4 files. All 802 tests pass.
+
+## GO.10 — J.1: Bag state visual indicators (smoldering/icy)
+- Date: 2026-03-08
+- Commit: e2f390d
+- Notes: Created BagStateOverlay (src/Game/Inventory/BagStateOverlay.cs) — a Godot Control that renders animated thermal tint overlays on bag cells to indicate hot/cold imbalance. Uses ChemistryEngine.GetBagBalanceViolations() to detect per-bag imbalance. Red/orange tint for too-hot bags (Imbalance > 0), blue tint for too-cold bags (Imbalance < 0). Alpha oscillates via sine wave in _Process() with 2s period (range 0.08–0.25). Follows DamageOverlay pattern with pooled ColorRect children grouped by bag for efficient per-frame color updates. Wired into MetaGridView at ZIndex 2 (below hover frame and highlights), refreshes on every placement/removal via RefreshDisplay(). Exposed RenderedCount and ActiveGroupCount test properties. All 802 tests pass.

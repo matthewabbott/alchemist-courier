@@ -136,3 +136,12 @@ with modulate alpha oscillation, and a MetaGridView facade that computes violati
 delegates. The pulse chains to ReactionAnimator via callback in both PuzzleScreen and
 WebDemoScreen. Clean 67-line change.
 Commit: 06046db
+
+## GO.10: Bag state visual indicators (smoldering/icy)
+Bags now show live thermal state — a flickering red/orange tint when too hot (more Hot than
+Cold magnitude), or a blue tint when too cold. Uses ChemistryEngine.GetBagBalanceViolations()
+for per-bag imbalance detection and a new BagStateOverlay class following the DamageOverlay
+pattern. The overlay groups rects by bag so _Process() can efficiently update all cells per
+group with a smooth sine-wave alpha oscillation (2s period, 0.08–0.25 range). Balanced bags
+show no overlay. Placed at ZIndex 2 so the tint sits below hover/highlight/damage overlays.
+Commit: e2f390d
