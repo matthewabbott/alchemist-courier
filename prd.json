@@ -1342,7 +1342,7 @@
       "phase": "sprite-tools",
       "depends_on": [],
       "verification": "dotnet build. Run scenes/sprite_assigner.tscn, load a PNG from art/generated/codex/, click cells to define shape, status bar shows correct shape name.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SA.2",

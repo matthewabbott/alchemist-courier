@@ -820,3 +820,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 966e9f0..bb6c93b (HF.1, HF.2)
 - Findings: 4 (P0: 0, P1: 0, P2: 1, P3: 2, P4: 1)
 - Fixed: 1 (DRY x3 — extracted PrimaryAspectId to ReagentDefinition), Tasks created: 0
+
+## SA.1 — SpriteAssigner: load PNG + grid overlay + cell clicking
+- Date: 2026-03-08
+- Commit: 048fe53
+- Notes: Created src/Game/Tools/SpriteAssigner.cs + scenes/sprite_assigner.tscn — standalone tool for assigning polyomino shapes to candidate sprite PNGs. Layout: header bar (Load PNG + Clear Grid buttons), sprite preview area (256x256 TextureRect) with clickable NxN grid overlay (ColorRect cells), controls panel (resolution dropdown 4/6/8, cell count, detected shape name), and status bar. Grid overlay uses ShapeEditorWidget pattern: ColorRect cells toggle on click with semi-transparent green highlight, grid lines at ZIndex 1, hover feedback. FileDialog follows EditorScreen pattern (filesystem access, PNG/JPG filters, lambda receivers with QueueFree). Shape detection via MatchCanonicalShape: tests trimmed shape against all 9 ReagentCatalog.ShapeNames in all 4 rotations using ShapeUtil.Rotate90Clockwise. Public API for testing: ToggleCell, DetectedShapeName, ActiveCellCount, CurrentShape. All 757 unit tests pass.
