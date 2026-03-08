@@ -57,6 +57,9 @@ public partial class MetaGridView : Control
     // Highlight overlay
     private HighlightOverlay _highlightOverlay = null!;
     private bool _eagleSenseActive;
+
+    // Damage overlay (fragile violation indicators)
+    private DamageOverlay _damageOverlay = null!;
     private StatusThresholds? _statusThresholds;
 
     // Chemistry warning state
@@ -135,6 +138,13 @@ public partial class MetaGridView : Control
             MouseFilter = MouseFilterEnum.Ignore,
         };
         AddChild(_highlightOverlay);
+
+        _damageOverlay = new DamageOverlay
+        {
+            ZIndex = 5,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_damageOverlay);
 
         _fallingAnimator = new FallingAnimator
         {
@@ -339,6 +349,9 @@ public partial class MetaGridView : Control
         // Draw locked reagent borders
         CreateLockedBorders();
 
+        // Update fragile damage indicators
+        UpdateDamageOverlay();
+
         // Trigger _Draw() for gravity arrows
         QueueRedraw();
     }
@@ -381,6 +394,25 @@ public partial class MetaGridView : Control
     {
         CreateReagentBorders(_lockedBorders, r => r.IsLocked, 2, GridConstants.LockedBorderColor);
     }
+
+    /// <summary>
+    /// Computes fragile damage violations and renders red overlays on affected cells.
+    /// Called from RefreshDisplay() so overlays update on every placement/removal.
+    /// </summary>
+    private void UpdateDamageOverlay()
+    {
+        if (_reactionRules == null)
+        {
+            _damageOverlay.Clear();
+            return;
+        }
+
+        var violations = ViolationTracker.ComputeAll(_metaGrid, _reactionRules);
+        _damageOverlay.Render(violations);
+    }
+
+    /// <summary>Number of damage overlay elements currently rendered, for testing.</summary>
+    public int DamageOverlayCount => _damageOverlay.RenderedCount;
 
     public override void _Draw()
     {

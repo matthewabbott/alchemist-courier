@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Godot;
 using AlchemistCourier.Core.Grid;
+using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Game.Inventory;
 using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Core.Highlight;
@@ -87,6 +88,8 @@ public partial class TestHarness : Control
         await Test_GameFlowStartsAtMenu();
         await Test_GameFlowFirstLaunchTutorial();
         await Test_HoverFrameOverlay();
+        await Test_GravityBagArrow();
+        await Test_FragileDamageOverlay();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -1861,6 +1864,166 @@ public partial class TestHarness : Control
         bool pass = placed && isShowingFrame && hasHoveredReagent && frameHiddenOnEmpty;
         EndTest("hover_frame_overlay", pass, pass ? null
             : $"placed={placed} isShowingFrame={isShowingFrame} hasHoveredReagent={hasHoveredReagent} frameHiddenOnEmpty={frameHiddenOnEmpty}");
+    }
+
+    private async Task Test_GravityBagArrow()
+    {
+        BeginTest("gravity_bag_arrow");
+
+        // Create a puzzle with a gravity bag and a normal bag
+        var state = new PuzzleState
+        {
+            Seed = 999,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 1, row: 1, properties: new List<string> { "Gravity" }),
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 5, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 5, PositionRow = 1, Rotation = 0 },
+            },
+        };
+
+        // Swap to the gravity puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Verify the first bag has the Gravity property
+        var gravityBag = _puzzleScreen.Grid.PlacedBags[0];
+        bool hasGravity = gravityBag.HasProperty(BagPropertyType.Gravity);
+        Log($"[STATE] gravity_bag_property={hasGravity} (expected=True)");
+
+        // Verify the second bag does NOT have gravity
+        var normalBag = _puzzleScreen.Grid.PlacedBags[1];
+        bool normalNoGravity = !normalBag.HasProperty(BagPropertyType.Gravity);
+        Log($"[STATE] normal_bag_no_gravity={normalNoGravity} (expected=True)");
+
+        // Place a reagent to trigger full rendering refresh (including arrow draw)
+        _puzzleScreen.SelectReagent(0);
+        bool placed = _puzzleScreen.PlaceSelectedAt(5, 1);
+        Log($"[STATE] reagent_placed={placed}");
+        await WaitFrames(3);
+
+        await CaptureScreenshot("41_gravity_bag_arrow.png");
+
+        bool pass = hasGravity && normalNoGravity && placed;
+        EndTest("gravity_bag_arrow", pass, pass ? null
+            : $"hasGravity={hasGravity} normalNoGravity={normalNoGravity} placed={placed}");
+
+        // Restore DemoPuzzle for final render test
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+    }
+
+    private async Task Test_FragileDamageOverlay()
+    {
+        BeginTest("fragile_damage_overlay");
+
+        // Create a puzzle with a Sharp reagent and a Fragile reagent
+        // placed adjacent — should trigger FragilePierced violation
+        var state = new PuzzleState
+        {
+            Seed = 700,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true, true, true },
+                    { true, true, true, true, true },
+                    { true, true, true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                // Sharp reagent (1x1)
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "sharp" } }),
+                // Fragile reagent (1x1)
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "fragile" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 3, PositionRow = 2, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 5, PositionRow = 2, Rotation = 0 },
+            },
+        };
+
+        // Swap to the fragile damage test puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // Place Sharp at (3,2) — interior cell, no damage yet
+        _puzzleScreen.SelectReagent(0);
+        bool sharpPlaced = _puzzleScreen.PlaceSelectedAt(3, 2);
+        await WaitFrames(2);
+
+        int noDamageCount = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] sharp_placed={sharpPlaced} damage_overlay_count_before={noDamageCount}");
+
+        // Place Fragile at (4,2) — adjacent to Sharp, should trigger damage overlay
+        _puzzleScreen.SelectReagent(1);
+        bool fragilePlaced = _puzzleScreen.PlaceSelectedAt(4, 2);
+        await WaitFrames(2);
+
+        int damageCount = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] fragile_placed={fragilePlaced} damage_overlay_count_after={damageCount}");
+
+        await CaptureScreenshot("42_fragile_damage_overlay.png");
+
+        // Remove the fragile reagent — damage overlay should clear
+        _puzzleScreen.RemoveReagentAt(4, 2);
+        await WaitFrames(2);
+
+        int clearedCount = _puzzleScreen.GridView.DamageOverlayCount;
+        Log($"[STATE] damage_overlay_count_cleared={clearedCount}");
+
+        bool pass = sharpPlaced && fragilePlaced
+            && noDamageCount == 0
+            && damageCount > 0
+            && clearedCount == 0;
+        EndTest("fragile_damage_overlay", pass, pass ? null
+            : $"sharpPlaced={sharpPlaced} fragilePlaced={fragilePlaced} noDamage={noDamageCount} hasDamage={damageCount} cleared={clearedCount}");
+
+        // Restore DemoPuzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
     }
 
     private async Task Test_RenderFinal()
