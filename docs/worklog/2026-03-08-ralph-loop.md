@@ -158,3 +158,12 @@ removed. Each entry is color-coded by severity and clickable (emitting a signal 
 GO.12 cell-highlight integration). The panel uses ViolationTracker.ComputeAll() which was
 already built as Core infrastructure, so this was a clean Game-layer-only wiring task.
 Commit: 55aea9c
+
+## GO.12: Violation click highlights affected cells
+Completed the violation panel interaction loop: clicking a violation entry now highlights
+the affected cells on the grid with contiguous boundary edges and marks the involved reagents
+in the tray. The toggle pattern follows the existing legend aspect selection — clicking the
+same violation clears, clicking another replaces. Escape clears everything. The highlight
+computation lives in Core (HighlightEngine.ComputeViolationHighlights) for testability, with
+4 new unit tests covering edge boundary correctness and empty/single/adjacent cell cases.
+Commit: ad79975

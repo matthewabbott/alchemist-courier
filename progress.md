@@ -936,3 +936,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 55aea9c..660f6e9 (GO.11, integration tests)
 - Findings: 1 (P0: 0, P1: 0, P2: 1)
 - Fixed: 1, Tasks created: 0
+
+## GO.12 — J.4: Violation click highlights affected cells
+- Date: 2026-03-08
+- Commit: ad79975
+- Notes: Added ComputeViolationHighlights to HighlightEngine (Core, pure C#) — converts ViolationEntry.AffectedCells into a HighlightSet with ContiguousBoundary edges on the Interaction layer. Added HighlightIndices(HashSet<int>) to ReagentTray for multi-reagent highlighting. Wired ViolationClicked signal in WebDemoScreen: clicking a violation highlights affected cells on grid and involved reagents in tray, clicking the same violation toggles off, clicking another replaces. Added _UnhandledKeyInput for Escape to clear violation/legend highlights. Legend and violation selections are mutually exclusive. Grid changes (placement/removal/reset/undo/redo) auto-clear violation highlights via RefreshAfterGridChange(). 4 new unit tests: empty cells, single cell (All edges), adjacent cells (internal edges excluded), severity/aspect preservation. All 806 tests pass (802 existing + 4 new).

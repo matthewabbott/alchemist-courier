@@ -1646,7 +1646,7 @@
         "GO.11"
       ],
       "verification": "dotnet build succeeds. In web_demo: click violation -- affected cells highlight on grid and in tray. Click another -- highlight changes. Click outside -- highlight clears.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "R3",
