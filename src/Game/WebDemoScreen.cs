@@ -30,6 +30,7 @@ public partial class WebDemoScreen : Control
     private StatusBarPanel _statusBar = null!;
     private ObjectivePanel _objectivePanel = null!;
     private AspectLegendPanel _legendPanel = null!;
+    private ViolationListPanel _violationPanel = null!;
     private Label _statusLabel = null!;
     private Button _confirmButton = null!;
     private Button _resetButton = null!;
@@ -243,6 +244,11 @@ public partial class WebDemoScreen : Control
         _legendPanel = new AspectLegendPanel();
         _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
         sidebar.AddChild(_legendPanel);
+
+        // Live violation list
+        _violationPanel = new ViolationListPanel();
+        _violationPanel.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
+        sidebar.AddChild(_violationPanel);
     }
 
     private void BuildButtonBar(VBoxContainer parent)
@@ -480,6 +486,7 @@ public partial class WebDemoScreen : Control
         _reagentTray.RefreshDisplay();
         UpdateUndoRedoButtons();
         UpdateStatusThresholds();
+        _violationPanel.Refresh();
         UpdateStatus("Puzzle reset. Select a reagent from the tray.");
     }
 
@@ -500,6 +507,7 @@ public partial class WebDemoScreen : Control
             _reagentTray.RefreshDisplay();
             UpdateUndoRedoButtons();
             UpdateStatusThresholds();
+            _violationPanel.Refresh();
         }
 
         _hintCountLabel.Text = _hintOrchestrator.FormatHintCount();
@@ -533,6 +541,7 @@ public partial class WebDemoScreen : Control
         _reagentTray.RefreshDisplay();
         UpdateUndoRedoButtons();
         UpdateStatusThresholds();
+        _violationPanel.Refresh();
     }
 
     private void UpdateUndoRedoButtons()
