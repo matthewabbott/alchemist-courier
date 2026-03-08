@@ -25,6 +25,14 @@ the IsHeavyConstraintValid check from the placement path while keeping GetHeavyV
 intact for the HighlightEngine to render warnings. Clean 2-file change, all 757 tests pass.
 Commit: dde18aa
 
+## SB.1: Create SandboxScreen with catalog mode
+First sandbox feature: a dev tool for browsing all 24 catalog reagents with sprite previews.
+Reagents grouped by aspect with colored headers, filterable by aspect and shape. Visual state
+toggle cycles through all 7 states (Normal through Exploding), updating sprite renderers or
+colored rectangle fallbacks in real time. Adapted from original 72-entry spec to the current
+24-item art-first catalog. Playground tab stubbed for SB.2.
+Commit: 8ffd21d
+
 ## Code Review
 Reviewed last 6 commits (SA.1, SA.2, GO.1 + chore). Found and removed dead `IsHeavyConstraintValid`
 method left behind after GO.1 softened Heavy to advisory. SpriteAssigner.cs (1070 lines) is large

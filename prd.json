@@ -1506,7 +1506,8 @@
       "priority": 98,
       "phase": "sandbox",
       "depends_on": [],
-      "verification": "Run scenes/sandbox.tscn, all 72 reagent sprites visible in catalog grid, state toggle changes displayed state"
+      "verification": "Run scenes/sandbox.tscn, all 72 reagent sprites visible in catalog grid, state toggle changes displayed state",
+      "status": "done"
     },
     {
       "id": "SB.2",

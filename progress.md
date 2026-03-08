@@ -836,6 +836,11 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: dde18aa
 - Notes: Removed IsHeavyConstraintValid check from CanPlaceReagent in MetaGrid.cs. Heavy reagents can now be placed above non-Heavy in gravity bags — the constraint is advisory only, communicated via GetHeavyViolations() and the HighlightEngine visual warning system. Updated two unit tests (Heavy_RejectedIfNonHeavyBelow → Heavy_AboveNonHeavy_AllowedButReportsViolation, Heavy_NonHeavyRejectedBelowHeavy → Heavy_NonHeavyBelowHeavy_AllowedButReportsViolation) to assert placement succeeds while violations are still correctly reported. This is the first task in the gameplay-overhaul phase — moving from hard placement blocks to advisory warnings. All 757 tests pass.
 
+## SB.1 — Create SandboxScreen with catalog mode
+- Date: 2026-03-08
+- Commit: 8ffd21d
+- Notes: Created SandboxScreen tool (src/Game/Tools/SandboxScreen.cs + scenes/sandbox.tscn) displaying all 24 catalog reagents grouped by aspect. Features: visual state toggle (all 7 VisualState values), aspect and shape filter dropdowns, 1x/2x sprite previews using ReagentSpriteSheet with fallback to colored rectangles. Tab bar with Catalog active and Playground stub (disabled, deferred to SB.2). Adapted task from original 72-entry catalog (8 species x 9 shapes) to current 24-item art-first catalog. All 757 tests pass.
+
 ## Code Review — 2026-03-08
 - Reviewed commits: dde18aa..5650c92 (GO.1, SA.1, SA.2)
 - Findings: 2 (P0: 0, P1: 0, P2: 1, P4: 1)
