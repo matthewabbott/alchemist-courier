@@ -24,3 +24,9 @@ for "invalid states freely allowed during play" with advisory visual warnings in
 the IsHeavyConstraintValid check from the placement path while keeping GetHeavyViolations()
 intact for the HighlightEngine to render warnings. Clean 2-file change, all 757 tests pass.
 Commit: dde18aa
+
+## Code Review
+Reviewed last 6 commits (SA.1, SA.2, GO.1 + chore). Found and removed dead `IsHeavyConstraintValid`
+method left behind after GO.1 softened Heavy to advisory. SpriteAssigner.cs (1070 lines) is large
+but acceptable as a first-implementation standalone tool. No P0/P1 issues. 757 tests passing.
+Commit: 5d48583

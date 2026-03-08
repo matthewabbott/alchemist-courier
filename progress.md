@@ -835,3 +835,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: dde18aa
 - Notes: Removed IsHeavyConstraintValid check from CanPlaceReagent in MetaGrid.cs. Heavy reagents can now be placed above non-Heavy in gravity bags — the constraint is advisory only, communicated via GetHeavyViolations() and the HighlightEngine visual warning system. Updated two unit tests (Heavy_RejectedIfNonHeavyBelow → Heavy_AboveNonHeavy_AllowedButReportsViolation, Heavy_NonHeavyRejectedBelowHeavy → Heavy_NonHeavyBelowHeavy_AllowedButReportsViolation) to assert placement succeeds while violations are still correctly reported. This is the first task in the gameplay-overhaul phase — moving from hard placement blocks to advisory warnings. All 757 tests pass.
+
+## Code Review — 2026-03-08
+- Reviewed commits: dde18aa..5650c92 (GO.1, SA.1, SA.2)
+- Findings: 2 (P0: 0, P1: 0, P2: 1, P4: 1)
+- Fixed: 1 (dead IsHeavyConstraintValid method), Tasks created: 0
