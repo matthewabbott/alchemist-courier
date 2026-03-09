@@ -96,6 +96,7 @@ public partial class TestHarness : Control
         await Test_BagMovement();
         await Test_WebDemoLayout();
         await Test_WebDemoResponsive();
+        await Test_ViolationListPanel();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2278,10 +2279,7 @@ public partial class TestHarness : Control
     private async Task Test_WebDemoLayout()
     {
         BeginTest("web_demo_layout");
-
-        // Generate a puzzle with a fixed seed (same pattern as WebDemoScreen._Ready)
-        var generator = new PuzzleGenerator();
-        var state = generator.Generate(42, DifficultyParams.ForLevel(DifficultyLevel.Medium));
+        _puzzleScreen.Visible = false;
 
         var demo = new WebDemoScreen();
         AddChild(demo);
@@ -2318,6 +2316,7 @@ public partial class TestHarness : Control
         // Clean up
         RemoveChild(demo);
         demo.QueueFree();
+        _puzzleScreen.Visible = true;
 
         string? failMsg = allPass ? null : string.Join("; ", checks);
         EndTest("web_demo_layout", allPass, failMsg);
@@ -2326,6 +2325,7 @@ public partial class TestHarness : Control
     private async Task Test_WebDemoResponsive()
     {
         BeginTest("web_demo_responsive");
+        _puzzleScreen.Visible = false;
 
         var demo = new WebDemoScreen();
         AddChild(demo);
@@ -2377,9 +2377,90 @@ public partial class TestHarness : Control
         // Clean up
         RemoveChild(demo);
         demo.QueueFree();
+        _puzzleScreen.Visible = true;
 
         string? failMsg = allPass ? null : string.Join("; ", checks);
         EndTest("web_demo_responsive", allPass, failMsg);
+    }
+
+    private async Task Test_ViolationListPanel()
+    {
+        BeginTest("violation_list_panel");
+
+        // Create a controlled puzzle with Hot + Volatile reagents for a deterministic test
+        var state = new PuzzleState
+        {
+            Seed = 800,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true, true },
+                    { true, true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "volatile" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 4, PositionRow = 2, Rotation = 0 },
+            },
+        };
+
+        // Build a MetaGrid and ViolationListPanel directly
+        var grid = PuzzleSolver.ReconstructGrid(state);
+        var reagents = PuzzleSolver.ReconstructReagents(state);
+        var rules = ReactionRuleDatabase.GetMvpRules();
+
+        var panel = new ViolationListPanel();
+        AddChild(panel);
+        panel.Initialize(grid, rules);
+        await WaitFrames(2);
+
+        // (1) Empty grid — no violations
+        int violationsBefore = panel.CurrentViolations.Count;
+        Log($"[STATE] violations_before={violationsBefore} (expected=0)");
+
+        // (2) Place Hot at (1,1) and Volatile at (2,1) — adjacent → explosion violation
+        bool p1 = grid.PlaceReagent(reagents[0], new CoreVec(1, 1));
+        bool p2 = grid.PlaceReagent(reagents[1], new CoreVec(2, 1));
+        panel.Refresh();
+        await WaitFrames(2);
+
+        int violationsAfter = panel.CurrentViolations.Count;
+        string violationDesc = violationsAfter > 0 ? panel.CurrentViolations[0].Description : "(none)";
+        Log($"[STATE] placed_hot={p1} placed_vol={p2} violations_after={violationsAfter} desc=\"{violationDesc}\" (expected: true, true, >0)");
+
+        await CaptureScreenshot("48_violation_list_panel.png");
+
+        // (3) Remove both reagents — all violations should clear
+        grid.RemoveReagent(reagents[1]);
+        grid.RemoveReagent(reagents[0]);
+        panel.Refresh();
+        await WaitFrames(2);
+
+        int violationsCleared = panel.CurrentViolations.Count;
+        Log($"[STATE] violations_cleared={violationsCleared} (expected=0)");
+
+        // Clean up
+        panel.QueueFree();
+        await WaitFrames(2);
+
+        bool pass = violationsBefore == 0
+            && p1 && p2
+            && violationsAfter > 0
+            && violationsCleared == 0;
+        EndTest("violation_list_panel", pass, pass ? null
+            : $"before={violationsBefore} p1={p1} p2={p2} after={violationsAfter} cleared={violationsCleared}");
     }
 
     private async Task Test_RenderFinal()

@@ -1,53 +1,74 @@
 # Integration Review — 2026-03-08c
 
+**Reviewed commits:** 0a9ff10..e2f8961 (GO.7–GO.12, LO.1–LO.4, SB.2)
+**Build:** PASS (806/806 unit tests)
+**Harness:** 40/40 tests pass, 0 failures (after fixes)
+**Visual:** 48 screenshots verified
+
 ## Scope
-Reviewed commits: b560f83..HEAD (GO.6 through GO.11, SA.1, SA.2, SB.1, R3, GO.2–GO.5, and all code reviews since last integration review)
 
-## Build
-- **dotnet build**: PASS (0 errors, 1 cosmetic CS8785 warning)
-- **dotnet test**: PASS (802/802 unit tests)
+Since last integration review (2026-03-08b), these features were implemented:
 
-## Test Harness
-- **Result: 37/37 tests pass, 0 failures**
-- **Screenshots**: 45 screenshots captured and visually verified
+- **GO.7** (D.3): Fragile damage visual indicator — DamageOverlay with red tint per violation type
+- **GO.8** (E.1): Volatile explosion indicator — extended DamageOverlay with orange tint
+- **GO.9** (F.1): Error highlight pulse on confirm — PulseViolations animation before failure overlay
+- **GO.10** (J.1): Bag state visual indicators — BagStateOverlay with animated thermal tint
+- **GO.11** (J.3 UI): ViolationListPanel — live violation list in WebDemoScreen sidebar
+- **GO.12** (J.4): Violation click highlights — clicking violations highlights affected cells/reagents
+- **LO.1**: Public panel accessors on WebDemoScreen
+- **LO.2**: Layout test infrastructure (LayoutTestHelper + WebDemoLayout test)
+- **LO.3**: Baseline responsive viewport tests (1280x720, 1024x768, 800x600)
+- **LO.4**: Move reagent tray from sidebar to bottom horizontal strip
+- **SB.2**: Sandbox playground mode with catalog picker + interactive grid
 
-### New tests added this session
-| Test | Covers | Result |
-|------|--------|--------|
-| `volatile_explosion_overlay` | GO.8: Volatile+Hot adjacent triggers DamageOverlay (orange tint) | PASS |
-| `bag_state_overlay` | GO.10: Per-bag thermal imbalance renders BagStateOverlay tint | PASS |
-| `bag_movement` | GO.2/GO.3: MoveBag carries reagent, invalid overlap rejected, RotateBag works | PASS |
+## Issues Found: 1 (P0: 0, P1: 0, P2: 1)
 
-### Existing tests — all pass
-All 34 prior integration tests continue to pass with no regressions.
+### [P2] Test infrastructure: WebDemo tests didn't hide PuzzleScreen
+- **Tests affected:** Test_WebDemoLayout, Test_WebDemoResponsive
+- **Symptom:** Screenshots showed double button bars and status bars (PuzzleScreen bleeding through)
+- **Root cause:** Missing `_puzzleScreen.Visible = false` before creating WebDemoScreen
+- **Fix:** Added hide/restore in both tests (same pattern as editor tests)
+- **Status:** Fixed
+
+## New Tests Added: 1
+
+### Test_ViolationListPanel
+- Creates a controlled puzzle with Hot + Volatile reagents
+- Verifies violations_before=0 on empty grid
+- Places Hot adjacent to Volatile → verifies violations_after>0 (Explosion + heat imbalance)
+- Removes both → verifies violations_cleared=0
+- Covers GO.11 (ViolationListPanel rendering) integration
+
+## Coverage Summary
+
+| Feature | Unit Tests | Integration Test | Notes |
+|---------|-----------|-----------------|-------|
+| GO.7 (Fragile damage) | — | Test_FragileDamageOverlay | |
+| GO.8 (Volatile explosion) | — | Test_VolatileExplosionOverlay | |
+| GO.9 (Confirm pulse) | — | Indirect via confirm tests | Animation timing not testable |
+| GO.10 (Bag state) | — | Test_BagStateOverlay | |
+| GO.11 (ViolationListPanel) | — | Test_ViolationListPanel | **NEW** |
+| GO.12 (Violation click) | 4 unit tests | Indirect via ViolationListPanel | Click→highlight is Game-layer wiring |
+| LO.1 (Public accessors) | — | Used by layout tests | |
+| LO.2 (Layout infra) | — | Test_WebDemoLayout | |
+| LO.3 (Responsive) | — | Test_WebDemoResponsive | |
+| LO.4 (Horizontal tray) | — | Verified via layout tests | |
+| SB.2 (Sandbox playground) | — | No integration test | Tool, not gameplay |
 
 ## Visual Verification
-- **01_render_initial**: Clean initial state, 2 bags, 6 reagents in tray, aspects panel visible
-- **15_loss_confirm**: All 6 reagents placed, explosion detected, "Reactions detected!" message, Heat 3/4 and Cold 2/4 bars
-- **25_rejection_tooltip**: Sharp constraint tooltip renders correctly
-- **29_eagle_sense_on**: Eagle Sense shows orange highlight tint on interacting cells
-- **30_hover_frame_overlay**: Placed reagent shows hover frame correctly
-- **26_game_flow_menu**: Main menu renders with Daily Puzzle, Tutorial, Editor buttons
-- **41_gravity_bag_arrow**: Gravity bag renders correctly
-- **42_fragile_damage_overlay**: Sharp+Fragile adjacent shows pink damage overlay on fragile cells
-- **43_volatile_explosion_overlay**: Hot+Volatile adjacent shows orange/damage tint on both cells
-- **44_bag_state_overlay**: Hot reagent in bag triggers red smoldering tint across all 9 bag cells
-- **45_bag_movement**: After MoveBag+RotateBag, bag position shifted, reagent carried correctly
 
-## Visual Observations (Cosmetic — Not New)
-1. **Game flow menu overlap** (screenshot 26): MainMenuScreen buttons overlay on top of the PuzzleScreen below. Non-blocking for integration testing.
-2. **Status bar shows base thresholds**, not effective thresholds with Medicinal/Stable adjustments. Pre-existing.
+Screenshots inspected:
+- **01_render_initial.png**: Clean PuzzleScreen, 2 bags, aspect legend, status bar. ✓
+- **17_generated_puzzle.png**: All reagents placed safely, "Puzzle complete!" message. ✓
+- **41_gravity_bag_arrow.png**: Gravity bag with arrow indicator, Heat 1/4. ✓
+- **42_fragile_damage_overlay.png**: Sharp+Fragile adjacent, damage overlay visible (pink tint). ✓
+- **43_volatile_explosion_overlay.png**: Hot+Volatile adjacent, orange explosion overlay. ✓
+- **44_bag_state_overlay.png**: Hot reagent in bag, red thermal tint on 9 bag cells. ✓
+- **45_bag_movement.png**: Bag moved+rotated, reagent carried correctly. ✓
+- **46_web_demo_layout.png**: Clean WebDemoScreen — no bleed-through after fix. ✓
+- **47_responsive_*.png**: Grid and tray visible at all 3 resolutions. ✓
+- **48_violation_list_panel.png**: "Issues (2)" header with violation entries. ✓
 
-## Coverage Gaps (Remaining)
-| Feature | Gap | Risk |
-|---------|-----|------|
-| GO.9: Confirm violation pulse | Animation timing hard to test programmatically | Low |
-| GO.11: ViolationListPanel | Wired to WebDemoScreen, not PuzzleScreen | Low |
-| SB.1: SandboxScreen | Dev tool, no integration test needed | None |
-| SA.1/SA.2: SpriteAssigner | Standalone tool, not game-facing | None |
-
-## Issues Found
-**0 issues** — no P0, P1, or P2 bugs found.
-
-## Summary
-The gameplay-overhaul features (GO.1–GO.11) are working correctly end-to-end. Bag movement (GO.2/GO.3) carries reagents properly, violation overlays (GO.7/GO.8/GO.10) render and clear correctly, and all prior functionality (placement, rotation, warnings, hints, editor, tutorial, daily puzzle) remains stable. Three new integration tests added to cover volatile explosion overlay, bag state thermal tint, and bag movement with reagent carrying.
+## Pre-existing Cosmetic Issues (unchanged)
+- Heat label left-edge clipping on wide grids
+- Status bar shows base thresholds, not effective (Medicinal/Stable adjusted)

@@ -971,3 +971,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: f2a15b5
 - Notes: Central layout change moving the tray from the right sidebar to a horizontal strip between the separator and status bar. ReagentTray gained SetOrientation(bool horizontal) — when horizontal, items flow in an HBoxContainer instead of the default VBoxContainer; header/separator are hidden in horizontal mode. ReagentTrayItem gained a compact layout mode (shape preview + aspect dots stacked vertically, no name label, 80px min width) triggered by a new `Initialize(reagent, index, compact)` overload; the two-arg overload defaults to non-compact for backward compatibility. WebDemoScreen.BuildSidebar renamed to BuildInfoColumn (reduced min width from 200px to 160px, tray removed), new BuildTrayStrip adds a horizontal ScrollContainer with auto horizontal scroll and disabled vertical scroll. PuzzleScreen is completely unmodified — it still uses the default vertical tray. All 806 tests pass.
+
+## Integration Review — 2026-03-08c
+- Reviewed commits: 0a9ff10..e2f8961 (GO.7–GO.12, LO.1–LO.4, SB.2)
+- Build: PASS (806/806 unit tests)
+- Harness: 40/40 tests pass, 0 failures (after fix)
+- Visual: 48 screenshots verified, no regressions
+- Issues: 1 (P0: 0, P1: 0, P2: 1) — WebDemo test infrastructure: _puzzleScreen not hidden (fixed)
+- Added: `violation_list_panel` test (GO.11 — ViolationListPanel initialization, violation detection, and clearing)
+- Coverage: GO.7-GO.12 all have integration coverage (direct or indirect). LO.1-LO.4 covered by layout tests. SB.2 is a dev tool (no integration test needed).
+- Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
