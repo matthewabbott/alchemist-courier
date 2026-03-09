@@ -1779,6 +1779,106 @@
       ],
       "verification": "dotnet build succeeds. Layout test checks interactive element heights >= 40px.",
       "status": "done"
+    },
+    {
+      "id": "GJ.1",
+      "title": "Soften gravity constraint — unsupported placement + auto-fall",
+      "description": "Currently IsGravityValid() blocks placement in CanPlaceReagent(). Change so gravity is advisory, not blocking. (1) MetaGrid.cs: Remove IsGravityValid check from CanPlaceReagent() — gravity becomes advisory (like Heavy after GO.1). (2) MetaGrid.cs: Add PlaceReagentWithFall(reagent, position) — calls CalculateFallPosition() then PlaceReagent() at the fallen position. Works for ALL reagents in gravity bags, not just Heavy. (3) MetaGridView.cs: Change placement logic (currently only applies fall to Heavy via HasAspect check ~line 895) to use PlaceReagentWithFall for ALL reagents in gravity bags. Remove the Heavy-only gate. (4) Update tests that assert gravity-unsupported placement fails — should now succeed at fallen position. Key files: src/Core/Grid/MetaGrid.cs (CanPlaceReagent ~line 239, IsGravityValid ~line 577, CalculateFallPosition ~line 938), src/Game/Inventory/MetaGridView.cs (fall logic ~line 895), tests/.",
+      "priority": 140,
+      "phase": "game-jam",
+      "depends_on": [],
+      "verification": "dotnet test. Place non-heavy reagent mid-air in gravity bag -> falls to bottom.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.2",
+      "title": "Debug + fix volatile explosion indicator",
+      "description": "User reports: placing volatile next to hot shows NO visual indicator and NO confirm warning. Debug the chain: ViolationTracker.ComputeAll() -> UpdateDamageOverlay() -> DamageOverlay.Render(). (1) Check ViolationTracker.ComputeAll() — does it detect VolatileExplosion? Threshold is netHot > 0, should trigger with 1 hot adjacent. Add unit test. (2) Check DamageOverlay.Render() — does it handle VolatileExplosion ViolationType? May only filter for fragile types. (3) Check ReactionRuleDatabase.GetMvpRules() — is the Explosion rule included? (4) Check confirm flow in WebDemoScreen.OnConfirmPressed() — does it call PulseViolations() or show warnings? (5) Fix whatever is broken. If DamageOverlay doesn't render volatile violations, add rendering (orange/red color). Key files: src/Core/Highlight/ViolationTracker.cs, src/Game/Inventory/DamageOverlay.cs (or wherever damage rendering lives), src/Game/WebDemoScreen.cs, src/Core/Chemistry/ChemistryEngine.cs (EvaluateVolatileNetHotRule ~line 153).",
+      "priority": 141,
+      "phase": "game-jam",
+      "depends_on": [],
+      "verification": "dotnet test. Place volatile next to hot -> orange indicator. Confirm with violation -> warning.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.3",
+      "title": "Contextual info column — InfoColumnManager",
+      "description": "Replace the fixed info column (Objective + Legend + Violations always visible) with a contextual system. Design: InfoColumnManager extends VBoxContainer, manages which view is shown. Views: (a) PuzzleOverview (default) — ObjectivePanel + AspectLegendPanel + ViolationListPanel (current layout). (b) ReagentDetail — shape preview, name, flavor, aspect breakdown with descriptions, constraints (from ReagentProfilePanel). (c) AspectDetail — single aspect expanded info, description, reactions, which reagents have it. Transitions: Default=PuzzleOverview. Click reagent in tray/grid=ReagentDetail. Click aspect in legend/profile=AspectDetail. Escape/click background/Back button=PuzzleOverview. Implementation: (1) New src/Game/Inventory/InfoColumnManager.cs — VBoxContainer, child view visibility. (2) ShowPuzzleOverview(), ShowReagentDetail(Reagent), ShowAspectDetail(string aspectId), ShowDefault(). (3) Each view is a Control child; only one visible at a time. (4) Small Back button at top when not default. (5) Move ReagentProfilePanel content into embedded non-popup form (no fade/positioning/ZIndex). (6) Wire in WebDemoScreen: tray click->ShowReagentDetail, aspect click->ShowAspectDetail, bg click/Escape->ShowDefault. (7) Remove floating ReagentProfilePanel popup behavior. Key files: new src/Game/Inventory/InfoColumnManager.cs, src/Game/WebDemoScreen.cs (BuildInfoColumn ~line 218), src/Game/Inventory/ReagentProfilePanel.cs (341 lines, currently popup at ZIndex=100).",
+      "priority": 142,
+      "phase": "game-jam",
+      "depends_on": [],
+      "verification": "dotnet build. Click reagent -> info column shows profile. Click aspect -> aspect detail. Escape -> overview.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.4",
+      "title": "Bag movement UI — select, drag to move, right-click to rotate",
+      "description": "Wire existing MetaGrid.MoveBag()/RotateBag() to MetaGridView interaction. Interaction: (1) Click empty cell within bag: select that bag. Visual: bag border highlights (thicker/brighter). (2) While selected: drag to move (click+drag moves bag origin). Show ghost preview. Release to confirm via _metaGrid.MoveBag(). (3) While selected: right-click to rotate 90 CW via _metaGrid.RotateBag(). (4) Click reagent or outside any bag: deselect. Bag selection mutually exclusive with reagent selection. Implementation: (1) MetaGridView.cs: Add _selectedBag field, bag click detection in HandleLeftClick() (use GetBagAtCell()), bag highlight rendering in _Draw(). (2) Drag handling: mouse motion while bag selected, compute new origin, show ghost, on release call MoveBag(). (3) Right-click: call RotateBag(). (4) WebDemoScreen.cs: Wire signals (BagSelected, BagMoved, BagRotated) for info column updates. Key files: src/Game/Inventory/MetaGridView.cs (input handling, rendering), src/Game/WebDemoScreen.cs, src/Core/Grid/MetaGrid.cs (MoveBag/RotateBag already implemented in GO.2-GO.5).",
+      "priority": 143,
+      "phase": "game-jam",
+      "depends_on": [
+        "GJ.1"
+      ],
+      "verification": "dotnet build. Click bag -> highlights. Drag -> moves. Right-click -> rotates. Reagents carried.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.5",
+      "title": "Art loading infrastructure — AssetPreviewScene + sprite swap",
+      "description": "Create test scene and system for loading custom sprites. (1) New scene: scenes/asset_preview.tscn — centered panel, dropdown to preview (reagent sprite, bag border, UI panel, background). For reagents: show monomino tile at 1x/2x/4x zoom plus sample polyomino with frame/mount system. For bags: show sample 3x3 bag with tileable edge. Screenshot capture. (2) Sprite swap system: src/Game/Visual/SpriteSwapper.cs — loads PNG from art/sprites/custom/ directory. Check for custom: if art/sprites/custom/{reagentId}.png exists, use instead of art/sprites/reagents/{reagentId}.png. Frame textures: if art/sprites/custom/frames/{aspectId}.png exists, use for cell mount/perimeter. Key files: new src/Game/Visual/SpriteSwapper.cs, new scene script, src/Game/Visual/ReagentSpriteSheet.cs (add custom sprite fallback), src/Game/Visual/DevSpriteGenerator.cs (existing procedural sprites).",
+      "priority": 144,
+      "phase": "game-jam",
+      "depends_on": [],
+      "verification": "dotnet build. Run asset_preview scene — shows components.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.5b",
+      "title": "Wire existing tiling_suitable sprites as proof-of-concept",
+      "description": "Test the sprite swap system by mapping existing monomino-suitable images from art/generated/tiling_suitable/ to aspects. Existing images (7 files): 2026-03-07T09-31-54-712Z-608e7010-2.png (firevine leaf/celtic) -> Hot, 2026-03-07T06-19-07-916Z-cbd574e5-0.png (dark crystal) -> Heavy, 2026-03-07T23-36-59-760Z-7288e162-0.png (ice flower/blue frame) -> Cold, 2026-03-08T00-20-39-568Z-90226270-2.png (magma sphere) -> Sharp, 2026-03-08T00-23-21-591Z-a4820158-2.png (crystal teardrop) -> Fragile, 2026-03-08T00-24-59-677Z-5fccea6c-1.png (lightning stone) -> Volatile, Create_a_new_pixel_a...-1986904622-0.png (ornate tile) -> Stable. Implementation: (1) Copy each to art/sprites/custom/monomino_{aspectId}.png (resize/crop to 32x32 or 64x64 if needed). (2) Update sprite swap system to check monomino_{aspectId}.png. (3) If not square/sized, use Godot Image class to center-crop and resize. (4) Verify in asset_preview scene. (5) Document mapping in art/sprites/custom/manifest.json. Goal: establish end-to-end 'drop PNG -> shows in game' workflow.",
+      "priority": 145,
+      "phase": "game-jam",
+      "depends_on": [
+        "GJ.5"
+      ],
+      "verification": "dotnet build. Run asset_preview — at least 5 aspects show custom sprites instead of dev art.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.6",
+      "title": "Monomino tile sprite generation via RetroDiffusion",
+      "description": "Use RetroDiffusion to generate one tileable monomino sprite per aspect (8 total), 32x32 or 64x64 pixel art. Prompts: Hot='alchemical ember, glowing orange crystal, celtic knot border', Cold='frozen teardrop, ice blue crystal, celtic frost pattern', Volatile='spark petal, crackling yellow energy, alchemical lightning', Sharp='glass shard, translucent blade, angular celtic pattern', Fragile='crystal tear, delicate pink gem, thin filigree border', Heavy='lead nugget, dark iron ore, heavy celtic stonework', Stable='calm stone, green jade sphere, balanced celtic knot', Toxic=(placeholder if needed). Rules: Use kells-alchemy custom style from art/retrodiffusion-styles.json. Generate 3 attempts per aspect, pick best. Save to art/sprites/custom/monomino_{aspectId}.png. If no good result after 3 tries, keep existing (from GJ.5b or dev sprite). Max 24 retrodiffusion calls.",
+      "priority": 146,
+      "phase": "game-jam",
+      "depends_on": [
+        "GJ.5"
+      ],
+      "verification": "At least 5 of 8 aspects have custom monomino sprites. Run asset_preview to verify.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.7",
+      "title": "Alchemical cell frame/mount texture",
+      "description": "Generate pixel art cell mount — tileable 32x32 or 34x34 frame around each cell of a reagent. Design: Celtic-inspired metal/stone frame. Outer border: dark metallic/stone (2px). Inner glow: aspect-colored (1px), swappable via color tint. Connectors: where same-reagent cells adjacent, frame opens (no border — uses ContiguousBoundary/perimeter edge system). Implementation: (1) Generate 1-2 candidates via RetroDiffusion or hand-draw. Save to art/sprites/custom/frames/cell_mount.png. (2) Modify HoverFrameOverlay or create CellMountOverlay rendering frame around ALL placed reagent cells (not just hovered), tinted by aspect color. Only draw external perimeter edges (reuse HoverFrameResolver.GetPerimeterEdges()). Key files: src/Game/Inventory/HoverFrameOverlay.cs, src/Core/Highlight/HoverFrameResolver.cs, src/Game/Inventory/MetaGridView.cs.",
+      "priority": 147,
+      "phase": "game-jam",
+      "depends_on": [
+        "GJ.5"
+      ],
+      "verification": "dotnet build. Placed reagents show alchemical frame. Multi-cell reagents have connected frames.",
+      "status": "pending"
+    },
+    {
+      "id": "GJ.8",
+      "title": "Bag border tileable edges",
+      "description": "Generate simple tileable bag border art and integrate. Design: 32px-wide edge tile, stone/wood frame in kells-alchemy style. Need: top edge, left edge, corner, inner corner tiles. Implementation: (1) Generate border tiles via RetroDiffusion (3 attempts). Save to art/sprites/custom/bags/border_{edge_type}.png. (2) Modify MetaGridView _Draw() bag rendering to use texture tiles instead of solid color rects. (3) Fallback to solid rects if textures missing. Key files: src/Game/Inventory/MetaGridView.cs (_Draw bag rendering).",
+      "priority": 148,
+      "phase": "game-jam",
+      "depends_on": [
+        "GJ.5"
+      ],
+      "verification": "dotnet build. Bags render with textured borders.",
+      "status": "pending"
     }
   ]
 }
