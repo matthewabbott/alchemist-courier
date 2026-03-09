@@ -250,3 +250,12 @@ PlacedReagentClicked signal to MetaGridView that fires when left-clicking a plac
 no selection active. Profile dismisses on Escape (with priority over other Escape handlers),
 and auto-hides when selection clears (placement, reset, undo/redo). PuzzleScreen is untouched.
 Commit: a1e5b13
+
+## LO.8: Responsive layout adaptation for viewport sizes
+Added three-tier responsive layout to WebDemoScreen so the game adapts to different browser
+window sizes. At >= 1280px everything looks normal. Between 800-1279px the info column narrows
+and the aspect legend switches to compact mode (no expandable details, just icon + name). Below
+800px the info column hides entirely and violation count appears as a red badge overlay on the
+grid corner. The compact mode feature required teaching AspectLegendEntry to collapse immediately
+and refuse expansion, which was a clean addition to the existing expand/collapse animation system.
+Commit: 823a70a

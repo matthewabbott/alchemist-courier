@@ -1752,7 +1752,7 @@
         "LO.5"
       ],
       "verification": "dotnet build succeeds. Run web_demo at different window sizes -- layout adapts at breakpoints.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.9",

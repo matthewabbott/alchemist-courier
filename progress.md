@@ -1002,3 +1002,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: a1e5b13
 - Notes: Wired ReagentProfilePanel into WebDemoScreen with two interaction triggers. (1) Tray item click: OnReagentSelected now also shows the profile panel near the tray position, alongside existing reagent selection behavior. (2) Grid reagent click: added PlacedReagentClicked signal to MetaGridView, emitted when left-clicking on a placed reagent with no reagent selected (HandleLeftClick early-return path); WebDemoScreen connects and shows profile at the reagent's grid position offset. Profile auto-hides on ClearSelectionState (after placement, reset, undo/redo). Escape key dismisses profile with higher priority than violation/legend highlight clearing. Added ProfilePanel public accessor property for integration tests. PuzzleScreen unaffected — doesn't connect to the new signal. All 806 tests pass.
+
+## LO.8 — Responsive layout adaptation for viewport sizes
+- Date: 2026-03-08
+- Commit: 823a70a
+- Notes: Added breakpoint-driven layout adaptation to WebDemoScreen via _Notification(NotificationResized). Three tiers: >= 1280px standard layout (info column at 160px+), 800-1279px narrower info column (140px min) with legend in compact mode, < 800px info column hidden entirely with violation count shown as overlay badge on grid corner. Added SetCompactMode(bool) to AspectLegendPanel/AspectLegendEntry — compact mode collapses any expanded entries immediately (no animation), prevents ToggleExpand, shows only colored icon + aspect name. Stored _infoColumn and _infoSpacer as fields for visibility toggling. Violation badge is a styled Label with red circle background, repositioned on grid refresh. All 806 tests pass.
