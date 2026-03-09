@@ -95,6 +95,7 @@ public partial class TestHarness : Control
         await Test_BagStateOverlay();
         await Test_BagMovement();
         await Test_WebDemoLayout();
+        await Test_WebDemoResponsive();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2320,6 +2321,65 @@ public partial class TestHarness : Control
 
         string? failMsg = allPass ? null : string.Join("; ", checks);
         EndTest("web_demo_layout", allPass, failMsg);
+    }
+
+    private async Task Test_WebDemoResponsive()
+    {
+        BeginTest("web_demo_responsive");
+
+        var demo = new WebDemoScreen();
+        AddChild(demo);
+        await WaitFrames(5);
+
+        var checks = new System.Collections.Generic.List<string>();
+        bool allPass = true;
+
+        void Check(bool ok, string failReason)
+        {
+            if (!ok) { allPass = false; checks.Add(failReason); }
+        }
+
+        // Test resolutions: reference, narrow, very narrow
+        var resolutions = new (int width, int height, string label)[]
+        {
+            (1280, 720, "1280x720"),
+            (1024, 768, "1024x768"),
+            (800, 600, "800x600"),
+        };
+
+        var originalSize = DisplayServer.WindowGetSize();
+
+        foreach (var (width, height, label) in resolutions)
+        {
+            LayoutTestHelper.SetViewportSize(GetTree(), width, height);
+            await WaitFrames(5);
+
+            // Grid must be visible with non-zero size at all resolutions
+            Check(LayoutTestHelper.CheckVisible(demo.GridView, out var rGrid),
+                $"[{label}] {rGrid}");
+
+            // Reagent tray must be visible with non-zero size at all resolutions
+            Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var rTray),
+                $"[{label}] {rTray}");
+
+            var gridSize = demo.GridView.GetRect().Size;
+            var traySize = demo.ReagentTray.GetRect().Size;
+            Log($"[STATE] viewport={label} grid_size={gridSize} tray_size={traySize} " +
+                $"grid_visible={demo.GridView.Visible} tray_visible={demo.ReagentTray.Visible}");
+
+            await CaptureScreenshot($"47_responsive_{label}.png");
+        }
+
+        // Restore original viewport size
+        DisplayServer.WindowSetSize(originalSize);
+        await WaitFrames(3);
+
+        // Clean up
+        RemoveChild(demo);
+        demo.QueueFree();
+
+        string? failMsg = allPass ? null : string.Join("; ", checks);
+        EndTest("web_demo_responsive", allPass, failMsg);
     }
 
     private async Task Test_RenderFinal()

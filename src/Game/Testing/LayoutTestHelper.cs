@@ -76,4 +76,15 @@ public static class LayoutTestHelper
         reason = "";
         return true;
     }
+
+    /// <summary>
+    /// Resizes the viewport by changing the window size via DisplayServer.
+    /// Returns the original size so callers can restore it.
+    /// </summary>
+    public static Vector2I SetViewportSize(SceneTree tree, int width, int height)
+    {
+        var originalSize = DisplayServer.WindowGetSize();
+        DisplayServer.WindowSetSize(new Vector2I(width, height));
+        return originalSize;
+    }
 }
