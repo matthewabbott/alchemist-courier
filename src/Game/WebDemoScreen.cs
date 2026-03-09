@@ -44,9 +44,10 @@ public partial class WebDemoScreen : Control
     private HintState _hintState = new HintState(0);
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
 
-    // Floating tooltips (web demo specific)
+    // Floating tooltips and popups (web demo specific)
     private FloatingDetailTooltip _detailTooltip = null!;
     private FloatingAspectTooltip _aspectTooltip = null!;
+    private ReagentProfilePanel _profilePanel = null!;
     private Control _tooltipLayer = null!;
 
     // State
@@ -67,6 +68,7 @@ public partial class WebDemoScreen : Control
     public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
     public FloatingDetailTooltip DetailTooltip => _detailTooltip;
     public FloatingAspectTooltip AspectTooltip => _aspectTooltip;
+    public ReagentProfilePanel ProfilePanel => _profilePanel;
 
     public override void _Ready()
     {
@@ -325,6 +327,9 @@ public partial class WebDemoScreen : Control
         _aspectTooltip = new FloatingAspectTooltip();
         _aspectTooltip.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
         _tooltipLayer.AddChild(_aspectTooltip);
+
+        _profilePanel = new ReagentProfilePanel();
+        _tooltipLayer.AddChild(_profilePanel);
     }
 
     // --- Signal Wiring ---
@@ -338,6 +343,7 @@ public partial class WebDemoScreen : Control
         _gridView.ReagentRemoved += OnReagentRemoved;
         _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
         _gridView.RejectionFlash += OnRejectionFlash;
+        _gridView.PlacedReagentClicked += OnPlacedReagentClicked;
         _legendPanel.AspectSelected += OnLegendAspectSelected;
         _violationPanel.ViolationClicked += OnViolationClicked;
     }
@@ -351,6 +357,12 @@ public partial class WebDemoScreen : Control
         _gridView.SetSelectedReagent(_selectedReagent);
         _reagentTray.HighlightIndex(index);
         _detailTooltip.ForceHide();
+
+        // Show profile panel near the tray item
+        var trayRect = _reagentTray.GetGlobalRect();
+        var anchorPos = new Vector2(trayRect.Position.X + index * 90, trayRect.Position.Y - 10);
+        _profilePanel.ShowForReagent(_selectedReagent, anchorPos);
+
         UpdateStatus($"Placing: {_selectedReagent.Definition.Name}  |  R = rotate  |  Click = place  |  Esc = cancel");
     }
 
@@ -410,6 +422,19 @@ public partial class WebDemoScreen : Control
             _detailTooltip.ShowForReagent(null, Vector2.Zero);
             _legendPanel.ClearHighlight();
         }
+    }
+
+    private void OnPlacedReagentClicked()
+    {
+        var reagent = _gridView.HoveredPlacedReagent;
+        if (reagent == null || !reagent.PlacedPosition.HasValue) return;
+
+        var pixelPos = GridCoordinates.GridToPixel(reagent.PlacedPosition.Value);
+        var gridGlobalPos = _gridView.GlobalPosition;
+        var shape = reagent.GetRotatedShape();
+        var anchorX = gridGlobalPos.X + pixelPos.X + shape.GetLength(1) * GridConstants.CellSize + 8;
+        var anchorY = gridGlobalPos.Y + pixelPos.Y;
+        _profilePanel.ShowForReagent(reagent, new Vector2(anchorX, anchorY));
     }
 
     private void OnLegendAspectSelected(string aspectId)
@@ -499,6 +524,7 @@ public partial class WebDemoScreen : Control
         _selectedIndex = -1;
         _gridView.SetSelectedReagent(null);
         _reagentTray.ClearSelection();
+        _profilePanel.HideProfile();
     }
 
     private void OnConfirmPressed()
@@ -601,7 +627,12 @@ public partial class WebDemoScreen : Control
     {
         if (@event is InputEventKey { Pressed: true, Keycode: Key.Escape })
         {
-            if (_selectedViolationIndex >= 0)
+            if (_profilePanel.IsShowing)
+            {
+                _profilePanel.HideProfile();
+                GetViewport().SetInputAsHandled();
+            }
+            else if (_selectedViolationIndex >= 0)
             {
                 ClearViolationHighlight();
                 GetViewport().SetInputAsHandled();

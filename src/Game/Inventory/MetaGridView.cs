@@ -115,6 +115,9 @@ public partial class MetaGridView : Control
     [Signal]
     public delegate void RejectionFlashEventHandler(string aspectId);
 
+    [Signal]
+    public delegate void PlacedReagentClickedEventHandler();
+
     public void Initialize(MetaGrid metaGrid)
     {
         _metaGrid = metaGrid;
@@ -1002,7 +1005,16 @@ public partial class MetaGridView : Control
 
     private void HandleLeftClick()
     {
-        if (_selectedReagent == null || _hoverGridPos == null) return;
+        if (_hoverGridPos == null) return;
+
+        if (_selectedReagent == null)
+        {
+            // Left-click on a placed reagent with nothing selected → emit signal
+            var clickedReagent = _metaGrid.GetReagentAtCell(_hoverGridPos.Value);
+            if (clickedReagent != null)
+                EmitSignal(SignalName.PlacedReagentClicked);
+            return;
+        }
 
         if (_isPlacementValid)
         {
