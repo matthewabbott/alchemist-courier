@@ -1667,7 +1667,7 @@
       "phase": "layout-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. No behavioral change.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.2",

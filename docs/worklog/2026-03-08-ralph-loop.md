@@ -167,3 +167,10 @@ same violation clears, clicking another replaces. Escape clears everything. The 
 computation lives in Core (HighlightEngine.ComputeViolationHighlights) for testability, with
 4 new unit tests covering edge boundary correctness and empty/single/adjacent cell cases.
 Commit: ad79975
+
+## LO.1: Public panel accessors on WebDemoScreen
+First task in the layout-overhaul phase. Added public read-only properties to WebDemoScreen
+so upcoming layout tests and integration tests can programmatically inspect panel state.
+Straightforward accessor work mirroring the existing PuzzleScreen pattern — no behavioral
+changes, just exposing the private fields that were already there.
+Commit: b650c09

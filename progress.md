@@ -941,3 +941,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: ad79975
 - Notes: Added ComputeViolationHighlights to HighlightEngine (Core, pure C#) — converts ViolationEntry.AffectedCells into a HighlightSet with ContiguousBoundary edges on the Interaction layer. Added HighlightIndices(HashSet<int>) to ReagentTray for multi-reagent highlighting. Wired ViolationClicked signal in WebDemoScreen: clicking a violation highlights affected cells on grid and involved reagents in tray, clicking the same violation toggles off, clicking another replaces. Added _UnhandledKeyInput for Escape to clear violation/legend highlights. Legend and violation selections are mutually exclusive. Grid changes (placement/removal/reset/undo/redo) auto-clear violation highlights via RefreshAfterGridChange(). 4 new unit tests: empty cells, single cell (All edges), adjacent cells (internal edges excluded), severity/aspect preservation. All 806 tests pass (802 existing + 4 new).
+
+## LO.1 — Public panel accessors on WebDemoScreen
+- Date: 2026-03-08
+- Commit: b650c09
+- Notes: Added 8 public read-only properties to WebDemoScreen: ReagentTray, StatusBar, Objective, LegendPanel, ViolationPanel, ResultOverlay, Grid, and TrayReagents (IReadOnlyList). GridView, DetailTooltip, and AspectTooltip already existed. Follows the same pattern as PuzzleScreen.cs (lines 66-79). Pure accessor change — no behavioral modification. All 806 tests pass.
