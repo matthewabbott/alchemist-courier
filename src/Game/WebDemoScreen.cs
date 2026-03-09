@@ -137,10 +137,12 @@ public partial class WebDemoScreen : Control
 
         BuildGridSection(hbox);
         hbox.AddChild(new Control { CustomMinimumSize = new Vector2(20, 0) });
-        BuildSidebar(hbox);
+        BuildInfoColumn(hbox);
 
         // ---- Bottom ----
         vbox.AddChild(new HSeparator());
+
+        BuildTrayStrip(vbox);
 
         _statusBar = new StatusBarPanel();
         _statusBar.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
@@ -223,41 +225,46 @@ public partial class WebDemoScreen : Control
         parent.AddChild(gridCenter);
     }
 
-    private void BuildSidebar(HBoxContainer parent)
+    private void BuildInfoColumn(HBoxContainer parent)
     {
-        var sidebar = new VBoxContainer();
-        sidebar.SizeFlagsVertical = SizeFlags.ExpandFill;
-        sidebar.AddThemeConstantOverride("separation", 10);
-        sidebar.CustomMinimumSize = new Vector2(200, 0);
-        parent.AddChild(sidebar);
-
-        // Reagent tray (scrollable)
-        var trayScroll = new ScrollContainer
-        {
-            CustomMinimumSize = new Vector2(200, 0),
-            SizeFlagsVertical = SizeFlags.ExpandFill,
-        };
-        _reagentTray = new ReagentTray();
-        _reagentTray.SetHintState(_hintState);
-        _reagentTray.Initialize(_trayReagents);
-        _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
-        trayScroll.AddChild(_reagentTray);
-        sidebar.AddChild(trayScroll);
+        var infoColumn = new VBoxContainer();
+        infoColumn.SizeFlagsVertical = SizeFlags.ExpandFill;
+        infoColumn.AddThemeConstantOverride("separation", 10);
+        infoColumn.CustomMinimumSize = new Vector2(160, 0);
+        parent.AddChild(infoColumn);
 
         // Objective
         _objectivePanel = new ObjectivePanel();
         _objectivePanel.Initialize(_puzzleType);
-        sidebar.AddChild(_objectivePanel);
+        infoColumn.AddChild(_objectivePanel);
 
         // Compact aspect legend (hover triggers floating tooltip, no inline expand)
         _legendPanel = new AspectLegendPanel();
         _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
-        sidebar.AddChild(_legendPanel);
+        infoColumn.AddChild(_legendPanel);
 
         // Live violation list
         _violationPanel = new ViolationListPanel();
         _violationPanel.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
-        sidebar.AddChild(_violationPanel);
+        infoColumn.AddChild(_violationPanel);
+    }
+
+    private void BuildTrayStrip(VBoxContainer parent)
+    {
+        var trayScroll = new ScrollContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Vector2(0, 50),
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
+        };
+        _reagentTray = new ReagentTray();
+        _reagentTray.SetHintState(_hintState);
+        _reagentTray.SetOrientation(true);
+        _reagentTray.Initialize(_trayReagents);
+        _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        trayScroll.AddChild(_reagentTray);
+        parent.AddChild(trayScroll);
     }
 
     private void BuildButtonBar(VBoxContainer parent)
@@ -368,8 +375,9 @@ public partial class WebDemoScreen : Control
     {
         if (index < 0 || index >= _trayReagents.Count) return;
         var reagent = _trayReagents[index];
-        var trayGlobalPos = _reagentTray.GetGlobalRect().Position;
-        _detailTooltip.ShowForReagent(reagent, new Vector2(trayGlobalPos.X - 230, trayGlobalPos.Y + index * 40));
+        var trayRect = _reagentTray.GetGlobalRect();
+        // Position tooltip above the tray strip
+        _detailTooltip.ShowForReagent(reagent, new Vector2(trayRect.Position.X + index * 90, trayRect.Position.Y - 120));
     }
 
     private void OnTrayReagentUnhovered(int index)

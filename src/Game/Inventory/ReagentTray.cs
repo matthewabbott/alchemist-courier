@@ -10,6 +10,8 @@ public partial class ReagentTray : VBoxContainer
     private List<Reagent> _allReagents = new();
     private readonly List<ReagentTrayItem> _items = new();
     private HintState? _hintState;
+    private bool _horizontal;
+    private Container? _itemContainer;
 
     [Signal]
     public delegate void ReagentSelectedEventHandler(int reagentIndex);
@@ -20,21 +22,47 @@ public partial class ReagentTray : VBoxContainer
     [Signal]
     public delegate void ReagentUnhoveredEventHandler(int reagentIndex);
 
+    /// <summary>
+    /// Set orientation before calling Initialize.
+    /// When horizontal, items flow left-to-right in an HBox instead of top-to-bottom.
+    /// </summary>
+    public void SetOrientation(bool horizontal)
+    {
+        _horizontal = horizontal;
+    }
+
     public void Initialize(List<Reagent> reagents)
     {
         _allReagents = reagents;
 
-        // Header
-        var header = new Label
+        if (!_horizontal)
         {
-            Text = "Reagents",
-            HorizontalAlignment = HorizontalAlignment.Center,
-        };
-        header.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.7f));
-        AddChild(header);
+            // Header (vertical mode only)
+            var header = new Label
+            {
+                Text = "Reagents",
+                HorizontalAlignment = HorizontalAlignment.Center,
+            };
+            header.AddThemeColorOverride("font_color", new Color(0.8f, 0.8f, 0.7f));
+            AddChild(header);
 
-        // Separator
-        AddChild(new HSeparator());
+            AddChild(new HSeparator());
+        }
+
+        // Create the container for items
+        if (_horizontal)
+        {
+            var hbox = new HBoxContainer();
+            hbox.AddThemeConstantOverride("separation", 6);
+            hbox.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+            AddChild(hbox);
+            _itemContainer = hbox;
+        }
+        else
+        {
+            // In vertical mode, items go directly into this VBoxContainer
+            _itemContainer = this;
+        }
 
         BuildItems();
     }
@@ -88,14 +116,16 @@ public partial class ReagentTray : VBoxContainer
 
     private void BuildItems()
     {
+        var target = _itemContainer ?? this;
+
         for (int i = 0; i < _allReagents.Count; i++)
         {
             var reagent = _allReagents[i];
             if (reagent.IsPlaced) continue;
 
             var item = new ReagentTrayItem();
-            AddChild(item);
-            item.Initialize(reagent, i);
+            target.AddChild(item);
+            item.Initialize(reagent, i, _horizontal);
 
             // Show purple dot for previously-hinted reagents back in tray (snap-back available)
             if (_hintState != null && _hintState.WasHinted(i))

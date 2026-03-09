@@ -15,7 +15,7 @@ public partial class ReagentTrayItem : PanelContainer
     public int ReagentIndex => _index;
     public Reagent Reagent => _reagent;
     private ShapePreview _preview = null!;
-    private Label _label = null!;
+    private Label? _label;
     private StyleBoxFlat _normalStyle = null!;
     private StyleBoxFlat _selectedStyle = null!;
     private ColorRect? _hintDot;
@@ -29,7 +29,9 @@ public partial class ReagentTrayItem : PanelContainer
     [Signal]
     public delegate void UnhoveredEventHandler(int index);
 
-    public void Initialize(Reagent reagent, int index)
+    public void Initialize(Reagent reagent, int index) => Initialize(reagent, index, false);
+
+    public void Initialize(Reagent reagent, int index, bool compact)
     {
         _reagent = reagent;
         _index = index;
@@ -66,6 +68,23 @@ public partial class ReagentTrayItem : PanelContainer
         };
         AddThemeStyleboxOverride("panel", _normalStyle);
 
+        if (compact)
+        {
+            CustomMinimumSize = new Vector2(80, 0);
+            BuildCompactLayout(reagent);
+        }
+        else
+        {
+            BuildFullLayout(reagent);
+        }
+
+        MouseDefaultCursorShape = CursorShape.PointingHand;
+        MouseEntered += () => EmitSignal(SignalName.Hovered, _index);
+        MouseExited += () => EmitSignal(SignalName.Unhovered, _index);
+    }
+
+    private void BuildFullLayout(Reagent reagent)
+    {
         var hbox = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.Fill };
         AddChild(hbox);
 
@@ -106,10 +125,46 @@ public partial class ReagentTrayItem : PanelContainer
             hbox.AddChild(new Control { CustomMinimumSize = new Vector2(4, 0) });
             hbox.AddChild(aspectDots);
         }
+    }
 
-        MouseDefaultCursorShape = CursorShape.PointingHand;
-        MouseEntered += () => EmitSignal(SignalName.Hovered, _index);
-        MouseExited += () => EmitSignal(SignalName.Unhovered, _index);
+    private void BuildCompactLayout(Reagent reagent)
+    {
+        var vbox = new VBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+        };
+        vbox.AddThemeConstantOverride("separation", 2);
+        AddChild(vbox);
+
+        // Shape preview (centered)
+        var previewCenter = new CenterContainer();
+        _preview = new ShapePreview();
+        _preview.SetReagent(reagent);
+        previewCenter.AddChild(_preview);
+        vbox.AddChild(previewCenter);
+
+        // Aspect dots + hint dot in a row below the shape
+        var dotsRow = new HBoxContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ShrinkCenter,
+        };
+        dotsRow.AddThemeConstantOverride("separation", 2);
+
+        _hintDot = new ColorRect
+        {
+            CustomMinimumSize = new Vector2(6, 6),
+            Color = GridConstants.HintedBorderColor,
+            Visible = false,
+        };
+        var hintDotCenter = new CenterContainer { CustomMinimumSize = new Vector2(6, 8) };
+        hintDotCenter.AddChild(_hintDot);
+        dotsRow.AddChild(hintDotCenter);
+
+        var aspectDots = BuildAspectDots(reagent);
+        if (aspectDots != null)
+            dotsRow.AddChild(aspectDots);
+
+        vbox.AddChild(dotsRow);
     }
 
     public void SetSelected(bool selected)
