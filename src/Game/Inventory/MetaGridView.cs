@@ -890,14 +890,11 @@ public partial class MetaGridView : Control
         _effectivePlacePos = null;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
-        // Calculate effective placement position (may differ for Heavy falling)
+        // Calculate effective placement position: all reagents in gravity bags fall, not just Heavy
         var effectivePos = _hoverGridPos.Value;
-        if (_selectedReagent.HasAspect(AspectIds.Heavy))
-        {
-            var fallPos = _metaGrid.CalculateFallPosition(_selectedReagent, _hoverGridPos.Value);
-            if (fallPos != _hoverGridPos.Value && _metaGrid.CanPlaceReagent(_selectedReagent, fallPos))
-                effectivePos = fallPos;
-        }
+        var fallPos = _metaGrid.CalculateFallPosition(_selectedReagent, _hoverGridPos.Value);
+        if (fallPos != _hoverGridPos.Value && _metaGrid.CanPlaceReagent(_selectedReagent, fallPos))
+            effectivePos = fallPos;
         _effectivePlacePos = effectivePos;
 
         var positions = _selectedReagent.GetMetaGridPositions(effectivePos);

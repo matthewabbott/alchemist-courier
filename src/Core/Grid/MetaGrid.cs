@@ -554,7 +554,7 @@ public class MetaGrid
     /// <summary>
     /// Check if a reagent can be placed at the given position with its current rotation.
     /// All target cells must be in-bounds, in a bag, not occupied, and not damaged.
-    /// In Gravity bags, each cell must be supported from below.
+    /// Gravity is advisory (not a hard gate) — use GetGravityViolations() for warnings.
     /// In Gravity bags, Heavy reagents must be at the bottom (no non-Heavy below).
     /// Spanning across multiple bags IS allowed.
     /// </summary>
@@ -573,9 +573,8 @@ public class MetaGrid
         if (positions.Count == 0)
             return false;
 
-        // Check gravity constraints for cells in Gravity bags
-        if (!IsGravityValid(positions))
-            return false;
+        // Gravity is advisory only (warnings via GetGravityViolations),
+        // not a hard placement gate. Use PlaceReagentWithFall() for auto-fall behavior.
 
         // Heavy constraint is advisory only (warnings via GetHeavyViolations),
         // not a hard placement gate.
@@ -855,6 +854,18 @@ public class MetaGrid
 
         _placedReagents.Add(reagent);
         return true;
+    }
+
+    /// <summary>
+    /// Place a reagent at the fallen position determined by gravity.
+    /// Calls CalculateFallPosition() to find the resting position, then PlaceReagent() there.
+    /// In gravity bags, all reagents fall; outside gravity bags, only Heavy reagents fall.
+    /// </summary>
+    /// <returns>True if successfully placed, false if placement is invalid.</returns>
+    public bool PlaceReagentWithFall(Reagent reagent, Vector2I position)
+    {
+        var fallenPos = CalculateFallPosition(reagent, position);
+        return PlaceReagent(reagent, fallenPos);
     }
 
     /// <summary>

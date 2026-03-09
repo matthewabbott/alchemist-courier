@@ -435,16 +435,20 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Gravity_PlaceFloatingMidBag_Fails()
+    public void Gravity_PlaceFloatingMidBag_Succeeds()
     {
-        // 3x3 Gravity bag at (0,0). Place at row 0 (top) with nothing below.
+        // 3x3 Gravity bag at (0,0). Gravity is now advisory, not blocking.
+        // Placement at row 0 (unsupported) is allowed; GetGravityViolations() reports it.
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var reagent = new Reagent(ReagentDefinition.SingleCell);
-        // Place at (1, 0) — top row, no support
-        Assert.False(grid.CanPlaceReagent(reagent, new Vector2I(1, 0)));
+        // Place at (1, 0) — top row, no support — now succeeds (gravity is advisory)
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(1, 0)));
+        // PlaceReagentWithFall puts it at the bottom (row 2)
+        Assert.True(grid.PlaceReagentWithFall(reagent, new Vector2I(1, 0)));
+        Assert.Equal(new Vector2I(1, 2), reagent.PlacedPosition);
     }
 
     [Fact]
@@ -494,17 +498,20 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Gravity_MultiCellReagent_PartiallyUnsupported_Fails()
+    public void Gravity_MultiCellReagent_PartiallyUnsupported_Succeeds()
     {
         // Horizontal domino in a 3x3 Gravity bag at row 0 (top).
-        // Occupies (0,0) and (1,0). Neither is at the bottom, neither has support.
+        // Gravity is now advisory — placement succeeds. PlaceReagentWithFall lands at bottom.
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var reagent = new Reagent(ReagentDefinition.Domino); // horizontal: (0,0) and (1,0)
-        // Place at (0, 0) — top row, floating
-        Assert.False(grid.CanPlaceReagent(reagent, new Vector2I(0, 0)));
+        // CanPlaceReagent at (0, 0) now succeeds (gravity advisory)
+        Assert.True(grid.CanPlaceReagent(reagent, new Vector2I(0, 0)));
+        // PlaceReagentWithFall puts it at row 2 (bottom)
+        Assert.True(grid.PlaceReagentWithFall(reagent, new Vector2I(0, 0)));
+        Assert.Equal(new Vector2I(0, 2), reagent.PlacedPosition);
     }
 
     [Fact]
@@ -535,7 +542,7 @@ public class MetaGridTests
         Assert.True(grid.CanPlaceReagent(r1, new Vector2I(0, 2))); // bottom of col 0
 
         var r2 = new Reagent(ReagentDefinition.SingleCell);
-        Assert.False(grid.CanPlaceReagent(r2, new Vector2I(0, 0))); // floating in col 0
+        Assert.True(grid.CanPlaceReagent(r2, new Vector2I(0, 0))); // gravity advisory: placement allowed
 
         // Place at (1,2) — this is the only cell in column 1, and it's at the bottom
         var r3 = new Reagent(ReagentDefinition.SingleCell);
@@ -732,16 +739,16 @@ public class MetaGridTests
     }
 
     [Fact]
-    public void Gravity_BearingCells_NoSupport_Fails()
+    public void Gravity_BearingCells_NoSupport_Succeeds()
     {
         // Horizontal domino at row 0 of a 3x3 gravity bag.
-        // Both cells are bearing cells, neither has support.
+        // Gravity is now advisory — unsupported placement is allowed.
         var grid = CreateGrid();
         var bag = new Bag(CreateGravityBagDef(3, 3));
         grid.PlaceBag(bag, new Vector2I(0, 0));
 
         var domino = new Reagent(ReagentDefinition.Domino);
-        Assert.False(grid.CanPlaceReagent(domino, new Vector2I(0, 0)));
+        Assert.True(grid.CanPlaceReagent(domino, new Vector2I(0, 0)));
     }
 
     [Fact]
@@ -1637,6 +1644,50 @@ public class MetaGridTests
         var heavy = new Reagent(CreateHeavyReagentDef(new bool[,] { { true } }));
         var result = grid.CalculateFallPosition(heavy, new Vector2I(5, 5));
         Assert.Equal(new Vector2I(5, 5), result);
+    }
+
+    // --- PlaceReagentWithFall ---
+
+    [Fact]
+    public void PlaceReagentWithFall_NonHeavyInGravityBag_FallsToBottom()
+    {
+        // Non-Heavy reagent dropped mid-air in gravity bag → falls to bottom row.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagentWithFall(reagent, new Vector2I(1, 0))); // dropped at top
+        Assert.Equal(new Vector2I(1, 2), reagent.PlacedPosition); // landed at bottom
+    }
+
+    [Fact]
+    public void PlaceReagentWithFall_NonHeavyInNormalBag_NoFall()
+    {
+        // Non-Heavy reagent in a normal bag → no fall, placed at given position.
+        var grid = CreateGrid();
+        var bag = new Bag(BagDefinition.SmallPouch);
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var reagent = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagentWithFall(reagent, new Vector2I(1, 0)));
+        Assert.Equal(new Vector2I(1, 0), reagent.PlacedPosition); // no fall
+    }
+
+    [Fact]
+    public void PlaceReagentWithFall_GravityBagStacksCorrectly()
+    {
+        // Two non-Heavy reagents dropped in same column → stack bottom-up.
+        var grid = CreateGrid();
+        var bag = new Bag(CreateGravityBagDef(3, 3));
+        grid.PlaceBag(bag, new Vector2I(0, 0));
+
+        var r1 = new Reagent(ReagentDefinition.SingleCell);
+        var r2 = new Reagent(ReagentDefinition.SingleCell);
+        Assert.True(grid.PlaceReagentWithFall(r1, new Vector2I(1, 0)));
+        Assert.Equal(new Vector2I(1, 2), r1.PlacedPosition); // row 2 (bottom)
+        Assert.True(grid.PlaceReagentWithFall(r2, new Vector2I(1, 0)));
+        Assert.Equal(new Vector2I(1, 1), r2.PlacedPosition); // row 1 (on top of r1)
     }
 
     // --- A.3: Per-Bag Gravity Direction ---
