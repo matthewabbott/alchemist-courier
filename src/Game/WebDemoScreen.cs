@@ -74,6 +74,7 @@ public partial class WebDemoScreen : Control
     public FloatingDetailTooltip DetailTooltip => _detailTooltip;
     public FloatingAspectTooltip AspectTooltip => _aspectTooltip;
     public ReagentProfilePanel ProfilePanel => _profilePanel;
+    public VBoxContainer InfoColumn => _infoColumn;
 
     public override void _Ready()
     {

@@ -2283,7 +2283,7 @@ public partial class TestHarness : Control
 
         var demo = new WebDemoScreen();
         AddChild(demo);
-        await WaitFrames(3);
+        await WaitFrames(5);
 
         var checks = new System.Collections.Generic.List<string>();
         bool allPass = true;
@@ -2293,25 +2293,53 @@ public partial class TestHarness : Control
             if (!ok) { allPass = false; checks.Add(failReason); }
         }
 
-        // GridView has non-zero size
+        // Grid visible with min size
         Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r1), r1);
+        Check(LayoutTestHelper.CheckMinSize(demo.GridView, 50, 50, out var r2), r2);
 
-        // ReagentTray is visible
-        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r2), r2);
+        // Tray at bottom, visible with height >= 50px
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r3), r3);
+        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 50, out var r4), r4);
 
-        // StatusBar is visible
-        Check(LayoutTestHelper.CheckVisible(demo.StatusBar, out var r3), r3);
+        // Info column visible with width >= 140px
+        Check(LayoutTestHelper.CheckVisible(demo.InfoColumn, out var r5), r5);
+        Check(LayoutTestHelper.CheckMinSize(demo.InfoColumn, 140, 0, out var r6), r6);
 
-        // LegendPanel has min width >= 180
-        Check(LayoutTestHelper.CheckMinSize(demo.LegendPanel, 180, 0, out var r4), r4);
+        // All panels visible
+        Check(LayoutTestHelper.CheckVisible(demo.StatusBar, out var r7), r7);
+        Check(LayoutTestHelper.CheckVisible(demo.LegendPanel, out var r8), r8);
+        Check(LayoutTestHelper.CheckVisible(demo.Objective, out var r9), r9);
+        Check(LayoutTestHelper.CheckVisible(demo.ViolationPanel, out var r10), r10);
 
-        // GridView has non-zero size (min size check)
-        Check(LayoutTestHelper.CheckMinSize(demo.GridView, 50, 50, out var r5), r5);
+        // No overlap: grid vs tray, grid vs info column
+        Check(LayoutTestHelper.CheckNoOverlap(demo.GridView, demo.ReagentTray, out var r11), r11);
+        Check(LayoutTestHelper.CheckNoOverlap(demo.GridView, demo.InfoColumn, out var r12), r12);
 
-        Log($"[STATE] grid_size={demo.GridView.GetRect().Size} tray_visible={demo.ReagentTray.Visible} " +
-            $"status_visible={demo.StatusBar.Visible} legend_width={demo.LegendPanel.GetRect().Size.X:F0}");
+        // Info column panels min width >= 140px
+        Check(LayoutTestHelper.CheckMinSize(demo.InfoColumn, 140, 0, out var r13), r13);
+
+        Log($"[STATE] grid_size={demo.GridView.GetRect().Size} tray_size={demo.ReagentTray.GetRect().Size} " +
+            $"info_size={demo.InfoColumn.GetRect().Size} status_visible={demo.StatusBar.Visible}");
 
         await CaptureScreenshot("46_web_demo_layout.png");
+
+        // Profile panel: trigger reagent selection and verify
+        if (demo.TrayReagents.Count > 0)
+        {
+            demo.ReagentTray.EmitSignal(ReagentTray.SignalName.ReagentSelected, 0);
+            await WaitFrames(3);
+
+            Check(demo.ProfilePanel.IsShowing, "ProfilePanel not showing after reagent selection");
+            if (demo.ProfilePanel.IsShowing)
+            {
+                Check(LayoutTestHelper.CheckMinSize(demo.ProfilePanel, 240, 100, out var rProfile), rProfile);
+            }
+
+            Log($"[STATE] profile_showing={demo.ProfilePanel.IsShowing} " +
+                $"profile_size={demo.ProfilePanel.GetRect().Size}");
+
+            await CaptureScreenshot("46b_web_demo_profile.png");
+        }
 
         // Clean up
         RemoveChild(demo);
@@ -2339,36 +2367,49 @@ public partial class TestHarness : Control
             if (!ok) { allPass = false; checks.Add(failReason); }
         }
 
-        // Test resolutions: reference, narrow, very narrow
-        var resolutions = new (int width, int height, string label)[]
-        {
-            (1280, 720, "1280x720"),
-            (1024, 768, "1024x768"),
-            (800, 600, "800x600"),
-        };
-
         var originalSize = DisplayServer.WindowGetSize();
 
-        foreach (var (width, height, label) in resolutions)
-        {
-            LayoutTestHelper.SetViewportSize(GetTree(), width, height);
-            await WaitFrames(5);
+        // --- 1280x720: standard layout ---
+        LayoutTestHelper.SetViewportSize(GetTree(), 1280, 720);
+        await WaitFrames(5);
 
-            // Grid must be visible with non-zero size at all resolutions
-            Check(LayoutTestHelper.CheckVisible(demo.GridView, out var rGrid),
-                $"[{label}] {rGrid}");
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r1a), $"[1280x720] {r1a}");
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r1b), $"[1280x720] {r1b}");
+        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 50, out var r1c), $"[1280x720] {r1c}");
+        Check(LayoutTestHelper.CheckVisible(demo.InfoColumn, out var r1d), $"[1280x720] {r1d}");
+        Check(LayoutTestHelper.CheckMinSize(demo.InfoColumn, 140, 0, out var r1e), $"[1280x720] {r1e}");
+        Check(LayoutTestHelper.CheckNoOverlap(demo.GridView, demo.ReagentTray, out var r1f), $"[1280x720] {r1f}");
+        Check(LayoutTestHelper.CheckNoOverlap(demo.GridView, demo.InfoColumn, out var r1g), $"[1280x720] {r1g}");
 
-            // Reagent tray must be visible with non-zero size at all resolutions
-            Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var rTray),
-                $"[{label}] {rTray}");
+        Log($"[STATE] viewport=1280x720 grid_size={demo.GridView.GetRect().Size} " +
+            $"tray_size={demo.ReagentTray.GetRect().Size} info_size={demo.InfoColumn.GetRect().Size} " +
+            $"info_visible={demo.InfoColumn.Visible}");
+        await CaptureScreenshot("47_responsive_1280x720.png");
 
-            var gridSize = demo.GridView.GetRect().Size;
-            var traySize = demo.ReagentTray.GetRect().Size;
-            Log($"[STATE] viewport={label} grid_size={gridSize} tray_size={traySize} " +
-                $"grid_visible={demo.GridView.Visible} tray_visible={demo.ReagentTray.Visible}");
+        // --- 1024x768: narrower, info column still visible ---
+        LayoutTestHelper.SetViewportSize(GetTree(), 1024, 768);
+        await WaitFrames(5);
 
-            await CaptureScreenshot($"47_responsive_{label}.png");
-        }
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r2a), $"[1024x768] {r2a}");
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r2b), $"[1024x768] {r2b}");
+        Check(LayoutTestHelper.CheckVisible(demo.InfoColumn, out var r2c), $"[1024x768] {r2c}");
+
+        Log($"[STATE] viewport=1024x768 grid_size={demo.GridView.GetRect().Size} " +
+            $"tray_size={demo.ReagentTray.GetRect().Size} info_size={demo.InfoColumn.GetRect().Size} " +
+            $"info_visible={demo.InfoColumn.Visible}");
+        await CaptureScreenshot("47_responsive_1024x768.png");
+
+        // --- 800x600: narrow, info column hidden ---
+        LayoutTestHelper.SetViewportSize(GetTree(), 800, 600);
+        await WaitFrames(5);
+
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r3a), $"[800x600] {r3a}");
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r3b), $"[800x600] {r3b}");
+
+        Log($"[STATE] viewport=800x600 grid_size={demo.GridView.GetRect().Size} " +
+            $"tray_size={demo.ReagentTray.GetRect().Size} " +
+            $"info_visible={demo.InfoColumn.Visible}");
+        await CaptureScreenshot("47_responsive_800x600.png");
 
         // Restore original viewport size
         DisplayServer.WindowSetSize(originalSize);
