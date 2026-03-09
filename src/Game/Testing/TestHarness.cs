@@ -94,6 +94,7 @@ public partial class TestHarness : Control
         await Test_VolatileExplosionOverlay();
         await Test_BagStateOverlay();
         await Test_BagMovement();
+        await Test_WebDemoLayout();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2271,6 +2272,54 @@ public partial class TestHarness : Control
         _puzzleScreen = new PuzzleScreen();
         AddChild(_puzzleScreen);
         await WaitFrames(3);
+    }
+
+    private async Task Test_WebDemoLayout()
+    {
+        BeginTest("web_demo_layout");
+
+        // Generate a puzzle with a fixed seed (same pattern as WebDemoScreen._Ready)
+        var generator = new PuzzleGenerator();
+        var state = generator.Generate(42, DifficultyParams.ForLevel(DifficultyLevel.Medium));
+
+        var demo = new WebDemoScreen();
+        AddChild(demo);
+        await WaitFrames(3);
+
+        var checks = new System.Collections.Generic.List<string>();
+        bool allPass = true;
+
+        void Check(bool ok, string failReason)
+        {
+            if (!ok) { allPass = false; checks.Add(failReason); }
+        }
+
+        // GridView has non-zero size
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r1), r1);
+
+        // ReagentTray is visible
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r2), r2);
+
+        // StatusBar is visible
+        Check(LayoutTestHelper.CheckVisible(demo.StatusBar, out var r3), r3);
+
+        // LegendPanel has min width >= 180
+        Check(LayoutTestHelper.CheckMinSize(demo.LegendPanel, 180, 0, out var r4), r4);
+
+        // GridView has non-zero size (min size check)
+        Check(LayoutTestHelper.CheckMinSize(demo.GridView, 50, 50, out var r5), r5);
+
+        Log($"[STATE] grid_size={demo.GridView.GetRect().Size} tray_visible={demo.ReagentTray.Visible} " +
+            $"status_visible={demo.StatusBar.Visible} legend_width={demo.LegendPanel.GetRect().Size.X:F0}");
+
+        await CaptureScreenshot("46_web_demo_layout.png");
+
+        // Clean up
+        RemoveChild(demo);
+        demo.QueueFree();
+
+        string? failMsg = allPass ? null : string.Join("; ", checks);
+        EndTest("web_demo_layout", allPass, failMsg);
     }
 
     private async Task Test_RenderFinal()
