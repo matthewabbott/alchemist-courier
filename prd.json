@@ -1692,7 +1692,7 @@
         "LO.2"
       ],
       "verification": "dotnet build succeeds. Responsive test passes at all 3 sizes.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.4",

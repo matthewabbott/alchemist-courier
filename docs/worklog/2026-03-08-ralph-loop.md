@@ -199,3 +199,11 @@ aspect extraction duplicated 5 times (extracted to GetPrimaryAspectId helper) an
 StyleBoxFlat creation duplicated 4 times (extracted to CreateCardStyle helper). Net -17 lines.
 LayoutTestHelper and LO.1 accessors were clean. 806 tests passing.
 Commit: bd76392
+
+## LO.3: Baseline responsive viewport tests
+Added an integration test that captures WebDemoScreen layout at three viewport sizes (1280x720,
+1024x768, 800x600) as a visual baseline before the layout overhaul changes the structure. Used
+DisplayServer.WindowSetSize() rather than ContentScaleSize since the project has no content
+scale mode configured. Each resolution gets a labeled screenshot and visibility assertions on
+the grid and reagent tray. This gives us a "before" snapshot to compare against after LO.4+.
+Commit: e448093

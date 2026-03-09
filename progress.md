@@ -961,3 +961,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: b650c09..b40fc35 (LO.1, LO.2, SB.2)
 - Findings: 2 (P0: 0, P1: 2, P2: 0)
 - Fixed: 2, Tasks created: 0
+
+## LO.3 — Baseline responsive viewport tests
+- Date: 2026-03-08
+- Commit: e448093
+- Notes: Added Test_WebDemoResponsive() to TestHarness that tests WebDemoScreen layout at three viewport sizes (1280x720, 1024x768, 800x600). Uses DisplayServer.WindowSetSize() for viewport resizing — more reliable than ContentScaleSize since the project has no content scale mode configured. Each resolution verifies grid and reagent tray remain visible with non-zero size, captures a labeled screenshot. Added SetViewportSize() helper to LayoutTestHelper returning original size for restore. This establishes a visual baseline BEFORE the layout overhaul tasks (LO.4+) change the structure. All 806 unit tests pass.
