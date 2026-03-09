@@ -1018,3 +1018,18 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: b793af2
 - Notes: Rewrote Test_WebDemoLayout and Test_WebDemoResponsive to assert against the post-overhaul layout structure. Test_WebDemoLayout now verifies: grid visible with min 50x50, tray visible with height >= 50px, info column visible with width >= 140px, all four sidebar panels visible (StatusBar, LegendPanel, Objective, ViolationPanel), no overlap between grid/tray and grid/info column, and profile panel showing after programmatic reagent selection with min size 240x100. Test_WebDemoResponsive now verifies per-breakpoint behavior: 1280x720 (full layout with info column at 140px+ and no overlap), 1024x768 (narrower info column still visible), 800x600 (info column hidden). Added InfoColumn public accessor to WebDemoScreen for test access. All 806 tests pass.
+
+## Integration Review — 2026-03-08d
+- Reviewed commits: e2f8961..ef135c4 (LO.5–LO.9, code reviews 2026-03-08f/g)
+- Build: PASS (806/806 unit tests)
+- Harness: 40/40 tests pass, 0 failures (after fix)
+- Visual: 48+ screenshots verified, no regressions
+- Issues: 2 test infrastructure bugs fixed (tray height assertion too strict, DPI-dependent viewport sizing)
+- Fixed: 2 (lowered inner tray height threshold from 50→30, replaced DisplayServer.WindowSetSize with direct Control.Size for DPI-independent breakpoint testing)
+- Coverage: LO.5–LO.9 all covered by layout tests. GO.9/GO.12 acceptable gaps (animation/toggle pattern). GO.3–GO.5 Core-only awaiting UI wiring.
+- Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
+
+## LO.10 — Touch-friendly minimum sizing for interactive elements
+- Date: 2026-03-08
+- Commit: 2b152dd
+- Notes: Updated minimum heights on all interactive elements for mobile touch targets. Button bar buttons in WebDemoScreen: 34px → 44px (Apple HIG standard). ReagentTrayItem: added 44px min height for both compact (horizontal) and full (vertical) layouts. ViolationListPanel entry buttons: added 40px min height. AspectLegendEntry header panels: added 40px min height. Added integration test checks that walk the WebDemoScreen node tree to verify ReagentTrayItem min heights >= 44px and button bar buttons >= 44px. All 806 unit tests pass, build clean.

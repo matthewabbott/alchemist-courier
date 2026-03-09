@@ -1778,7 +1778,7 @@
         "LO.4"
       ],
       "verification": "dotnet build succeeds. Layout test checks interactive element heights >= 40px.",
-      "status": "pending"
+      "status": "done"
     }
   ]
 }

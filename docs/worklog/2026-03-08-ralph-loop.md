@@ -273,3 +273,12 @@ and verifies the popup appears at >= 240x100. Test_WebDemoResponsive tests each 
 full layout at 1280px, narrower at 1024px, and hidden info column at 800px. Added a public
 InfoColumn accessor to WebDemoScreen for test access.
 Commit: b793af2
+
+## LO.10: Touch-friendly minimum sizing for interactive elements
+The final layout overhaul task — ensuring all interactive elements meet mobile touch target
+guidelines. Increased button bar buttons from 34px to 44px height (Apple HIG standard),
+added 44px minimum to ReagentTrayItem in both compact and full layouts, added 40px minimums
+to ViolationListPanel entry buttons and AspectLegendEntry header panels. Also added integration
+test checks that walk the WebDemoScreen node tree to verify sizing compliance. This completes
+the layout-overhaul phase.
+Commit: 2b152dd
