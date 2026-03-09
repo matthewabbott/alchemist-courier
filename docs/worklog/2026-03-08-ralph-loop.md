@@ -232,3 +232,12 @@ Commit: 0ef05e2
 Reviewed 3 commits (778029b..73bc252): LO.5 layout stabilization, integration review report, and bookkeeping.
 Changes are clean — no P0-P2 issues. One P3 note: ObjectivePanel min-width doesn't match its child label min-width (cosmetic, no fix needed).
 806 unit tests pass, build clean. Desloppify scan blocked by shell permissions.
+
+## LO.6: ReagentProfilePanel popup class
+Created a new popup panel for showing detailed reagent profiles — separate from the persistent
+ItemDetailPanel used by PuzzleScreen. This is a click-to-inspect pattern rather than hover: tap a
+reagent and get an enlarged shape preview (24px cells vs the detail panel's 16px), full aspect
+descriptions from the metadata database, and constraint warnings for things like Sharp edge
+placement. The panel positions itself near the click point with viewport clamping, and dismisses
+on click-outside or Escape. Built as standalone class, not yet wired into WebDemoScreen — that's LO.7.
+Commit: de3d91a

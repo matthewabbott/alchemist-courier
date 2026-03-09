@@ -1726,7 +1726,7 @@
       "phase": "layout-overhaul",
       "depends_on": [],
       "verification": "dotnet build succeeds. Class compiles but is not yet wired.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.7",

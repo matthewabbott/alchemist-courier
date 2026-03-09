@@ -992,3 +992,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Findings: 1 (P0: 0, P1: 0, P2: 0, P3: 1)
 - Fixed: 0, Tasks created: 0
 - P3 note: ObjectivePanel min-width (160) doesn't match child label min-width (180) — cosmetic only.
+
+## LO.6 — ReagentProfilePanel popup class
+- Date: 2026-03-08
+- Commit: de3d91a
+- Notes: Created src/Game/Inventory/ReagentProfilePanel.cs — a PanelContainer popup for detailed reagent info. 24px-cell ProfileShapePreview (separate from ItemDetailPanel's 16px DetailShapePreview), reagent name (16pt), flavor text (12pt), full aspect breakdown with descriptions and constraint text from AspectMetadataDatabase. Dark semi-transparent style matching FloatingTooltip. Dismisses on click outside (_UnhandledInput) or Escape. ShowForReagent(reagent, globalPosition) positions near click with viewport clamping via CallDeferred. HideProfile() fades out with tween. Z-index 100, MouseFilter=Stop. CustomMinimumSize width=240px. Not yet wired into any screen. All 806 tests pass.
