@@ -1,0 +1,1458 @@
+{
+  "version": 8,
+  "created": "2026-03-06T03:18:56+00:00",
+  "updated": "2026-03-07T13:44:08+00:00",
+  "queue_order": [
+    "workflow::communicate-score"
+  ],
+  "deferred": [],
+  "skipped": {},
+  "active_cluster": null,
+  "overrides": {
+    "unused::src/Core/Chemistry/Aspect.cs::unused_import::1": {
+      "issue_id": "unused::src/Core/Chemistry/Aspect.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Core/Grid/Vector2I.cs::unused_import::1": {
+      "issue_id": "unused::src/Core/Grid/Vector2I.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Core/Highlight/CellEdge.cs::unused_import::1": {
+      "issue_id": "unused::src/Core/Highlight/CellEdge.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1": {
+      "issue_id": "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/GridConstants.cs::unused_import::1": {
+      "issue_id": "unused::src/Game/Inventory/GridConstants.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1": {
+      "issue_id": "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3": {
+      "issue_id": "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1": {
+      "issue_id": "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1": {
+      "issue_id": "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Testing/TestActions.cs::unused_import::3": {
+      "issue_id": "unused::src/Game/Testing/TestActions.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/Testing/TestHarness.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/Testing/TestHarness.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::src/Game/TutorialScreen.cs::unused_import::2": {
+      "issue_id": "unused::src/Game/TutorialScreen.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3": {
+      "issue_id": "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/TutorialScreen.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/TutorialScreen.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical": {
+      "issue_id": "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Bags/Bag.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Bags/Bag.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Testing/TestActions.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Testing/TestActions.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Grid/GridCell.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Grid/GridCell.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical": {
+      "issue_id": "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module": {
+      "issue_id": "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module": {
+      "issue_id": "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix": {
+      "issue_id": "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor": {
+      "issue_id": "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights": {
+      "issue_id": "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    },
+    "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect": {
+      "issue_id": "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect",
+      "created_at": "2026-03-06T03:19:10+00:00",
+      "cluster": null,
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    }
+  },
+  "clusters": {},
+  "superseded": {
+    "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights": {
+      "original_id": "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix": {
+      "original_id": "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor": {
+      "original_id": "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect": {
+      "original_id": "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Bags/Bag.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Bags/Bag.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Grid/GridCell.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Grid/GridCell.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module": {
+      "original_id": "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical": {
+      "original_id": "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical": {
+      "original_id": "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/Testing/TestActions.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/Testing/TestActions.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "test_coverage::src/Game/TutorialScreen.cs::untested_module": {
+      "original_id": "test_coverage::src/Game/TutorialScreen.cs::untested_module",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Core/Chemistry/Aspect.cs::unused_import::1": {
+      "original_id": "unused::src/Core/Chemistry/Aspect.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Core/Grid/Vector2I.cs::unused_import::1": {
+      "original_id": "unused::src/Core/Grid/Vector2I.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Core/Highlight/CellEdge.cs::unused_import::1": {
+      "original_id": "unused::src/Core/Highlight/CellEdge.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1": {
+      "original_id": "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/GridConstants.cs::unused_import::1": {
+      "original_id": "unused::src/Game/Inventory/GridConstants.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1": {
+      "original_id": "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3": {
+      "original_id": "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1": {
+      "original_id": "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1": {
+      "original_id": "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Testing/TestActions.cs::unused_import::3": {
+      "original_id": "unused::src/Game/Testing/TestActions.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/Testing/TestHarness.cs::unused_import::2": {
+      "original_id": "unused::src/Game/Testing/TestHarness.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::src/Game/TutorialScreen.cs::unused_import::2": {
+      "original_id": "unused::src/Game/TutorialScreen.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    },
+    "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3": {
+      "original_id": "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3",
+      "original_detector": "",
+      "original_file": "",
+      "original_summary": "",
+      "status": "superseded",
+      "superseded_at": "2026-03-07T13:44:08+00:00",
+      "remapped_to": null,
+      "candidates": []
+    }
+  },
+  "promoted_ids": [],
+  "plan_start_scores": {
+    "strict": 100.0,
+    "overall": 100.0,
+    "objective": 100.0,
+    "verified": 100.0
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-03-06T03:18:56+00:00",
+      "action": "sync_communicate_score",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "injected": true
+      }
+    },
+    {
+      "timestamp": "2026-03-06T03:18:56+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-06T03:19:10+00:00",
+      "action": "auto_cluster",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-03-06T03:19:10+00:00",
+      "action": "clear_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "cluster_done",
+      "issue_ids": [],
+      "cluster_name": "auto/unused",
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "reason": "all issues resolved by scan"
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "cluster_done",
+      "issue_ids": [],
+      "cluster_name": "auto/test_coverage",
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "reason": "all issues resolved by scan"
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "cluster_done",
+      "issue_ids": [],
+      "cluster_name": "auto/dupes-exact",
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "reason": "all issues resolved by scan"
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "cluster_done",
+      "issue_ids": [],
+      "cluster_name": "auto/dupes-near-duplicate",
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "reason": "all issues resolved by scan"
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "reconcile",
+      "issue_ids": [
+        "dupes::src/Core/Highlight/HighlightEngine.cs::ComputeConstraintHighlights::src/Core/Highlight/HighlightEngine.cs::ComputeGhostConstraintHighlights",
+        "dupes::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix::src/Core/Puzzle/PuzzleState.cs::ToShapeMatrix",
+        "dupes::src/Game/Inventory/AspectLegendPanel.cs::GetRuleColor::src/Game/Inventory/AspectPrimerPanel.cs::GetRuleColor",
+        "dupes::src/Game/Inventory/MetaGridView.cs::CreateBorderRect::src/Game/Inventory/MetaGridView.cs::CreateHintedBorderRect",
+        "test_coverage::src/Core/Bags/Bag.cs::untested_module",
+        "test_coverage::src/Core/Bags/BagDefinition.cs::untested_module",
+        "test_coverage::src/Core/Chemistry/AspectIds.cs::untested_module",
+        "test_coverage::src/Core/Chemistry/AspectMetadataDatabase.cs::untested_module",
+        "test_coverage::src/Core/Chemistry/ReactionResult.cs::untested_module",
+        "test_coverage::src/Core/Chemistry/ReactionRule.cs::untested_module",
+        "test_coverage::src/Core/Grid/GridCell.cs::untested_module",
+        "test_coverage::src/Core/Highlight/CellHighlight.cs::untested_module",
+        "test_coverage::src/Core/Highlight/ConstraintViolation.cs::untested_module",
+        "test_coverage::src/Core/Highlight/HighlightSet.cs::untested_module",
+        "test_coverage::src/Core/Highlight/StatusThresholds.cs::untested_module",
+        "test_coverage::src/Core/Puzzle/DifficultyParams.cs::untested_module",
+        "test_coverage::src/Core/Puzzle/HintResult.cs::untested_module",
+        "test_coverage::src/Core/Puzzle/TutorialLesson.cs::untested_module",
+        "test_coverage::src/Core/Reagents/ReagentDefinition.cs::untested_module",
+        "test_coverage::src/Game/Inventory/AspectLegendPanel.cs::untested_module",
+        "test_coverage::src/Game/Inventory/AspectPrimerPanel.cs::untested_module",
+        "test_coverage::src/Game/Inventory/DemoPuzzle.cs::untested_module",
+        "test_coverage::src/Game/Inventory/GridConstants.cs::untested_module",
+        "test_coverage::src/Game/Inventory/GridCoordinates.cs::untested_module",
+        "test_coverage::src/Game/Inventory/HighlightOverlay.cs::untested_module",
+        "test_coverage::src/Game/Inventory/ItemDetailPanel.cs::untested_module",
+        "test_coverage::src/Game/Inventory/MetaGridView.cs::untested_critical",
+        "test_coverage::src/Game/Inventory/ObjectivePanel.cs::untested_module",
+        "test_coverage::src/Game/Inventory/PuzzleScreen.cs::untested_critical",
+        "test_coverage::src/Game/Inventory/ReagentTray.cs::untested_module",
+        "test_coverage::src/Game/Inventory/ReagentTrayItem.cs::untested_module",
+        "test_coverage::src/Game/Inventory/StatusBarPanel.cs::untested_module",
+        "test_coverage::src/Game/Testing/ScreenshotHelper.cs::untested_module",
+        "test_coverage::src/Game/Testing/TestActions.cs::untested_module",
+        "test_coverage::src/Game/TutorialScreen.cs::untested_module",
+        "unused::src/Core/Chemistry/Aspect.cs::unused_import::1",
+        "unused::src/Core/Grid/Vector2I.cs::unused_import::1",
+        "unused::src/Core/Highlight/CellEdge.cs::unused_import::1",
+        "unused::src/Core/Puzzle/DailyPuzzleManager.cs::unused_import::1",
+        "unused::src/Game/Inventory/AspectLegendPanel.cs::unused_import::2",
+        "unused::src/Game/Inventory/AspectPrimerPanel.cs::unused_import::2",
+        "unused::src/Game/Inventory/GridConstants.cs::unused_import::1",
+        "unused::src/Game/Inventory/GridCoordinates.cs::unused_import::1",
+        "unused::src/Game/Inventory/ItemDetailPanel.cs::unused_import::2",
+        "unused::src/Game/Inventory/MetaGridView.cs::unused_import::3",
+        "unused::src/Game/Inventory/ObjectivePanel.cs::unused_import::1",
+        "unused::src/Game/Inventory/PuzzleScreen.cs::unused_import::2",
+        "unused::src/Game/Inventory/ReagentTray.cs::unused_import::2",
+        "unused::src/Game/Inventory/ReagentTrayItem.cs::unused_import::2",
+        "unused::src/Game/Inventory/StatusBarPanel.cs::unused_import::2",
+        "unused::src/Game/Testing/ScreenshotHelper.cs::unused_import::1",
+        "unused::src/Game/Testing/TestActions.cs::unused_import::3",
+        "unused::src/Game/Testing/TestHarness.cs::unused_import::2",
+        "unused::src/Game/TutorialScreen.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectMetadataTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectSetTests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Chemistry/AspectTests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ChemistryEngineTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Chemistry/ReactionRuleDatabaseTests.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Grid/MetaGridTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Grid/Vector2ITests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Highlight/ContiguousBoundaryTests.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightEngineTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Highlight/HighlightTests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/ComplexityFilterTests.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/DailyPuzzleManagerTests.cs::unused_import::4",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintEngineTests.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/HintStateTests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleGeneratorTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleSolverTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/PuzzleStateTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Puzzle/TutorialDataTests.cs::unused_import::3",
+        "unused::tests/AlchemistCourier.Core.Tests/Reagents/ReagentTests.cs::unused_import::2",
+        "unused::tests/AlchemistCourier.Core.Tests/Reagents/ShapeUtilTests.cs::unused_import::1",
+        "unused::tests/AlchemistCourier.Core.Tests/Save/SaveDataTests.cs::unused_import::4",
+        "unused::tests/AlchemistCourier.Core.Tests/Save/SaveManagerTests.cs::unused_import::5",
+        "unused::tests/AlchemistCourier.Core.Tests/SeededRandomTests.cs::unused_import::3"
+      ],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "superseded_count": 77,
+        "pruned_count": 0,
+        "resurfaced_count": 0,
+        "clusters_completed_count": 4
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "auto_cluster",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    }
+  ],
+  "epic_triage_meta": {},
+  "commit_log": [],
+  "uncommitted_issues": [],
+  "commit_tracking_branch": null,
+  "scan_count_at_plan_start": 2
+}

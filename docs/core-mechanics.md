@@ -31,22 +31,89 @@ Bags are the fundamental inventory containers. **There is no "base" inventory** 
 | **Size** | Number of cells the bag provides for reagent storage. A 3x3 bag has 9 cells. |
 | **Special Properties** | Optional modifiers that affect reagents stored in the bag (see below). |
 
-### Bag Special Properties (Examples)
+### Bag Special Properties
 
-| Property | Effect |
-|----------|--------|
-| **Null** | Nullifies/suppresses aspects of reagents stored in this bag's cells. A volatile reagent in a null bag won't react. |
-| **Locked** | Once a reagent is placed in this bag, it cannot be moved or discarded. Placement is permanent (for the venture). |
-| **Gravity** | Reagents "fall" to the bottom of this bag rather than being freely placeable. Top cells must be supported. |
-| **Reinforced** | Cells in this bag cannot be damaged by explosions or other destructive effects. |
-| **Fragile** | This bag can be damaged more easily. Explosions may destroy cells. |
-| **Insulated** | Reduces the sensitivity of adjacency reactions for reagents in this bag (e.g., adjacent reactions might require 2+ cells of contact instead of 1). |
-| **Expanding** (rare) | Can be "stitched" or expanded during special events, gaining additional cells. |
-| **Levitating** (special) | Doesn't need to be adjacent to the character on the meta-grid — it "floats" and can be placed anywhere. |
+Bag types are introduced at different complexity tiers (see `docs/chemistry-system.md` for the complexity tier definitions). Each bag type is designed to create spatial constraints that interact with the aspect system.
+
+#### Simple Complexity (MVP)
+
+**Normal** (default):
+- No special properties
+- Aspects function normally, no placement restrictions beyond spatial fit
+
+**Null**:
+- Suppresses ALL aspects of reagents stored in this bag's cells
+- A volatile reagent in a Null bag won't react to adjacent heat
+- Spanning: only the cells physically inside the Null bag are suppressed (per-cell resolution)
+- Sharp pierces Null suppression at Advanced complexity
+- Selective null (suppress only specific aspects) is aspirational
+
+**Gravity**:
+- Everything in a Gravity bag acts as if it were Heavy — ALL items must be supported from below (resting on the bottom row or on top of existing items)
+- "Bottom" is whichever direction the bag faces. Players can rotate Gravity bags, changing the gravity direction (bottom could be down, left, right, or up)
+- Note: Heavy falls in ALL bag types, not just Gravity (see Heavy aspect in `docs/chemistry-system.md`). The distinction is: in Normal bags only Heavy reagents fall; in Gravity bags everything falls
+- **Cross-bag gravity resolution:** If a reagent spans a Gravity bag and a Normal bag, the Gravity bag takes precedence — the reagent is subject to the Gravity bag's constraints regardless of how many cells are in each bag. (Aspirational: a heavy object partially in an upside-down Gravity bag could be "balanced" and not need support — noted as a potential future expansion, not for now.)
+- Heavy above Fragile is blocked: a Heavy cell directly above a Fragile cell prevents placement (the Fragile item would be crushed). In Gravity bags, "above" = toward bag top (opposite of gravity direction)
+- Puzzle effect: limits where items can go, bottom fills first, creates stacking challenges
+- Fragile items can't be placed in Gravity bags (Intermediate — they'd break from falling)
+- **Empty space design goal:** Puzzles involving Heavy or Gravity should be generated with empty space in the solution. If a bag is completely filled, gravity/heavy constraints become trivial. The generator's `SpareSpacePercent` parameter (`src/Core/Puzzle/PuzzleGenerator.cs`) should be tuned to ensure non-trivial spatial constraints when these mechanics are in play. (Empty space is NOT required for puzzles without Heavy or Gravity.)
+
+**Locked**:
+- **Puzzle mode:** Locked bags are immovable on the meta-grid (cannot be repositioned by the player). All other bag types ARE freely movable/rearrangeable. Locked reagents inside are pre-placed constraints that can't be moved or removed. Reset restores the puzzle to its initial state including all locked positions.
+- **Roguelite mode (future):** Locked bags additionally lock reagents placed inside them — once placed, a reagent can't be removed until the bag is unlocked.
+- Implementation: `isLocked: true` flag on placements (reagent-level), bag-level immovability TBD
+- The locked reagents' aspects are active and participate in reactions — they're constraints, not inert decorations
+
+#### Intermediate Complexity
+
+**Reinforced**:
+- Sharp items CAN be placed on edge cells (overrides Sharp's edge restriction)
+- +1 to all reaction thresholds for reactions involving reagents within this bag
+- Immune to explosion damage (roguelite: bag cells can't be destroyed)
+- Flavor: a sturdy, padded container for dangerous materials
+
+**Insulated**:
+- +1 or +2 to all reaction thresholds for reactions involving reagents within this bag
+- Functions like a localized Stable effect for the whole bag
+- Stacks with Stable aspect (Stable reagent in Insulated bag = very high effective threshold)
+- Does NOT suppress aspects (unlike Null) -- reactions can still happen, just harder to trigger
+
+**Fragile (bag)**:
+- Can't hold Sharp items (placement blocked)
+- Any explosion in or adjacent to the bag destroys the entire bag and all contents
+- Forces careful aspect management -- high risk, potentially high reward (could be larger or have bonus properties)
+- Flavor: a delicate glass container
+
+#### Advanced Complexity (Aspirational)
+
+**Body**:
+- Represents the character literally holding or wearing the item (e.g., "hands" as a 1x1, "back" as a 2x3)
+- Allows unlimited protrusion (see Protrusion System below)
+- **Safety constraint**: any cell touching the character (i.e., inside the Body bag) must be safe for a human to touch. A torch's flame cells (Hot, Volatile) can't go in the hand, but its wooden handle (no dangerous aspects) can. This makes per-cell aspect design matter -- a reagent's orientation determines whether it's holdable.
+- Brief description only -- full spec deferred to post-MVP
+
+#### Aspirational (Not Yet Tiered)
+
+**Expanding** (rare):
+- Can be "stitched" or expanded during special events, gaining additional cells
+- Roguelite progression mechanic
+
+**Levitating** (special):
+- Doesn't need to be adjacent to the character on the meta-grid -- it "floats" and can be placed anywhere
+- Removes the meta-grid adjacency constraint for this one bag
+
+#### Aspirational Reagent Properties
+
+**Liquid** (aspirational):
+- Liquid reagents flow downward in Gravity bags to fill the lowest available cells
+- Displaced upward by Heavy reagents (Heavy sinks below Liquid)
+- Open design problem: how does a 1-cell liquid "spread" to fill multiple cells? Simpler version: liquid is a fixed-shape reagent with a "must occupy bottom cells of gravity bag" constraint
+- Needs more design work before implementation
 
 ### Bag Placement Rules
 - Bags are placed on the meta-grid and must fit within its bounds
 - Bags cannot overlap each other on the meta-grid
+- **Bags are movable:** During puzzle solving, the player can rearrange bag positions on the meta-grid. All bags except Locked can be freely repositioned. This is a core puzzle mechanic — spatial arrangement of bags is part of the solution, not just reagent placement.
 - Bags placed adjacent to each other create **contiguous inventory space** — reagents can span across them
 - Bags can be intentionally separated (leaving empty meta-grid cells between them) to prevent cross-bag adjacency
 - The meta-grid space is limited, so the player cannot carry unlimited bags
@@ -109,6 +176,57 @@ Reagents are designed **top-down from flavor**:
 4. Cross-reference with games and alchemical traditions for inspiration
 
 Examples of the aesthetic: giggle mushroom, star jelly, flame sprite essence, cloud cotton, crystal snail shell — but also grounded items like cinnabar, quicksilver, moonstone. The vibe is "fantastical cute with alchemical authenticity underneath."
+
+## Canonical Reagent Catalog
+
+The catalog uses an **item-first model**: each reagent is a unique item with ONE natural polyomino shape (not "8 species x 9 shapes"). This produces better art, clearer visual identity, and a more authentic alchemist's inventory.
+
+See `docs/item-catalog-design.md` for the full item list, design philosophy, and evolution strategy.
+
+### Design Principle
+
+Items are designed **art-first**: generate beautiful freeform art, then assess which polyomino shape it naturally maps to. If a needed shape has no good art, invent a new item — don't force an existing item into an unnatural shape.
+
+### Starter Catalog (~24 items)
+
+Each Simple-tier aspect has 2-3 unique items across different shapes:
+
+| Aspect | Items | Shapes |
+|--------|-------|--------|
+| **Hot** | Ember Seed, Firevine, Magma Slug | monomino, domino, l_tri |
+| **Cold** | Frozen Teardrop, Snowflower, Frost Fern | monomino, domino, i_tri |
+| **Volatile** | Spark Petal, Burstbloom, Thunder Egg | monomino, l_tri, o_tet |
+| **Toxic** | Venom Drop, Purple Creeper, Blight Moss | monomino, domino, t_tet |
+| **Heavy** | Lead Nugget, Lead Ingot, Anvil Shard | monomino, domino, l_tet |
+| **Stable** | Calm Stone, Nullflower, Ironbark Root | monomino, domino, i_tri |
+| **Sharp** | Glass Shard, Sharpstone, Razor Fern | monomino, domino, s_tet |
+| **Fragile** | Crystal Tear, Glasswork, Gossamer Thread | monomino, domino, i_tet |
+
+All 9 standard polyomino shapes are represented. Items and shape assignments are provisional — they evolve as art is generated and curated.
+
+Reagent rotation is handled by the engine — each shape needs only one sprite, rendered at 0/90/180/270 degrees by the rotation system.
+
+**Naming convention:** `{item_id}` (e.g., `ember_seed`, `firevine`, `frozen_teardrop`). Item IDs are snake_case, unique across the catalog.
+
+### Puzzle Generation Rules
+
+For **Simple-tier standalone puzzles** (daily, one-off):
+- Each aspect in the puzzle maps to exactly one reagent species
+- At most ONE reagent in the puzzle may have two aspects (multi-aspect)
+- Shape variant is chosen randomly from available shapes that fit the target cell count
+
+For **future roguelite/sequential modes:**
+- Multi-aspect reagents are common (2-3 aspects per reagent, eventually 5+)
+- Per-cell aspect variation (e.g., a knife: Sharp blade cells + Heavy hilt cell)
+- Reagents from multiple schools (Wuxing, Western Alchemy) once those are implemented
+
+### Visual States
+
+Each reagent species has visual state variants for the sprite state system (see `docs/sprite-state-system.md`):
+- Normal, Heated, Cooled, ThermalStress, Crushed (static states)
+- Breaking, Exploding (animated states, 4 frames each)
+
+"Restrictive" species (Fragile, Volatile) have the most expressive state variants since their reactions are visually dramatic. Stable/Heavy species may have simpler state art.
 
 ## Adjacency System
 
@@ -214,6 +332,14 @@ In future updates, a "mixing and brewing" system could allow combining reagents 
 
 All controls are fully customizable.
 
+## Hint System Design Notes
+
+The hint system (`src/Core/Puzzle/HintEngine.cs`) currently targets reagent placements only. With movable bags, hints need to account for bag arrangement:
+
+- **Bijection check:** When generating a hint, first check if the player's current bag arrangement is structurally equivalent to the intended solution (e.g., bags in different positions but with a valid mapping). If so, adapt the hint to their arrangement rather than moving bags.
+- **Bag rearrangement as fallback:** If no bijection exists between the player's bag layout and the solution, the hint should rearrange bags to match the intended solution before placing reagents.
+- **Bag-targeted hints:** Consider hints that specifically suggest "move this bag here" as a separate hint type, distinct from reagent placement hints. This gives the player a lighter nudge before revealing reagent positions.
+
 ## Key Invariants (Rules That Must Always Hold)
 
 1. All inventory space comes from bags. No "bare" meta-grid storage.
@@ -222,6 +348,26 @@ All controls are fully customizable.
 4. Adjacency is always cell-contact, cardinal-direction based.
 5. Bag effects always resolve per-cell for spanning reagents.
 6. Consuming a reagent always removes it from the bag.
+7. Heavy reagents fall in ALL bag types (not just Gravity). In Normal bags, "bottom" is down. Gravity bags may redefine which direction is "bottom."
+8. Per-puzzle complexity is budgeted — see Puzzle Complexity Budget in `docs/chemistry-system.md`.
+
+## Protrusion System (Aspirational)
+
+See `docs/roadmap.md` for tier classification of aspirational mechanics including protrusion.
+
+Some bags have a "top" or "opening" that allows items to stick out beyond the bag's cell boundaries. This is a post-MVP mechanic noted here for future reference.
+
+### Basic Rules
+- Cells of a reagent that extend outside the bag don't count for aspect purposes (treated as if Null-suppressed)
+- Items must be at least 50% inside the bag (more cells inside than outside)
+- Body bags: unlimited protrusion (hands can hold items that stick out in any direction)
+- Sealed/closed bags: no protrusion allowed
+- Heavy items can't protrude (too dense to balance)
+
+### Design Intent
+Protrusion adds a spatial trick: you can fit a large reagent into a small bag by letting it stick out, but the protruding cells lose their aspects. This creates trade-offs between space efficiency and aspect utilization.
+
+Full specification deferred to post-MVP implementation.
 
 ## Related Documents
 

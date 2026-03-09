@@ -20,9 +20,7 @@ bin/
 obj/
 
 # Claude Code
-.claude/settings.local.json
-.claude/plans/
-.claude/todos.json
+.claude/
 
 # Test output (screenshots from integration test harness)
 test_output/
@@ -30,6 +28,10 @@ test_output/
 # Ralph loop state
 .ralph-phase-marker
 scripts/ralph/logs/
+tmp_commit_msg*.txt
+
+# Godot 4.4+ UID files
+*.uid
 
 # OS
 Thumbs.db
@@ -44,3 +46,29 @@ nul
 .idea/
 *.user
 *.suo
+
+# Desloppify
+.desloppify/*.bak
+scorecard.png
+
+# Node.js
+node_modules/
+
+# AI-generated art (binary, regenerable)
+art/generated/
+
+# Art reference images (binary, sourced externally)
+art/references/
+
+# Temp commit/message files (Ralph loop leftovers)
+*-commit-msg.txt
+*commit-msg*.txt
+*-commit.txt
+*-docs-commit.txt
+chore-msg.txt
+
+# Stray Godot import files in root
+/scorecard.png.import
+
+# Environment
+.env

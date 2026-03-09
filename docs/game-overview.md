@@ -42,7 +42,7 @@ Failure is not punishing in a "you're bad" way — it's more like "oops, that wa
 
 | Component | Choice | Notes |
 |-----------|--------|-------|
-| **Engine** | Godot 4.3 | Open source, good 2D support, HTML5 export |
+| **Engine** | Godot 4.6 | Open source, good 2D support, HTML5 export |
 | **Language** | C# (.NET) | Strong typing suits complex game systems (chemistry engine, inventory logic) |
 | **Art** | RetroDiffusion | AI pixel art generation. Placeholder-first workflow: colored rectangles initially, replaced iteratively |
 | **Programming** | Claude Code | AI-assisted development |
@@ -83,6 +83,8 @@ Each stage builds on the previous:
 6. **Regions & Story** — Multiple biomes, narrative, NPC interactions
 7. **Advanced Alchemy** — Multiple schools of alchemy, complex interactions, brewing/mixing
 
+See `docs/roadmap.md` for the complete feature roadmap with tier classifications and detailed cross-references. For detailed puzzle type designs across all tiers (optimization types, destruction/transmutation, brewing), see `docs/puzzle-design.md`.
+
 ## Key Design Pillars
 
 1. **The puzzle IS the game.** Every other system exists to create interesting puzzle scenarios. If the inventory tetris isn't fun, nothing else matters.
@@ -96,6 +98,8 @@ Each stage builds on the previous:
 - `docs/core-mechanics.md` — Grid system, bags, reagents, adjacency rules
 - `docs/chemistry-system.md` — Aspect schools, interaction rules, the chemistry engine
 - `docs/mvp-specification.md` — Daily puzzle MVP specification
+- `docs/roadmap.md` — Complete feature roadmap (MVP through DLC) with tier classifications
 - `docs/venture-and-progression.md` — Post-MVP venture loop, stamina, quests, base
 - `docs/art-and-style.md` — Visual direction, RetroDiffusion, UI, audio
+- `docs/puzzle-design.md` — Puzzle types, scoring, and progression across all tiers
 - `docs/architecture.md` — Technical architecture, data models, C# patterns

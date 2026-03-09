@@ -16,21 +16,25 @@ public static class DemoPuzzle
         var pouch = new Bag(BagDefinition.SmallPouch); // 3x3 at (1,1)
         grid.PlaceBag(pouch, new Vector2I(1, 1));
 
-        var satchel = new Bag(BagDefinition.Satchel); // 4x3 at (4,1)
+        // Reinforced satchel allows Sharp reagents on edge cells
+        var satchelDef = new BagDefinition("satchel", "Satchel", new bool[,]
+        {
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true },
+        }, new[] { BagPropertyType.Reinforced });
+        var satchel = new Bag(satchelDef); // 4x3 Reinforced at (4,1)
         grid.PlaceBag(satchel, new Vector2I(4, 1));
 
         // Create reagents with varied aspects for color variety
         var firePebble = new Reagent(new ReagentDefinition(
             "fire_pebble", "Fire Pebble",
             new bool[,] { { true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Hot(2)) }
+            aspectsPerCell: new[] { new AspectSet(Aspect.Hot(2)) },
+            flavorText: "A smoldering pebble that radiates intense heat."
         ));
 
-        var iceShard = new Reagent(new ReagentDefinition(
-            "ice_shard", "Ice Shard",
-            new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Cold()), new AspectSet(Aspect.Cold()) }
-        ));
+        var iceShard = new Reagent(ReagentCatalog.GetById("snowflower")!);
 
         var poisonFang = new Reagent(new ReagentDefinition(
             "poison_fang", "Poison Fang",
@@ -46,7 +50,8 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Toxic()),
                 new AspectSet(Aspect.Toxic()),
                 new AspectSet(Aspect.Sharp()),
-            }
+            },
+            flavorText: "A venomous serpent's fang, still dripping with toxin."
         ));
 
         var blastJelly = new Reagent(new ReagentDefinition(
@@ -62,14 +67,11 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Hot()),
                 new AspectSet(Aspect.Volatile()),
                 new AspectSet(Aspect.Volatile()),
-            }
+            },
+            flavorText: "Unstable gelatinous compound that detonates near heat."
         ));
 
-        var inertCrystal = new Reagent(new ReagentDefinition(
-            "inert_crystal", "Inert Crystal",
-            new bool[,] { { true, true } },
-            aspectsPerCell: new[] { new AspectSet(Aspect.Stable()), new AspectSet(Aspect.Stable()) }
-        ));
+        var inertCrystal = new Reagent(ReagentCatalog.GetById("nullflower")!);
 
         var cinnabarBlock = new Reagent(new ReagentDefinition(
             "cinnabar_block", "Cinnabar Block",
@@ -85,7 +87,8 @@ public static class DemoPuzzle
                 new AspectSet(Aspect.Medicinal()),
                 new AspectSet(Aspect.Catalytic()),
                 new AspectSet(Aspect.Heavy()),
-            }
+            },
+            flavorText: "A dense block of mercuric ore prized by alchemists."
         ));
 
         return (grid, new List<Reagent>

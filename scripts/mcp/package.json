@@ -1,0 +1,11 @@
+{
+  "name": "alchemist-courier-mcp-servers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MCP servers for Alchemist Courier development tools",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "dotenv": "^16.4.7"
+  }
+}

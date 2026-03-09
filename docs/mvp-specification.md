@@ -1,6 +1,6 @@
 # MVP Specification — Daily Web Puzzle
 
-The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puzzle game** — a Wordle-like daily challenge where every player gets the same procedurally generated inventory puzzle, seeded from the current date.
+The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puzzle game** built in Godot 4.6 with C# — a Wordle-like daily challenge where every player gets the same procedurally generated inventory puzzle, seeded from the current date.
 
 ## MVP Goals
 
@@ -8,7 +8,7 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 2. **Public-facing product**: Hostable on itch.io or personal website, shareable
 3. **Teach the rules**: Tutorial progression introduces mechanics incrementally
 4. **Architectural foundation**: The systems built for MVP (grid, chemistry, procedural generation) are reused in the full game
-5. **Prove the tech**: Godot 4.3 + C# + HTML5 export works reliably
+5. **Prove the tech**: Godot 4.6 + C# + HTML5 export works reliably
 
 ## What the MVP Includes
 
@@ -18,8 +18,8 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [x] Reagents with shapes (1-4 cells, a range of shapes)
 - [x] Reagent placement: pick up, rotate (90-degree increments), place in bag cells
 - [x] Cell-contact adjacency detection
-- [x] Physical/Chemistry school aspects: Hot, Cold, Volatile, Fragile, Toxic, Stable (minimum set)
-- [x] Basic interaction rules: at least Hot+Volatile=Explosion, Hot+Cold=Neutralization, cumulative heat/cold thresholds
+- [x] Physical/Chemistry school aspects at **Simple** complexity: Hot, Cold, Volatile, Stable, Heavy, Toxic (see `docs/chemistry-system.md` Complexity Levels)
+- [x] Basic interaction rules: Volatile net-hot explosion, Hot+Cold neutralization, cumulative heat/cold/toxicity thresholds, Stable buffering, Heavy falling
 - [x] Placement validation with warnings (codex-lite: show aspect icons, warn before dangerous placements)
 - [x] Puzzle win/loss conditions
 - [x] Procedural puzzle generation with deterministic seeding
@@ -29,15 +29,20 @@ The Minimum Viable Product for Alchemist Courier is a **web-exportable daily puz
 - [x] Basic save system (at minimum, track tutorial progress and daily puzzle completion)
 
 ### Nice to Have for MVP
-- [ ] 1-2 bag special properties (Null bag is highest priority)
+- [ ] Simple complexity bag types: Null (implemented), Gravity, Locked
 - [ ] Weight system (simple numeric cap)
 - [ ] Score/value system for reagents (enables "maximize value" puzzles)
 - [ ] Reagent consuming (right-click to consume for effect)
 - [ ] Multiple save slots
 - [ ] Share result (Wordle-style grid of emojis showing your solution)
 - [ ] Aspect interaction primer / rules reference accessible from puzzle screen
+- [ ] Non-rectangular bag shapes (L-shapes, irregular)
+- [x] Hint system (budget-limited, auto-pick, snap-back for free re-hints, difficulty-scaled)
 
 ### Explicitly NOT in MVP
+
+See `docs/roadmap.md` for where each of these features falls in the post-MVP roadmap.
+
 - Venture/encounter map
 - Stamina system
 - Permanent progression
@@ -74,11 +79,15 @@ The MVP includes three puzzle types, used across the tutorial and daily challeng
 
 ### Puzzle Difficulty Scaling
 
-Difficulty is controlled by tuning these parameters:
+Puzzle complexity has two dimensions: **scale** (how many bags/reagents to juggle) and **mechanical depth** (how many unique aspect behaviors and bag types are active). See `docs/chemistry-system.md` for full details.
+
+All daily/standalone puzzles use **Simple** mechanical depth: 6 aspects (Hot, Cold, Volatile, Stable, Heavy, Toxic) and up to 4 bag types (Normal, Null, Gravity, Locked). Difficulty scaling is purely through **scale** -- more bags, more reagents, tighter fit. Even a "Hard" daily puzzle uses Simple mechanics, because the player needs to grok it from a cold start.
+
+Difficulty is controlled by tuning these scale parameters:
 - Number and size of bags
 - Number and complexity of reagents
-- Number and severity of aspects
-- Whether bags have special properties
+- Number and severity of aspects (within Simple mechanics)
+- Whether bags have special properties (Gravity, Locked, Null)
 - Tightness of fit (how much spare space exists)
 - Whether the requirement forces dangerous combinations
 
@@ -171,7 +180,7 @@ The tutorial is a sequence of puzzles that introduce one concept at a time:
 | 8 | **Multiple bags** | Two bags on the meta-grid. Teaches bag arrangement and cross-bag adjacency. |
 | 9 | **Spanning bags** | A reagent that must span two bags to fit. Teaches spanning mechanics. |
 | 10 | **Null bag** | Introduces the Null bag property. "Aspects are suppressed in this bag." |
-| 11+ | **Increasing complexity** | Layer additional aspects (Cold, Toxic, Fragile, Sharp) one at a time. |
+| 11+ | **Increasing complexity** | Layer additional Simple-tier aspects (Cold, Toxic, Heavy, Stable) one at a time. |
 
 ### Aspect Interaction Primer
 
@@ -289,5 +298,6 @@ The MVP is "done" when:
 
 - `docs/core-mechanics.md` — Full specification of grid, bags, reagents
 - `docs/chemistry-system.md` — Full specification of aspects and interactions
+- `docs/puzzle-design.md` — Future puzzle types, scoring, and progression across all tiers
 - `docs/architecture.md` — Technical architecture and data models
 - `docs/art-and-style.md` — Art direction and placeholder strategy

@@ -32,10 +32,29 @@ public class Reagent
     /// <summary>Whether this reagent is currently placed on a grid.</summary>
     public bool IsPlaced => PlacedPosition.HasValue;
 
+    /// <summary>Whether this reagent is locked in place and cannot be removed by the player.</summary>
+    public bool IsLocked { get; set; }
+
+    /// <summary>Whether this reagent has been placed at its solution position by the hint system.</summary>
+    public bool IsHinted { get; set; }
+
     public Reagent(ReagentDefinition definition)
     {
         Definition = definition;
         _rotation = 0;
+    }
+
+    /// <summary>
+    /// Check if this reagent has the given aspect on any of its cells.
+    /// </summary>
+    public bool HasAspect(string aspectId)
+    {
+        foreach (var aspectSet in Definition.AspectsPerCell)
+        {
+            if (aspectSet.Has(aspectId))
+                return true;
+        }
+        return false;
     }
 
     /// <summary>Get the shape after applying the current rotation.</summary>

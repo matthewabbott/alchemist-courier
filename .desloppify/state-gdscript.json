@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "created": "2026-03-06T03:18:55+00:00",
+  "last_scan": "2026-03-07T13:44:08+00:00",
+  "scan_count": 2,
+  "overall_score": 100.0,
+  "objective_score": 100.0,
+  "strict_score": 100.0,
+  "verified_strict_score": 100.0,
+  "stats": {
+    "total": 0,
+    "auto_resolved": 0,
+    "false_positive": 0,
+    "fixed": 0,
+    "open": 0,
+    "wontfix": 0,
+    "by_tier": {}
+  },
+  "issues": {},
+  "scan_coverage": {
+    "gdscript": {
+      "status": "full",
+      "confidence": 1.0,
+      "detectors": {
+        "security": {
+          "detector": "security",
+          "status": "full",
+          "confidence": 1.0,
+          "summary": "Security coverage complete for enabled detectors.",
+          "impact": "",
+          "remediation": "",
+          "tool": "",
+          "reason": ""
+        }
+      },
+      "warnings": [],
+      "updated_at": "2026-03-07T13:44:08+00:00"
+    }
+  },
+  "score_confidence": {},
+  "subjective_integrity": {
+    "status": "pass",
+    "target_score": 95.0,
+    "matched_count": 0,
+    "matched_dimensions": [],
+    "reset_dimensions": []
+  },
+  "subjective_assessments": {},
+  "scan_history": [
+    {
+      "timestamp": "2026-03-06T03:18:55+00:00",
+      "lang": "gdscript",
+      "strict_score": 100.0,
+      "verified_strict_score": 100.0,
+      "objective_score": 100.0,
+      "overall_score": 100.0,
+      "open": 0,
+      "diff_new": 0,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 0,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": null,
+      "dimension_scores": null
+    },
+    {
+      "timestamp": "2026-03-07T13:44:08+00:00",
+      "lang": "gdscript",
+      "strict_score": 100.0,
+      "verified_strict_score": 100.0,
+      "objective_score": 100.0,
+      "overall_score": 100.0,
+      "open": 0,
+      "diff_new": 0,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 0,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": null,
+      "dimension_scores": null
+    }
+  ],
+  "lang_capabilities": {
+    "gdscript": {
+      "fixers": [],
+      "typecheck_cmd": "godot --headless --check-only"
+    }
+  },
+  "zone_distribution": {},
+  "tool_hash": "8abd96c47193",
+  "scan_path": ".",
+  "scan_completeness": {
+    "gdscript": "full"
+  },
+  "potentials": {
+    "gdscript": {
+      "structural": 0,
+      "flat_dirs": 0,
+      "single_use": 0,
+      "cycles": 0,
+      "orphaned": 0,
+      "test_coverage": 0,
+      "security": 0,
+      "subjective_review": 0,
+      "dupes": 0,
+      "stale_wontfix": 0
+    }
+  },
+  "codebase_metrics": {
+    "gdscript": {
+      "total_files": 0,
+      "total_loc": 0,
+      "total_directories": 0
+    }
+  },
+  "dimension_scores": {},
+  "reminder_history": {
+    "report_scores": 2,
+    "review_not_run": 2,
+    "badge_recommendation": 1,
+    "feedback_nudge": 1
+  }
+}

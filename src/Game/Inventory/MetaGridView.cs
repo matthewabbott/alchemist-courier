@@ -3,10 +3,31 @@ using System.Linq;
 using Godot;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Bags;
+using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Highlight;
+using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Core.Visual;
+using AlchemistCourier.Game.Animation;
+using AlchemistCourier.Game.Visual;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Inventory;
+
+/// <summary>
+/// Classification of how safe a prospective placement is.
+/// </summary>
+public enum PlacementWarningLevel
+{
+    /// <summary>Placement is valid, no reactions triggered, reagent has no reactive aspects.</summary>
+    Safe,
+    /// <summary>Placement is valid, no reactions triggered, but reagent has reactive aspects.</summary>
+    Warning,
+    /// <summary>Placement is valid but would trigger negative reactions.</summary>
+    Danger,
+    /// <summary>Placement is invalid (out of bounds, occupied, no bag).</summary>
+    Invalid,
+}
 
 public partial class MetaGridView : Control
 {
@@ -21,8 +42,36 @@ public partial class MetaGridView : Control
     // Bag border nodes
     private readonly List<ColorRect> _bagBorders = new();
 
+    // Hinted reagent border nodes
+    private readonly List<ColorRect> _hintedBorders = new();
+
+    // Locked reagent border nodes
+    private readonly List<ColorRect> _lockedBorders = new();
+
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
+
+    // Sprite state renderers (per placed reagent, keyed by reagent instance)
+    private readonly Dictionary<Reagent, SpriteStateRenderer> _spriteRenderers = new();
+
+    // Highlight overlay
+    private HighlightOverlay _highlightOverlay = null!;
+    private bool _eagleSenseActive;
+
+    // Damage overlay (fragile violation indicators)
+    private DamageOverlay _damageOverlay = null!;
+    private StatusThresholds? _statusThresholds;
+
+    // Bag state overlay (thermal tint for hot/cold imbalance)
+    private BagStateOverlay _bagStateOverlay = null!;
+
+    // Chemistry warning state
+    private List<ReactionRule>? _reactionRules;
+    private HashSet<string>? _reactiveAspectIds;
+    private PlacementWarningLevel _currentWarningLevel;
+
+    // Action history for undo/redo
+    private ActionHistory? _actionHistory;
 
     // Interaction state
     private Reagent? _selectedReagent;
@@ -30,11 +79,41 @@ public partial class MetaGridView : Control
     private bool _isPlacementValid;
     private bool _mouseInsideGrid;
 
+    // Falling animation
+    private FallingAnimator? _fallingAnimator;
+    private CoreVec? _effectivePlacePos; // May differ from _hoverGridPos for Heavy falling
+
+    // Hover frame overlay
+    private HoverFrameOverlay _hoverFrameOverlay = null!;
+
+    // Hover tracking for placed reagents
+    private Reagent? _hoveredPlacedReagent;
+
+    // Optional hover debounce (set by WebDemoScreen, null = instant behavior for PuzzleScreen)
+    private HoverDebounce? _hoverDebounce;
+
+    // Rejection tooltip state
+    private PanelContainer? _rejectionTooltip;
+    private Label? _rejectionLabel;
+    private float _tooltipTimer;
+    private float _flashTimer;
+    private string? _lastRejectionReason;
+    private string? _lastRejectionAspectId;
+
+    private const float TooltipDuration = 2.0f;
+    private const float FlashDuration = 0.3f;
+
     [Signal]
     public delegate void ReagentPlacedEventHandler();
 
     [Signal]
     public delegate void ReagentRemovedEventHandler();
+
+    [Signal]
+    public delegate void HoveredReagentChangedEventHandler();
+
+    [Signal]
+    public delegate void RejectionFlashEventHandler(string aspectId);
 
     public void Initialize(MetaGrid metaGrid)
     {
@@ -48,7 +127,124 @@ public partial class MetaGridView : Control
 
         CreateCellNodes();
         CreateGridLines();
+
+        _hoverFrameOverlay = new HoverFrameOverlay
+        {
+            ZIndex = 3,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_hoverFrameOverlay);
+
+        _highlightOverlay = new HighlightOverlay
+        {
+            ZIndex = 4,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_highlightOverlay);
+
+        _bagStateOverlay = new BagStateOverlay
+        {
+            ZIndex = 2,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_bagStateOverlay);
+
+        _damageOverlay = new DamageOverlay
+        {
+            ZIndex = 5,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_damageOverlay);
+
+        _fallingAnimator = new FallingAnimator
+        {
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_fallingAnimator);
+
+        CreateRejectionTooltip();
         RefreshDisplay();
+    }
+
+    public void SetReactionRules(List<ReactionRule> rules)
+    {
+        _reactionRules = rules;
+        _reactiveAspectIds = new HashSet<string>();
+        foreach (var rule in rules)
+            foreach (var id in rule.TriggerAspects)
+                _reactiveAspectIds.Add(id);
+    }
+
+    /// <summary>Current warning level of the ghost preview.</summary>
+    public PlacementWarningLevel CurrentWarningLevel => _currentWarningLevel;
+
+    /// <summary>The placed reagent currently being hovered over (if any).</summary>
+    public Reagent? HoveredPlacedReagent => _hoveredPlacedReagent;
+
+    /// <summary>
+    /// Set an optional hover debounce for delayed hover-off behavior.
+    /// When set, mouse-leave from the grid delays clearing the hovered reagent.
+    /// When null (default), behavior is instant (backward compatible with PuzzleScreen).
+    /// </summary>
+    public void SetHoverDebounce(HoverDebounce debounce)
+    {
+        _hoverDebounce = debounce;
+        _hoverDebounce.OnHide += () => UpdateHoveredReagent(null);
+    }
+
+    /// <summary>The highlight overlay (for testing).</summary>
+    public HighlightOverlay Highlights => _highlightOverlay;
+
+    /// <summary>The hover frame overlay (for testing).</summary>
+    public HoverFrameOverlay HoverFrame => _hoverFrameOverlay;
+
+    /// <summary>Set the highlight overlay content directly.</summary>
+    public void SetHighlights(HighlightSet highlights)
+    {
+        _highlightOverlay.Render(highlights, _eagleSenseActive, _metaGrid.Width, _metaGrid.Height);
+    }
+
+    /// <summary>Enable or disable eagle sense mode (dim overlay behind highlights).</summary>
+    public void SetEagleSense(bool active)
+    {
+        _eagleSenseActive = active;
+    }
+
+    /// <summary>Current status thresholds.</summary>
+    public StatusThresholds? StatusThresholds => _statusThresholds;
+
+    /// <summary>Set status thresholds for interaction highlight severity.</summary>
+    public void SetStatusThresholds(StatusThresholds? thresholds)
+    {
+        _statusThresholds = thresholds;
+    }
+
+    /// <summary>Set the action history for undo/redo support.</summary>
+    public void SetActionHistory(ActionHistory history)
+    {
+        _actionHistory = history;
+    }
+
+    /// <summary>Last rejection tooltip reason text (for testing).</summary>
+    public string? LastRejectionReason => _lastRejectionReason;
+
+    /// <summary>Whether the rejection tooltip is currently visible.</summary>
+    public bool IsTooltipVisible => _rejectionTooltip?.Visible ?? false;
+
+    /// <summary>Programmatically set hover position (for testing).</summary>
+    public void SetHoverPosition(CoreVec position)
+    {
+        _hoverGridPos = position;
+        _mouseInsideGrid = true;
+        UpdateGhostPreview();
+        UpdateHoveredReagent(position);
+    }
+
+    /// <summary>Simulate a left-click at the current hover position (for testing).</summary>
+    public void SimulateLeftClick()
+    {
+        if (!_mouseInsideGrid || _hoverGridPos == null) return;
+        HandleLeftClick();
     }
 
     private void CreateCellNodes()
@@ -103,6 +299,9 @@ public partial class MetaGridView : Control
         }
     }
 
+    // Gravity arrow color
+    private static readonly Color GravityArrowColor = new(0.6f, 0.3f, 0.9f, 0.7f);
+
     public void RefreshDisplay()
     {
         // Clear old bag borders
@@ -148,8 +347,26 @@ public partial class MetaGridView : Control
             }
         }
 
+        // Update sprite renderers for placed reagents
+        UpdateSpriteRenderers();
+
         // Draw bag borders
         CreateBagBorders(bagIndexMap);
+
+        // Draw hinted reagent borders
+        CreateHintedBorders();
+
+        // Draw locked reagent borders
+        CreateLockedBorders();
+
+        // Update bag thermal state indicators (hot/cold imbalance)
+        UpdateBagStateOverlay();
+
+        // Update damage indicators (fragile + volatile explosion)
+        UpdateDamageOverlay();
+
+        // Trigger _Draw() for gravity arrows
+        QueueRedraw();
     }
 
     private void CreateBagBorders(Dictionary<Bag, int> bagIndexMap)
@@ -173,7 +390,7 @@ public partial class MetaGridView : Control
 
                     if (!isBoundary) continue;
 
-                    var border = CreateBorderRect(pixelPos, dir);
+                    var border = CreateBorderRectWithStyle(pixelPos, dir, GridConstants.BagBorderWidth, GridConstants.BagBorderColor);
                     AddChild(border);
                     _bagBorders.Add(border);
                 }
@@ -181,42 +398,327 @@ public partial class MetaGridView : Control
         }
     }
 
-    private ColorRect CreateBorderRect(Vector2 cellPixelPos, CoreVec direction)
+    private void CreateHintedBorders()
+    {
+        CreateReagentBorders(_hintedBorders, r => r.IsHinted, 2, GridConstants.HintedBorderColor);
+    }
+
+    private void CreateLockedBorders()
+    {
+        CreateReagentBorders(_lockedBorders, r => r.IsLocked, 2, GridConstants.LockedBorderColor);
+    }
+
+    /// <summary>
+    /// Computes bag thermal imbalance and renders animated tint overlays.
+    /// Called from RefreshDisplay() so overlays update on every placement/removal.
+    /// </summary>
+    private void UpdateBagStateOverlay()
+    {
+        var violations = ChemistryEngine.GetBagBalanceViolations(_metaGrid);
+        _bagStateOverlay.Render(violations);
+    }
+
+    /// <summary>Number of bag state tint elements currently rendered, for testing.</summary>
+    public int BagStateTintCount => _bagStateOverlay.RenderedCount;
+
+    /// <summary>Number of bags with active thermal tint, for testing.</summary>
+    public int BagStateActiveGroupCount => _bagStateOverlay.ActiveGroupCount;
+
+    /// <summary>
+    /// Computes damage violations (fragile + volatile) and renders overlays on affected cells.
+    /// Called from RefreshDisplay() so overlays update on every placement/removal.
+    /// </summary>
+    private void UpdateDamageOverlay()
+    {
+        if (_reactionRules == null)
+        {
+            _damageOverlay.Clear();
+            return;
+        }
+
+        var violations = ViolationTracker.ComputeAll(_metaGrid, _reactionRules);
+        _damageOverlay.Render(violations);
+    }
+
+    /// <summary>Number of damage overlay elements currently rendered, for testing.</summary>
+    public int DamageOverlayCount => _damageOverlay.RenderedCount;
+
+    /// <summary>
+    /// Pulse-highlights all violation cells (3 red flashes over 1s), then calls onComplete.
+    /// Used when the player confirms with violations present.
+    /// </summary>
+    public void PulseViolations(System.Action? onComplete)
+    {
+        if (_reactionRules == null)
+        {
+            onComplete?.Invoke();
+            return;
+        }
+
+        var violations = ViolationTracker.ComputeAll(_metaGrid, _reactionRules);
+        _damageOverlay.PulseViolations(violations, onComplete);
+    }
+
+    public override void _Draw()
+    {
+        if (_metaGrid == null) return;
+
+        foreach (var bag in _metaGrid.PlacedBags)
+        {
+            if (!bag.HasProperty(BagPropertyType.Gravity) || !bag.IsPlaced)
+                continue;
+
+            DrawGravityArrow(bag);
+        }
+    }
+
+    private void DrawGravityArrow(Bag bag)
+    {
+        // Compute the bag's pixel bounding box from its placed cells
+        var positions = bag.GetCurrentMetaGridPositions();
+        if (positions.Count == 0) return;
+
+        int minCol = int.MaxValue, maxCol = int.MinValue;
+        int minRow = int.MaxValue, maxRow = int.MinValue;
+        foreach (var pos in positions)
+        {
+            if (pos.Col < minCol) minCol = pos.Col;
+            if (pos.Col > maxCol) maxCol = pos.Col;
+            if (pos.Row < minRow) minRow = pos.Row;
+            if (pos.Row > maxRow) maxRow = pos.Row;
+        }
+
+        float cs = GridConstants.CellSize;
+        float bagPixelX = minCol * cs;
+        float bagPixelY = minRow * cs;
+        float bagPixelW = (maxCol - minCol + 1) * cs;
+        float bagPixelH = (maxRow - minRow + 1) * cs;
+
+        // Center of the bag in pixel coords
+        float cx = bagPixelX + bagPixelW / 2f;
+        float cy = bagPixelY + bagPixelH / 2f;
+
+        // Arrow size: about 2 cells tall, 1.2 cells wide
+        float arrowLength = cs * 1.6f;
+        float arrowWidth = cs * 1.0f;
+
+        // Build triangle points based on gravity direction
+        // The arrow points IN the direction of gravity (where things fall toward)
+        Godot.Vector2[] points;
+        var dir = bag.GravityDirection;
+
+        switch (dir)
+        {
+            case GravityDirection.Down:
+                points = new Godot.Vector2[]
+                {
+                    new(cx, cy + arrowLength / 2f),            // tip (bottom)
+                    new(cx - arrowWidth / 2f, cy - arrowLength / 2f), // top-left
+                    new(cx + arrowWidth / 2f, cy - arrowLength / 2f), // top-right
+                };
+                break;
+            case GravityDirection.Up:
+                points = new Godot.Vector2[]
+                {
+                    new(cx, cy - arrowLength / 2f),            // tip (top)
+                    new(cx + arrowWidth / 2f, cy + arrowLength / 2f), // bottom-right
+                    new(cx - arrowWidth / 2f, cy + arrowLength / 2f), // bottom-left
+                };
+                break;
+            case GravityDirection.Left:
+                points = new Godot.Vector2[]
+                {
+                    new(cx - arrowLength / 2f, cy),            // tip (left)
+                    new(cx + arrowLength / 2f, cy - arrowWidth / 2f), // top-right
+                    new(cx + arrowLength / 2f, cy + arrowWidth / 2f), // bottom-right
+                };
+                break;
+            case GravityDirection.Right:
+                points = new Godot.Vector2[]
+                {
+                    new(cx + arrowLength / 2f, cy),            // tip (right)
+                    new(cx - arrowLength / 2f, cy + arrowWidth / 2f), // bottom-left
+                    new(cx - arrowLength / 2f, cy - arrowWidth / 2f), // top-left
+                };
+                break;
+            default:
+                return;
+        }
+
+        var colors = new Color[] { GravityArrowColor, GravityArrowColor, GravityArrowColor };
+        DrawPolygon(points, colors);
+    }
+
+    private void CreateReagentBorders(List<ColorRect> borderList, System.Func<Reagent, bool> predicate, float borderWidth, Color color)
+    {
+        foreach (var border in borderList)
+        {
+            border.QueueFree();
+        }
+        borderList.Clear();
+
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (!cell.IsOccupied) continue;
+
+                var reagent = (Reagent)cell.OccupyingReagent!;
+                if (!predicate(reagent)) continue;
+
+                var pos = new CoreVec(col, row);
+                var pixelPos = GridCoordinates.GridToPixel(pos);
+
+                foreach (var dir in CoreVec.CardinalDirections)
+                {
+                    var neighborPos = pos + dir;
+                    var neighbor = _metaGrid.GetCell(neighborPos);
+                    bool isBoundary = neighbor == null || neighbor.OccupyingReagent != reagent;
+
+                    if (!isBoundary) continue;
+
+                    var border = CreateBorderRectWithStyle(pixelPos, dir, borderWidth, color);
+                    AddChild(border);
+                    borderList.Add(border);
+                }
+            }
+        }
+    }
+
+    private static ColorRect CreateBorderRectWithStyle(Vector2 cellPixelPos, CoreVec direction, float borderWidth, Color color)
     {
         float cs = GridConstants.CellSize;
-        float bw = GridConstants.BagBorderWidth;
         Vector2 pos;
         Vector2 size;
 
-        if (direction.Row == -1) // Up edge
+        if (direction.Row == -1)
         {
             pos = cellPixelPos;
-            size = new Vector2(cs, bw);
+            size = new Vector2(cs, borderWidth);
         }
-        else if (direction.Row == 1) // Down edge
+        else if (direction.Row == 1)
         {
-            pos = cellPixelPos + new Vector2(0, cs - bw);
-            size = new Vector2(cs, bw);
+            pos = cellPixelPos + new Vector2(0, cs - borderWidth);
+            size = new Vector2(cs, borderWidth);
         }
-        else if (direction.Col == -1) // Left edge
+        else if (direction.Col == -1)
         {
             pos = cellPixelPos;
-            size = new Vector2(bw, cs);
+            size = new Vector2(borderWidth, cs);
         }
-        else // Right edge
+        else
         {
-            pos = cellPixelPos + new Vector2(cs - bw, 0);
-            size = new Vector2(bw, cs);
+            pos = cellPixelPos + new Vector2(cs - borderWidth, 0);
+            size = new Vector2(borderWidth, cs);
         }
 
         return new ColorRect
         {
             Position = pos,
             Size = size,
-            Color = GridConstants.BagBorderColor,
+            Color = color,
             ZIndex = 2,
         };
     }
+
+    private void UpdateSpriteRenderers()
+    {
+        // Collect currently placed reagents
+        var placedReagents = new HashSet<Reagent>();
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (cell.IsOccupied)
+                    placedReagents.Add((Reagent)cell.OccupyingReagent!);
+            }
+        }
+
+        // Remove renderers for reagents no longer placed
+        var toRemove = new List<Reagent>();
+        foreach (var kvp in _spriteRenderers)
+        {
+            if (!placedReagents.Contains(kvp.Key))
+            {
+                kvp.Value.QueueFree();
+                toRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var r in toRemove)
+            _spriteRenderers.Remove(r);
+
+        // Create or update renderers for placed reagents
+        foreach (var reagent in placedReagents)
+        {
+            var catalogId = reagent.Definition.Id;
+            if (catalogId == null) continue;
+
+            var rotatedShape = reagent.GetRotatedShape();
+            int shapeCols = rotatedShape.GetLength(1);
+            int shapeRows = rotatedShape.GetLength(0);
+            int pixelW = shapeCols * GridConstants.CellSize;
+            int pixelH = shapeRows * GridConstants.CellSize;
+
+            var spec = SpriteSheetSpec.DefaultReagentSpec(pixelW, pixelH);
+            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec);
+            if (spriteSheet == null) continue;
+
+            // Resolve visual state: pick the most critical state across all cells
+            var cellStates = VisualStateResolver.Resolve(reagent, _metaGrid);
+            var displayState = PickDisplayState(cellStates);
+
+            if (_spriteRenderers.TryGetValue(reagent, out var existing))
+            {
+                // Update position and state
+                existing.Position = GridCoordinates.GridToPixel(reagent.PlacedPosition!.Value);
+                existing.SetState(displayState);
+            }
+            else
+            {
+                // Create new renderer
+                var renderer = new SpriteStateRenderer
+                {
+                    ZIndex = 2,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                };
+                renderer.Initialize(spriteSheet, pixelW, pixelH);
+                renderer.Position = GridCoordinates.GridToPixel(reagent.PlacedPosition!.Value);
+                renderer.SetState(displayState);
+                AddChild(renderer);
+                _spriteRenderers[reagent] = renderer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Picks the most visually significant state from a per-cell state map.
+    /// Priority: Crushed > ThermalStress > Heated > Cooled > Normal.
+    /// Animated states (Exploding, Breaking) override all others.
+    /// </summary>
+    private static VisualState PickDisplayState(Dictionary<CoreVec, VisualState> cellStates)
+    {
+        var best = VisualState.Normal;
+        foreach (var state in cellStates.Values)
+        {
+            if (StatePriority(state) > StatePriority(best))
+                best = state;
+        }
+        return best;
+    }
+
+    private static int StatePriority(VisualState state) => state switch
+    {
+        VisualState.Exploding => 6,
+        VisualState.Breaking => 5,
+        VisualState.Crushed => 4,
+        VisualState.ThermalStress => 3,
+        VisualState.Heated => 2,
+        VisualState.Cooled => 1,
+        _ => 0,
+    };
+
 
     // --- Interaction ---
 
@@ -230,6 +732,8 @@ public partial class MetaGridView : Control
         }
         else
         {
+            // Hide hover frame when a reagent is selected for placement
+            _hoverFrameOverlay.HideFrame();
             UpdateGhostPreview();
         }
     }
@@ -255,6 +759,8 @@ public partial class MetaGridView : Control
 
     private void HandleMouseMotion(InputEventMouseMotion motion)
     {
+        HideRejectionTooltip();
+
         var localPos = GetLocalMousePosition();
         var gridPos = GridCoordinates.PixelToGrid(localPos);
 
@@ -267,12 +773,51 @@ public partial class MetaGridView : Control
             _mouseInsideGrid = true;
             _hoverGridPos = gridPos;
             UpdateGhostPreview();
+            _hoverDebounce?.OnMouseEntered();
+            UpdateHoveredReagent(gridPos);
         }
         else if (_mouseInsideGrid)
         {
             _mouseInsideGrid = false;
             _hoverGridPos = null;
             ClearGhost();
+            if (_hoverDebounce != null)
+            {
+                // Debounced: delay clearing hovered reagent
+                _hoverDebounce.OnMouseExited();
+            }
+            else
+            {
+                // Instant (backward compatible)
+                UpdateHoveredReagent(null);
+            }
+        }
+    }
+
+    private void UpdateHoveredReagent(CoreVec? gridPos)
+    {
+        Reagent? hoveredReagent = null;
+        if (gridPos.HasValue && _selectedReagent == null)
+        {
+            hoveredReagent = _metaGrid.GetReagentAtCell(gridPos.Value);
+        }
+
+        if (hoveredReagent != _hoveredPlacedReagent)
+        {
+            _hoveredPlacedReagent = hoveredReagent;
+
+            // Update hover frame overlay
+            if (hoveredReagent != null && hoveredReagent.PlacedPosition.HasValue)
+            {
+                var pixelPos = GridCoordinates.GridToPixel(hoveredReagent.PlacedPosition.Value);
+                _hoverFrameOverlay.ShowFrame(hoveredReagent, pixelPos);
+            }
+            else
+            {
+                _hoverFrameOverlay.HideFrame();
+            }
+
+            EmitSignal(SignalName.HoveredReagentChanged);
         }
     }
 
@@ -282,14 +827,7 @@ public partial class MetaGridView : Control
 
         if (mouseBtn.ButtonIndex == MouseButton.Left)
         {
-            if (_selectedReagent != null && _isPlacementValid)
-            {
-                _metaGrid.PlaceReagent(_selectedReagent, _hoverGridPos.Value);
-                _selectedReagent = null;
-                ClearGhost();
-                RefreshDisplay();
-                EmitSignal(SignalName.ReagentPlaced);
-            }
+            HandleLeftClick();
         }
         else if (mouseBtn.ButtonIndex == MouseButton.Right)
         {
@@ -304,7 +842,20 @@ public partial class MetaGridView : Control
                 var reagent = _metaGrid.GetReagentAtCell(_hoverGridPos.Value);
                 if (reagent != null)
                 {
-                    _metaGrid.RemoveReagent(reagent);
+                    if (reagent.IsLocked)
+                    {
+                        ShowRejectionTooltip("Cannot remove — locked reagent", _hoverGridPos.Value);
+                        return;
+                    }
+                    if (_actionHistory != null)
+                    {
+                        var action = new RemoveReagentAction(reagent);
+                        if (!_actionHistory.Execute(action, _metaGrid)) return;
+                    }
+                    else
+                    {
+                        if (!_metaGrid.RemoveReagent(reagent)) return;
+                    }
                     reagent.Rotation = 0;
                     RefreshDisplay();
                     EmitSignal(SignalName.ReagentRemoved);
@@ -332,11 +883,55 @@ public partial class MetaGridView : Control
     private void UpdateGhostPreview()
     {
         ClearGhost();
+        _currentWarningLevel = PlacementWarningLevel.Invalid;
+        _effectivePlacePos = null;
         if (_selectedReagent == null || _hoverGridPos == null) return;
 
-        var positions = _selectedReagent.GetMetaGridPositions(_hoverGridPos.Value);
-        _isPlacementValid = _metaGrid.CanPlaceReagent(_selectedReagent, _hoverGridPos.Value);
-        var ghostColor = _isPlacementValid ? GridConstants.ValidPlacement : GridConstants.InvalidPlacement;
+        // Calculate effective placement position (may differ for Heavy falling)
+        var effectivePos = _hoverGridPos.Value;
+        if (_selectedReagent.HasAspect(AspectIds.Heavy))
+        {
+            var fallPos = _metaGrid.CalculateFallPosition(_selectedReagent, _hoverGridPos.Value);
+            if (fallPos != _hoverGridPos.Value && _metaGrid.CanPlaceReagent(_selectedReagent, fallPos))
+                effectivePos = fallPos;
+        }
+        _effectivePlacePos = effectivePos;
+
+        var positions = _selectedReagent.GetMetaGridPositions(effectivePos);
+        _isPlacementValid = _metaGrid.CanPlaceReagent(_selectedReagent, effectivePos);
+
+        Color ghostColor;
+        if (!_isPlacementValid)
+        {
+            _currentWarningLevel = PlacementWarningLevel.Invalid;
+            ghostColor = GridConstants.InvalidPlacement;
+        }
+        else if (_reactionRules != null && _reactionRules.Count > 0)
+        {
+            var reactions = ChemistryEngine.EvaluateProspective(
+                _metaGrid, _selectedReagent, _hoverGridPos.Value, _reactionRules);
+
+            if (reactions.Count > 0)
+            {
+                _currentWarningLevel = PlacementWarningLevel.Danger;
+                ghostColor = GridConstants.InvalidPlacement;
+            }
+            else if (HasReactiveAspects(_selectedReagent))
+            {
+                _currentWarningLevel = PlacementWarningLevel.Warning;
+                ghostColor = GridConstants.WarningPlacement;
+            }
+            else
+            {
+                _currentWarningLevel = PlacementWarningLevel.Safe;
+                ghostColor = GridConstants.ValidPlacement;
+            }
+        }
+        else
+        {
+            _currentWarningLevel = PlacementWarningLevel.Safe;
+            ghostColor = GridConstants.ValidPlacement;
+        }
 
         foreach (var pos in positions)
         {
@@ -352,6 +947,232 @@ public partial class MetaGridView : Control
             AddChild(ghost);
             _ghostCells.Add(ghost);
         }
+
+        // Compute and render highlight overlays
+        ComputeAndRenderHighlights();
+    }
+
+    private void ComputeAndRenderHighlights()
+    {
+        if (_selectedReagent == null || _effectivePlacePos == null || _reactionRules == null)
+            return;
+
+        var placePos = _effectivePlacePos.Value;
+        var highlights = new HighlightSet();
+
+        // Constraint highlights (Sharp on edge, Fragile in gravity, etc.)
+        var constraintHighlights = HighlightEngine.ComputeConstraintHighlights(
+            _metaGrid, _selectedReagent, placePos);
+        highlights.AddRange(constraintHighlights.GetByLayer(HighlightLayer.Constraint));
+
+        // Ghost constraint highlights (rendered on ghost cells themselves)
+        var ghostConstraints = HighlightEngine.ComputeGhostConstraintHighlights(
+            _metaGrid, _selectedReagent, placePos);
+        highlights.AddRange(ghostConstraints.GetByLayer(HighlightLayer.GhostOverlay));
+
+        // Interaction highlights (adjacent reactive aspects)
+        if (_isPlacementValid)
+        {
+            var interactionHighlights = HighlightEngine.ComputeInteractionHighlights(
+                _metaGrid, _selectedReagent, placePos, _reactionRules, _statusThresholds);
+            highlights.AddRange(interactionHighlights.GetByLayer(HighlightLayer.Interaction));
+        }
+
+        if (!highlights.IsEmpty)
+        {
+            _highlightOverlay.Render(highlights, _eagleSenseActive, _metaGrid.Width, _metaGrid.Height);
+        }
+    }
+
+    private bool HasReactiveAspects(Reagent reagent)
+    {
+        if (_reactiveAspectIds == null || _reactiveAspectIds.Count == 0) return false;
+
+        foreach (var localPos in reagent.GetLocalCellPositions())
+        {
+            var aspects = reagent.GetAspectsAtLocalPosition(localPos);
+            foreach (var aspect in aspects.Aspects)
+            {
+                if (_reactiveAspectIds.Contains(aspect.Id))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private void HandleLeftClick()
+    {
+        if (_selectedReagent == null || _hoverGridPos == null) return;
+
+        if (_isPlacementValid)
+        {
+            var placePos = _effectivePlacePos ?? _hoverGridPos.Value;
+            var clickPos = _hoverGridPos.Value;
+            bool isFalling = placePos != clickPos;
+
+            if (_actionHistory != null)
+            {
+                var action = new PlaceReagentAction(_selectedReagent, placePos, _selectedReagent.Rotation);
+                if (!_actionHistory.Execute(action, _metaGrid)) return;
+            }
+            else
+            {
+                _metaGrid.PlaceReagent(_selectedReagent, placePos);
+            }
+
+            var placedReagent = _selectedReagent;
+            _selectedReagent = null;
+            ClearGhost();
+            HideRejectionTooltip();
+            RefreshDisplay();
+
+            if (isFalling && _fallingAnimator != null)
+            {
+                // Temporarily hide the destination cells so the falling overlay is visible
+                HideCellsForReagent(placedReagent, placePos);
+                _fallingAnimator.PlayFall(placedReagent, clickPos, placePos, () =>
+                {
+                    // Restore the destination cells after animation
+                    RefreshDisplay();
+                });
+            }
+
+            EmitSignal(SignalName.ReagentPlaced);
+        }
+        else
+        {
+            ShowRejectionForCurrentPosition();
+        }
+    }
+
+    /// <summary>
+    /// Temporarily hides the cell colors for a placed reagent by setting them to the bag empty tint.
+    /// Used during falling animations so the overlay is visible over the destination.
+    /// </summary>
+    private void HideCellsForReagent(Reagent reagent, CoreVec position)
+    {
+        var positions = reagent.GetMetaGridPositions(position);
+        var bagIndexMap = new Dictionary<Core.Bags.Bag, int>();
+        for (int i = 0; i < _metaGrid.PlacedBags.Count; i++)
+            bagIndexMap[_metaGrid.PlacedBags[i]] = i;
+
+        foreach (var pos in positions)
+        {
+            if (pos.Col < 0 || pos.Col >= _metaGrid.Width ||
+                pos.Row < 0 || pos.Row >= _metaGrid.Height)
+                continue;
+
+            var bag = _metaGrid.GetBagAtCell(pos);
+            int bagIdx = bag != null ? bagIndexMap.GetValueOrDefault(bag, 0) : 0;
+            _cellRects[pos.Col, pos.Row].Color = GridConstants.GetBagTint(bagIdx);
+        }
+
+        // Also hide sprite renderer for this reagent during animation
+        if (_spriteRenderers.TryGetValue(reagent, out var renderer))
+            renderer.Visible = false;
+    }
+
+    private void ShowRejectionForCurrentPosition()
+    {
+        if (_selectedReagent == null || _hoverGridPos == null) return;
+
+        var violations = HighlightEngine.GetConstraintViolations(
+            _metaGrid, _selectedReagent, _hoverGridPos.Value);
+
+        if (violations.Count == 0) return;
+
+        var firstViolation = violations[0];
+        _lastRejectionAspectId = firstViolation.AspectId;
+        ShowRejectionTooltip(firstViolation.Reason, _hoverGridPos.Value, firstViolation.AspectId);
+
+        // Flash the highlight overlay
+        _flashTimer = FlashDuration;
+        _highlightOverlay.Modulate = new Color(1.5f, 1.5f, 1.5f);
+
+        // Emit signal for legend panel linking
+        if (firstViolation.AspectId != null)
+        {
+            EmitSignal(SignalName.RejectionFlash, firstViolation.AspectId);
+        }
+    }
+
+    private void CreateRejectionTooltip()
+    {
+        _rejectionTooltip = new PanelContainer
+        {
+            Visible = false,
+            ZIndex = 10,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.1f, 0.1f, 0.15f, 0.9f),
+            ContentMarginLeft = 8,
+            ContentMarginRight = 8,
+            ContentMarginTop = 4,
+            ContentMarginBottom = 4,
+            CornerRadiusTopLeft = 3,
+            CornerRadiusTopRight = 3,
+            CornerRadiusBottomLeft = 3,
+            CornerRadiusBottomRight = 3,
+        };
+        _rejectionTooltip.AddThemeStyleboxOverride("panel", style);
+
+        _rejectionLabel = new Label();
+        _rejectionLabel.AddThemeFontSizeOverride("font_size", 11);
+        _rejectionTooltip.AddChild(_rejectionLabel);
+
+        AddChild(_rejectionTooltip);
+    }
+
+    private void ShowRejectionTooltip(string reason, CoreVec gridPos, string? aspectId = null)
+    {
+        if (_rejectionTooltip == null || _rejectionLabel == null) return;
+
+        _lastRejectionReason = reason;
+        _rejectionLabel.Text = reason;
+
+        // Color text by the constraint's aspect (or default warm red)
+        var textColor = aspectId != null
+            ? GridConstants.GetAspectColor(aspectId)
+            : new Color(0.95f, 0.6f, 0.5f);
+        _rejectionLabel.AddThemeColorOverride("font_color", textColor);
+
+        // Position below and to the right of the click cell
+        var pixelPos = GridCoordinates.GridToPixel(gridPos);
+        _rejectionTooltip.Position = pixelPos + new Vector2(GridConstants.CellSize + 4, GridConstants.CellSize + 4);
+
+        _rejectionTooltip.Visible = true;
+        _tooltipTimer = TooltipDuration;
+    }
+
+    private void HideRejectionTooltip()
+    {
+        if (_rejectionTooltip != null)
+            _rejectionTooltip.Visible = false;
+    }
+
+    public override void _Process(double delta)
+    {
+        _hoverDebounce?.Process((float)delta);
+
+        if (_tooltipTimer > 0)
+        {
+            _tooltipTimer -= (float)delta;
+            if (_tooltipTimer <= 0)
+            {
+                HideRejectionTooltip();
+            }
+        }
+
+        if (_flashTimer > 0)
+        {
+            _flashTimer -= (float)delta;
+            if (_flashTimer <= 0)
+            {
+                _highlightOverlay.Modulate = Colors.White;
+            }
+        }
     }
 
     private void ClearGhost()
@@ -361,5 +1182,6 @@ public partial class MetaGridView : Control
             ghost.QueueFree();
         }
         _ghostCells.Clear();
+        _highlightOverlay.Clear();
     }
 }

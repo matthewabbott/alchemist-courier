@@ -90,4 +90,11 @@ The MVP is a **daily web puzzle** (Wordle-like, date-seeded). Not a venture game
     - Status: {ALIGNED/DRIFT_DETECTED/CORRECTED}
     ```
 
-12. **Exit**: You're done with this iteration.
+12. **Update worklog**: Append a review summary to `docs/worklog/[YYYY-MM-DD]-ralph-loop.md` (create the file if it doesn't exist, with a `# Ralph Loop — [date]` header):
+    ```
+    ## [HH:MM] — Architecture Review
+    [1-3 sentence summary: what phase was reviewed, whether things are aligned or
+    drifting, any significant course corrections made.]
+    ```
+
+13. **Exit**: You're done with this iteration.

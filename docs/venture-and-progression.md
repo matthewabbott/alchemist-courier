@@ -1,6 +1,6 @@
 # Venture System & Progression — Post-MVP Design
 
-This document covers the systems that wrap around the core inventory puzzle to create the full roguelite experience. These are **post-MVP** — they build on the foundation established by the daily puzzle MVP. The venture loop is the primary gameplay mode of the full game.
+This document covers the systems that wrap around the core inventory puzzle to create the full roguelite experience. These are **post-MVP** — they build on the foundation established by the daily puzzle MVP. The venture loop is the primary gameplay mode of the full game. This document details Stages 3-6 of the feature roadmap. See `docs/roadmap.md` for the full tier overview and cross-references to all planned features.
 
 ## Venture Loop Overview
 

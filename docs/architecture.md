@@ -1,12 +1,12 @@
 # Technical Architecture
 
-This document provides architectural guidance for implementing Alchemist Courier in Godot 4.3 with C#. It covers the data model, key systems, project structure, and technical constraints. Future agents should reference this when making implementation decisions.
+This document provides architectural guidance for implementing Alchemist Courier in Godot 4.6 with C#. It covers the data model, key systems, project structure, and technical constraints. Future agents should reference this when making implementation decisions.
 
 ## Tech Stack
 
 | Component | Choice | Rationale |
 |-----------|--------|-----------|
-| **Engine** | Godot 4.3 | Open source, strong 2D support, HTML5 export, active community |
+| **Engine** | Godot 4.6 | Open source, strong 2D support, HTML5 export, active community |
 | **Language** | C# (.NET) | Strong typing suits complex game systems (chemistry engine, inventory logic, reaction evaluation). The project uses Godot's .NET integration. |
 | **Art Pipeline** | RetroDiffusion → Godot import | AI-generated pixel art, imported as sprites/textures |
 | **Target Platforms** | Web (HTML5) primary for MVP, Windows PC for full game | Godot supports both from a single project |
@@ -199,7 +199,7 @@ public class AspectSet
 
 public enum SchoolType
 {
-    Physical,       // Hot, Cold, Volatile, Fragile, Toxic, Heavy, Sharp, Medicinal, Stable, Catalytic
+    Physical,       // Simple: Hot, Cold, Volatile, Stable, Heavy, Toxic | Intermediate: Sharp, Fragile, Medicinal, Catalytic
     Wuxing,         // Wood, Fire, Earth, Metal, Water
     WesternAlchemy, // Nigredo, Albedo, Citrinitas, Rubedo
     Astrology,      // TBD
@@ -550,6 +550,7 @@ Design and test with web export in mind from day one. Don't use features that br
 
 ## Related Documents
 
+- `docs/architecture-diagram.md` — **Visual architecture diagram** (Mermaid + ASCII data flow)
 - `docs/game-overview.md` — Project overview and tech stack rationale
 - `docs/core-mechanics.md` — Game design that the architecture must implement
 - `docs/chemistry-system.md` — The chemistry engine specification

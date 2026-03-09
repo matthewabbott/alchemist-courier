@@ -78,4 +78,10 @@ You are an integration testing agent for the Alchemist Courier game. Your job is
 
 10. **Quality gates**: If you made any fixes, re-run `dotnet build` and `dotnet test` to verify.
 
-11. **Exit**: You're done with this iteration.
+11. **Update worklog**: Append an integration summary to `docs/worklog/[YYYY-MM-DD]-ralph-loop.md` (create the file if it doesn't exist, with a `# Ralph Loop — [date]` header):
+    ```
+    ## [HH:MM] — Integration Test
+    [1-3 sentence summary: what was tested, pass/fail, any regressions caught or fixes made.]
+    ```
+
+12. **Exit**: You're done with this iteration.

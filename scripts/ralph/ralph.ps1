@@ -103,6 +103,7 @@ $Iter = 0
 $ImplCount = 0
 $LastCodeReview = 0
 $LastIntegrationTest = 0
+$ConsecutiveErrors = 0
 
 Write-Host "========================================"
 Write-Host " Ralph Loop -- Alchemist Courier"
@@ -194,10 +195,18 @@ while ($Iter -lt $MaxIter) {
         $promptContent = Get-Content $PromptFile -Raw
         $claudeExit = 0
 
+        # Create log file immediately so Get-Content -Wait works from the start
+        "# Ralph iteration $Iter - $Role - started $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" | Out-File -FilePath $IterLog
+        Write-Host "$R Claude is working (this can take several minutes with no output)..."
+
+        # Tool permissions: file tools are project-scoped by default.
+        # Bash is restricted to specific command patterns.
+        $toolsArg = 'Edit,Write,Read,Glob,Grep,WebSearch,WebFetch,"Bash(git *)","Bash(dotnet *)","Bash(python *)","Bash(mkdir *)","Bash(rm *)","Bash(cp *)","Bash(mv *)","Bash(ls *)","Bash(cat *)","Bash(head *)","Bash(tail *)",mcp__godot__*'
+
         try {
             # PowerShell provides a real console -- no winpty needed.
             # Pipe through Tee-Object to both display and log.
-            & claude -p $promptContent --output-format text 2>&1 | Tee-Object -FilePath $IterLog
+            & claude -p $promptContent --output-format text --allowedTools $toolsArg 2>&1 | Tee-Object -FilePath $IterLog
             $claudeExit = $LASTEXITCODE
         } catch {
             Write-Host "$R Claude Code threw an exception: $_" -ForegroundColor Red
@@ -206,14 +215,24 @@ while ($Iter -lt $MaxIter) {
 
         # Check log output
         $logLines = 0
+        $logContent = ""
         if (Test-Path $IterLog) {
-            $logLines = (Get-Content $IterLog | Measure-Object -Line).Lines
+            $logContent = Get-Content $IterLog -Raw -ErrorAction SilentlyContinue
+            $logLines = ($logContent -split "`n").Count
         }
         Write-Host "$R Log saved: $IterLog ($logLines lines)"
 
-        # Fail loudly if claude produced no output
-        if ($logLines -le 1) {
+        # -- Failure detection --
+        # Check for rate limiting (look for common rate-limit indicators)
+        $isRateLimited = $false
+        if ($logContent -match '(?i)(rate.?limit|too many requests|429|overloaded|capacity|throttl|hit your limit|resets \d+[ap]m)') {
+            $isRateLimited = $true
+        }
+
+        # Fail loudly if claude produced no output (and not rate-limited)
+        if ($logLines -le 1 -and -not $isRateLimited) {
             Write-Host "$R ERROR: Claude produced no output. Possible causes:" -ForegroundColor Red
+            Write-Host "$R   - Rate limited / API quota exceeded"
             Write-Host "$R   - Not authenticated (run 'claude' interactively first)"
             Write-Host "$R   - API key / billing issue"
             Write-Host "$R   - Git-bash not found (check CLAUDE_CODE_GIT_BASH_PATH)"
@@ -226,9 +245,115 @@ while ($Iter -lt $MaxIter) {
             Write-Host "$R Aborting loop." -ForegroundColor Red
             exit 1
         }
+        # Also treat empty output as rate-limited (claude often exits silently on limit)
+        if ($logLines -le 1) {
+            $isRateLimited = $true
+        }
+
+        # Handle rate limiting -- wait overnight, abort during daytime
+        if ($isRateLimited) {
+            # Determine current Pacific time
+            $pacificTz = [TimeZoneInfo]::FindSystemTimeZoneById("Pacific Standard Time")
+            $pacificNow = [TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow, $pacificTz)
+            $pacificHour = $pacificNow.Hour
+            $isOvernight = ($pacificHour -ge 0 -and $pacificHour -lt 9)
+
+            Write-Host ""
+            Write-Host "$R !! RATE LIMITED !!" -ForegroundColor Yellow
+            Write-Host "$R   Iteration: $Iter / $MaxIter"
+            Write-Host "$R   Role: $Role"
+            Write-Host "$R   Impl count so far: $ImplCount"
+            Write-Host "$R   Pacific time: $($pacificNow.ToString('h:mm tt'))"
+            Write-Host "$R   Log: $IterLog"
+
+            if ($isOvernight) {
+                # -- Overnight mode: wait for usage to reset, then retry --
+                $sleepMinutes = 60  # default: 1 hour
+
+                # Try to parse reset time from output (e.g. "resets 12am" or "resets 5am")
+                if ($logContent -match '(?i)resets\s+(\d{1,2})\s*(am|pm)') {
+                    $resetHour = [int]$Matches[1]
+                    $resetAmPm = $Matches[2].ToLower()
+                    if ($resetAmPm -eq "pm" -and $resetHour -ne 12) { $resetHour += 12 }
+                    if ($resetAmPm -eq "am" -and $resetHour -eq 12) { $resetHour = 0 }
+
+                    $resetTime = $pacificNow.Date.AddHours($resetHour)
+                    # If reset time is in the past (e.g. "resets 12am" and it's 12:30am), add a day
+                    if ($resetTime -le $pacificNow) { $resetTime = $resetTime.AddDays(1) }
+
+                    $waitSpan = $resetTime - $pacificNow
+                    $sleepMinutes = [Math]::Max(5, [Math]::Ceiling($waitSpan.TotalMinutes) + 5)  # +5 min buffer
+
+                    # Cap at 5 hours to avoid absurd waits
+                    if ($sleepMinutes -gt 300) { $sleepMinutes = 60 }
+
+                    Write-Host "$R   Parsed reset time: ${resetHour}:00 Pacific" -ForegroundColor Cyan
+                }
+
+                Write-Host "$R   OVERNIGHT MODE: waiting $sleepMinutes minutes before retrying..." -ForegroundColor Yellow
+                Write-Host "$R   Will resume at approx $($pacificNow.AddMinutes($sleepMinutes).ToString('h:mm tt')) Pacific" -ForegroundColor Yellow
+                Write-Host "$R   Progress is safe: completed tasks are committed." -ForegroundColor Yellow
+
+                Start-Sleep -Seconds ($sleepMinutes * 60)
+
+                # After waking, check if we've passed the overnight window
+                $pacificAfterSleep = [TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow, $pacificTz)
+                if ($pacificAfterSleep.Hour -ge 9) {
+                    Write-Host "$R   Woke up at $($pacificAfterSleep.ToString('h:mm tt')) Pacific -- past 9am, stopping." -ForegroundColor Yellow
+                    Write-Host "$R To resume: .\scripts\ralph\ralph.ps1" -ForegroundColor Yellow
+                    exit 2
+                }
+
+                Write-Host "$R   Woke up at $($pacificAfterSleep.ToString('h:mm tt')) Pacific -- retrying iteration $Iter" -ForegroundColor Green
+
+                # Retry this iteration (don't count it as completed)
+                $Iter--
+                $ConsecutiveErrors = 0
+                continue
+            } else {
+                # -- Daytime: abort as before --
+                Write-Host "$R   DAYTIME MODE: aborting to avoid repeated failures." -ForegroundColor Red
+                Write-Host "$R   Git state:" -ForegroundColor Yellow
+                & git log --oneline -3 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+                & git status --short 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+                Write-Host "$R Progress is safe: completed tasks are committed and marked 'done' in prd.json." -ForegroundColor Yellow
+                Write-Host "$R To resume: .\scripts\ralph\ralph.ps1" -ForegroundColor Yellow
+                exit 2
+            }
+        }
 
         if ($claudeExit -ne 0) {
-            Write-Host "$R Claude Code exited with error (code $claudeExit). Continuing..." -ForegroundColor Yellow
+            $ConsecutiveErrors++
+            Write-Host "$R Claude Code exited with error (code $claudeExit). Consecutive errors: $ConsecutiveErrors" -ForegroundColor Yellow
+            if ($ConsecutiveErrors -ge 3) {
+                # During overnight hours, treat persistent errors as likely rate limiting
+                $pacificTz = [TimeZoneInfo]::FindSystemTimeZoneById("Pacific Standard Time")
+                $pacificNow = [TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow, $pacificTz)
+                $isOvernight = ($pacificNow.Hour -ge 0 -and $pacificNow.Hour -lt 9)
+
+                if ($isOvernight) {
+                    Write-Host "$R   3 consecutive errors overnight -- likely rate limited. Waiting 60 minutes..." -ForegroundColor Yellow
+                    Start-Sleep -Seconds 3600
+
+                    $pacificAfterSleep = [TimeZoneInfo]::ConvertTimeFromUtc([DateTime]::UtcNow, $pacificTz)
+                    if ($pacificAfterSleep.Hour -ge 9) {
+                        Write-Host "$R   Woke up past 9am Pacific -- stopping." -ForegroundColor Yellow
+                        exit 2
+                    }
+                    Write-Host "$R   Retrying after overnight wait..." -ForegroundColor Green
+                    $Iter--
+                    $ConsecutiveErrors = 0
+                    continue
+                }
+
+                Write-Host "$R 3 consecutive errors -- possible persistent issue. Aborting." -ForegroundColor Red
+                Write-Host "$R   Last role: $Role, iteration: $Iter"
+                Write-Host "$R   Log: $IterLog"
+                & git status --short 2>&1 | ForEach-Object { Write-Host "$R     $_" }
+                exit 2
+            }
+        } else {
+            $ConsecutiveErrors = 0
         }
     }
 

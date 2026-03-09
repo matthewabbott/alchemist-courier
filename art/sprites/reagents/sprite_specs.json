@@ -1,0 +1,866 @@
+{
+  "ember_seed": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "firevine": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "magma_slug": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "frozen_teardrop": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "snowflower": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "frost_fern": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "spark_petal": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "burstbloom": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "thunder_egg": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "venom_drop": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "purple_creeper": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "blight_moss": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "lead_nugget": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "lead_ingot": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "anvil_shard": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "calm_stone": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "nullflower": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "ironbark_root": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glass_shard": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "sharpstone": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "razor_fern": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "crystal_tear": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "glasswork": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  },
+  "gossamer_thread": {
+    "cellWidth": 32,
+    "cellHeight": 32,
+    "totalRows": 7,
+    "maxFrames": 4,
+    "states": {
+      "Normal": {
+        "row": 0,
+        "frames": 1
+      },
+      "Heated": {
+        "row": 1,
+        "frames": 1
+      },
+      "Cooled": {
+        "row": 2,
+        "frames": 1
+      },
+      "ThermalStress": {
+        "row": 3,
+        "frames": 1
+      },
+      "Crushed": {
+        "row": 4,
+        "frames": 1
+      },
+      "Breaking": {
+        "row": 5,
+        "frames": 4
+      },
+      "Exploding": {
+        "row": 6,
+        "frames": 4
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dpkh11imkykai"]
 
-[ext_resource type="Script" uid="uid://dygaumdk7p3yv" path="res://src/Game/Inventory/PuzzleScreen.cs" id="1"]
+[ext_resource type="Script" path="res://src/Game/GameFlowController.cs" id="1"]
 
 [node name="Main" type="Control" unique_id=1884457692]
 layout_mode = 3

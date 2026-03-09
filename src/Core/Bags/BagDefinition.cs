@@ -31,12 +31,21 @@ public class BagDefinition
     /// <summary>Special properties this bag has.</summary>
     public IReadOnlyList<BagPropertyType> Properties { get; }
 
-    public BagDefinition(string id, string name, bool[,] shape, IEnumerable<BagPropertyType>? properties = null)
+    /// <summary>
+    /// The gravity direction for this bag (A.3). Only meaningful when the bag
+    /// has BagPropertyType.Gravity. Default is Down.
+    /// </summary>
+    public GravityDirection GravityDirection { get; }
+
+    public BagDefinition(string id, string name, bool[,] shape,
+        IEnumerable<BagPropertyType>? properties = null,
+        GravityDirection gravityDirection = GravityDirection.Down)
     {
         Id = id;
         Name = name;
         Shape = shape;
         Properties = (properties?.ToList() ?? new List<BagPropertyType>()).AsReadOnly();
+        GravityDirection = gravityDirection;
     }
 
     /// <summary>Check if this bag has a specific property.</summary>
