@@ -1679,7 +1679,7 @@
         "LO.1"
       ],
       "verification": "dotnet build succeeds. Run test harness -- new layout test passes.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.3",

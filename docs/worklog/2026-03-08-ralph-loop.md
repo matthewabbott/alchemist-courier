@@ -174,3 +174,12 @@ so upcoming layout tests and integration tests can programmatically inspect pane
 Straightforward accessor work mirroring the existing PuzzleScreen pattern — no behavioral
 changes, just exposing the private fields that were already there.
 Commit: b650c09
+
+## LO.2: Layout test infrastructure — LayoutTestHelper + WebDemoLayout test
+Built the foundation for layout regression testing. LayoutTestHelper provides four reusable
+assertions (CheckMinSize, CheckVisible, CheckNoOverlap, CheckContainedIn) that return
+structured failure reasons — designed to be composed into any integration test. The first
+consumer is Test_WebDemoLayout, which instantiates a WebDemoScreen and verifies that all
+key panels (grid, tray, status bar, legend) are visible and correctly sized after Godot's
+layout engine settles. This gives us a baseline before the bigger layout changes in LO.4+.
+Commit: 89053de

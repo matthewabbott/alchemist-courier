@@ -946,3 +946,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: b650c09
 - Notes: Added 8 public read-only properties to WebDemoScreen: ReagentTray, StatusBar, Objective, LegendPanel, ViolationPanel, ResultOverlay, Grid, and TrayReagents (IReadOnlyList). GridView, DetailTooltip, and AspectTooltip already existed. Follows the same pattern as PuzzleScreen.cs (lines 66-79). Pure accessor change — no behavioral modification. All 806 tests pass.
+
+## LO.2 — Layout test infrastructure: LayoutTestHelper + WebDemoLayout test
+- Date: 2026-03-08
+- Commit: 89053de
+- Notes: Created LayoutTestHelper static class with 4 reusable layout assertions: CheckMinSize (verifies Control rect meets minimum thresholds), CheckVisible (visible + non-zero size), CheckNoOverlap (GetGlobalRect intersection check), CheckContainedIn (child fits within parent bounds). Added Test_WebDemoLayout to TestHarness that instantiates a WebDemoScreen, waits 3 frames for Godot layout to settle, then verifies GridView visibility/size, ReagentTray visibility, StatusBar visibility, and LegendPanel minimum width >= 180px. All 806 unit tests pass.
