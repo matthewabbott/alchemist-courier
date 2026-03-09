@@ -1013,3 +1013,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Findings: 4 (P0: 0, P1: 0, P2: 0, P3: 3, P4: 1)
 - Fixed: 0, Tasks created: 0
 - Clean batch. P3 notes: magic number 90 for tray item width (2 occurrences, Rule of Three not met), long BuildAspectBreakdown method (85 lines, readable), dual Escape handling for profile panel (intentional reusability). P4: hardcoded layout breakpoints.
+
+## LO.9 — Update layout integration tests for new layout
+- Date: 2026-03-08
+- Commit: b793af2
+- Notes: Rewrote Test_WebDemoLayout and Test_WebDemoResponsive to assert against the post-overhaul layout structure. Test_WebDemoLayout now verifies: grid visible with min 50x50, tray visible with height >= 50px, info column visible with width >= 140px, all four sidebar panels visible (StatusBar, LegendPanel, Objective, ViolationPanel), no overlap between grid/tray and grid/info column, and profile panel showing after programmatic reagent selection with min size 240x100. Test_WebDemoResponsive now verifies per-breakpoint behavior: 1280x720 (full layout with info column at 140px+ and no overlap), 1024x768 (narrower info column still visible), 800x600 (info column hidden). Added InfoColumn public accessor to WebDemoScreen for test access. All 806 tests pass.

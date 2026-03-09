@@ -1766,7 +1766,7 @@
         "LO.8"
       ],
       "verification": "dotnet build succeeds. All integration tests pass.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.10",

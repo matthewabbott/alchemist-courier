@@ -263,3 +263,13 @@ Commit: 823a70a
 ## Code Review (2026-03-08g)
 Reviewed LO.6, LO.7, LO.8 (de3d91a..5adedea): ReagentProfilePanel popup, WebDemoScreen wiring, and responsive layout.
 Clean batch — no P0-P2 issues. Three P3 observations (magic tray width, long method, dual Escape handling) and one P4 (hardcoded breakpoints), all intentional or below the fix threshold. No fixes applied, no tasks created. Desloppify blocked by shell permissions.
+
+## LO.9: Update layout integration tests for new layout
+Rewrote the two baseline layout tests (LO.2/LO.3) to assert against the post-overhaul layout
+structure. Test_WebDemoLayout now checks everything the new layout exposes: tray at bottom with
+height >= 50px, info column visible at 140px+, all four sidebar panels visible, no overlap between
+grid/tray and grid/info-column, and a profile panel test that programmatically selects a reagent
+and verifies the popup appears at >= 240x100. Test_WebDemoResponsive tests each breakpoint tier:
+full layout at 1280px, narrower at 1024px, and hidden info column at 800px. Added a public
+InfoColumn accessor to WebDemoScreen for test access.
+Commit: b793af2
