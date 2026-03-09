@@ -1716,7 +1716,7 @@
         "LO.4"
       ],
       "verification": "dotnet build succeeds. Place/remove reagents -- panels do not jump. Layout test verifies minimum sizes maintained.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.6",

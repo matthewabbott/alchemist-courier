@@ -981,3 +981,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Added: `violation_list_panel` test (GO.11 — ViolationListPanel initialization, violation detection, and clearing)
 - Coverage: GO.7-GO.12 all have integration coverage (direct or indirect). LO.1-LO.4 covered by layout tests. SB.2 is a dev tool (no integration test needed).
 - Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
+
+## LO.5 — Stable panel sizing to prevent layout jumps
+- Date: 2026-03-08
+- Commit: 0ef05e2
+- Notes: Added minimum sizes to ViolationListPanel (80px height), AspectLegendPanel (120px height + ClipContents), and ObjectivePanel (160px width). Changed WebDemoScreen info column from ExpandFill to ShrinkBegin to prevent vertical stretching when panel content changes. All changes are additive — no behavioral impact on PuzzleScreen or existing tests. 806 tests pass.

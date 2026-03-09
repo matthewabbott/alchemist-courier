@@ -218,3 +218,12 @@ activated via a new overload. PuzzleScreen is completely untouched; the vertical
 default path. WebDemoScreen.BuildSidebar became BuildInfoColumn (160px min width) with a new
 BuildTrayStrip placing the horizontal ScrollContainer between the separator and status bar.
 Commit: f2a15b5
+
+## LO.5: Stable panel sizing to prevent layout jumps
+Small but impactful layout stabilization. Added minimum sizes to the three info column panels
+(ViolationListPanel 80px height, AspectLegendPanel 120px height, ObjectivePanel 160px width)
+so they maintain consistent space even when content changes — violations appearing/disappearing,
+legend entries expanding/collapsing. The info column itself switches from ExpandFill to ShrinkBegin,
+preventing it from stretching vertically and causing jumpy re-layouts. AspectLegendPanel also gets
+ClipContents so animated expand/collapse stays within bounds.
+Commit: 0ef05e2
