@@ -774,7 +774,7 @@ public partial class WebDemoScreen : Control
     private static Button CreateStyledButton(string text, Color bgColor)
     {
         var button = new Button { Text = text };
-        button.CustomMinimumSize = new Vector2(100, 34);
+        button.CustomMinimumSize = new Vector2(100, 44);
 
         foreach (var (overrideName, color) in new[]
         {

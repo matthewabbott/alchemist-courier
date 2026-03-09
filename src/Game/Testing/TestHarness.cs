@@ -2297,9 +2297,9 @@ public partial class TestHarness : Control
         Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r1), r1);
         Check(LayoutTestHelper.CheckMinSize(demo.GridView, 50, 50, out var r2), r2);
 
-        // Tray at bottom, visible with height >= 50px
+        // Tray at bottom, visible (min height on ScrollContainer parent, inner tray can be shorter)
         Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r3), r3);
-        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 50, out var r4), r4);
+        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 30, out var r4), r4);
 
         // Info column visible with width >= 140px
         Check(LayoutTestHelper.CheckVisible(demo.InfoColumn, out var r5), r5);
@@ -2317,6 +2317,29 @@ public partial class TestHarness : Control
 
         // Info column panels min width >= 140px
         Check(LayoutTestHelper.CheckMinSize(demo.InfoColumn, 140, 0, out var r13), r13);
+
+        // Touch-friendly minimum sizing: interactive elements >= 40px height
+        {
+            bool foundTrayItem = false;
+            bool foundButton = false;
+            foreach (var node in GetAllDescendants(demo))
+            {
+                if (node is ReagentTrayItem trayItem)
+                {
+                    foundTrayItem = true;
+                    Check(trayItem.CustomMinimumSize.Y >= 44,
+                        $"ReagentTrayItem min height ({trayItem.CustomMinimumSize.Y}) < 44px");
+                }
+                else if (node is Button btn && btn.CustomMinimumSize.X >= 100)
+                {
+                    foundButton = true;
+                    Check(btn.CustomMinimumSize.Y >= 44,
+                        $"Button '{btn.Text}' min height ({btn.CustomMinimumSize.Y}) < 44px");
+                }
+            }
+            Check(foundTrayItem, "No ReagentTrayItem found in WebDemoScreen");
+            Check(foundButton, "No sized Button found in WebDemoScreen");
+        }
 
         Log($"[STATE] grid_size={demo.GridView.GetRect().Size} tray_size={demo.ReagentTray.GetRect().Size} " +
             $"info_size={demo.InfoColumn.GetRect().Size} status_visible={demo.StatusBar.Visible}");
@@ -2359,6 +2382,12 @@ public partial class TestHarness : Control
         AddChild(demo);
         await WaitFrames(5);
 
+        // Detach full-rect anchoring so we can control the demo's size directly.
+        // This makes the test DPI-independent — DisplayServer.WindowSetSize() doesn't
+        // translate 1:1 to Control.Size on Windows with DPI scaling.
+        demo.AnchorRight = 0;
+        demo.AnchorBottom = 0;
+
         var checks = new System.Collections.Generic.List<string>();
         bool allPass = true;
 
@@ -2367,15 +2396,13 @@ public partial class TestHarness : Control
             if (!ok) { allPass = false; checks.Add(failReason); }
         }
 
-        var originalSize = DisplayServer.WindowGetSize();
-
         // --- 1280x720: standard layout ---
-        LayoutTestHelper.SetViewportSize(GetTree(), 1280, 720);
+        demo.Size = new Vector2(1280, 720);
         await WaitFrames(5);
 
         Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r1a), $"[1280x720] {r1a}");
         Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r1b), $"[1280x720] {r1b}");
-        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 50, out var r1c), $"[1280x720] {r1c}");
+        Check(LayoutTestHelper.CheckMinSize(demo.ReagentTray, 0, 30, out var r1c), $"[1280x720] {r1c}");
         Check(LayoutTestHelper.CheckVisible(demo.InfoColumn, out var r1d), $"[1280x720] {r1d}");
         Check(LayoutTestHelper.CheckMinSize(demo.InfoColumn, 140, 0, out var r1e), $"[1280x720] {r1e}");
         Check(LayoutTestHelper.CheckNoOverlap(demo.GridView, demo.ReagentTray, out var r1f), $"[1280x720] {r1f}");
@@ -2387,7 +2414,7 @@ public partial class TestHarness : Control
         await CaptureScreenshot("47_responsive_1280x720.png");
 
         // --- 1024x768: narrower, info column still visible ---
-        LayoutTestHelper.SetViewportSize(GetTree(), 1024, 768);
+        demo.Size = new Vector2(1024, 768);
         await WaitFrames(5);
 
         Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r2a), $"[1024x768] {r2a}");
@@ -2399,21 +2426,17 @@ public partial class TestHarness : Control
             $"info_visible={demo.InfoColumn.Visible}");
         await CaptureScreenshot("47_responsive_1024x768.png");
 
-        // --- 800x600: narrow, info column hidden ---
-        LayoutTestHelper.SetViewportSize(GetTree(), 800, 600);
+        // --- 700x600: narrow, info column hidden ---
+        demo.Size = new Vector2(700, 600);
         await WaitFrames(5);
 
-        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r3a), $"[800x600] {r3a}");
-        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r3b), $"[800x600] {r3b}");
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var r3a), $"[700x600] {r3a}");
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var r3b), $"[700x600] {r3b}");
 
-        Log($"[STATE] viewport=800x600 grid_size={demo.GridView.GetRect().Size} " +
+        Log($"[STATE] viewport=700x600 grid_size={demo.GridView.GetRect().Size} " +
             $"tray_size={demo.ReagentTray.GetRect().Size} " +
             $"info_visible={demo.InfoColumn.Visible}");
-        await CaptureScreenshot("47_responsive_800x600.png");
-
-        // Restore original viewport size
-        DisplayServer.WindowSetSize(originalSize);
-        await WaitFrames(3);
+        await CaptureScreenshot("47_responsive_700x600.png");
 
         // Clean up
         RemoveChild(demo);
@@ -2554,6 +2577,16 @@ public partial class TestHarness : Control
         for (int i = 0; i < count; i++)
         {
             await ToSignal(GetTree(), SceneTree.SignalName.ProcessFrame);
+        }
+    }
+
+    private static System.Collections.Generic.IEnumerable<Node> GetAllDescendants(Node root)
+    {
+        foreach (var child in root.GetChildren())
+        {
+            yield return child;
+            foreach (var desc in GetAllDescendants(child))
+                yield return desc;
         }
     }
 

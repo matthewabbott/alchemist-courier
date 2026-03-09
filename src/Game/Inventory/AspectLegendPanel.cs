@@ -204,6 +204,7 @@ public partial class AspectLegendEntry : VBoxContainer
         };
 
         _headerPanel = new PanelContainer();
+        _headerPanel.CustomMinimumSize = new Vector2(0, 40);
         _headerPanel.AddThemeStyleboxOverride("panel", _normalBg);
         AddChild(_headerPanel);
 

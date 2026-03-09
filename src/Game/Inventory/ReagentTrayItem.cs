@@ -70,11 +70,12 @@ public partial class ReagentTrayItem : PanelContainer
 
         if (compact)
         {
-            CustomMinimumSize = new Vector2(80, 0);
+            CustomMinimumSize = new Vector2(80, 44);
             BuildCompactLayout(reagent);
         }
         else
         {
+            CustomMinimumSize = new Vector2(0, 44);
             BuildFullLayout(reagent);
         }
 

@@ -102,6 +102,7 @@ public partial class ViolationListPanel : PanelContainer
         btn.Alignment = HorizontalAlignment.Left;
         btn.Text = entry.Description;
         btn.ClipText = true;
+        btn.CustomMinimumSize = new Vector2(0, 40);
 
         var textColor = entry.Severity switch
         {
