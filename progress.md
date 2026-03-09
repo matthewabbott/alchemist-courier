@@ -966,3 +966,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: e448093
 - Notes: Added Test_WebDemoResponsive() to TestHarness that tests WebDemoScreen layout at three viewport sizes (1280x720, 1024x768, 800x600). Uses DisplayServer.WindowSetSize() for viewport resizing — more reliable than ContentScaleSize since the project has no content scale mode configured. Each resolution verifies grid and reagent tray remain visible with non-zero size, captures a labeled screenshot. Added SetViewportSize() helper to LayoutTestHelper returning original size for restore. This establishes a visual baseline BEFORE the layout overhaul tasks (LO.4+) change the structure. All 806 unit tests pass.
+
+## LO.4 — Move reagent tray from sidebar to bottom horizontal strip
+- Date: 2026-03-08
+- Commit: f2a15b5
+- Notes: Central layout change moving the tray from the right sidebar to a horizontal strip between the separator and status bar. ReagentTray gained SetOrientation(bool horizontal) — when horizontal, items flow in an HBoxContainer instead of the default VBoxContainer; header/separator are hidden in horizontal mode. ReagentTrayItem gained a compact layout mode (shape preview + aspect dots stacked vertically, no name label, 80px min width) triggered by a new `Initialize(reagent, index, compact)` overload; the two-arg overload defaults to non-compact for backward compatibility. WebDemoScreen.BuildSidebar renamed to BuildInfoColumn (reduced min width from 200px to 160px, tray removed), new BuildTrayStrip adds a horizontal ScrollContainer with auto horizontal scroll and disabled vertical scroll. PuzzleScreen is completely unmodified — it still uses the default vertical tray. All 806 tests pass.

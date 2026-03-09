@@ -1704,7 +1704,7 @@
         "LO.1"
       ],
       "verification": "dotnet build succeeds. Run web_demo via Godot MCP -- tray appears at bottom, horizontal scroll works, items selectable. Existing PuzzleScreen integration tests still pass (PuzzleScreen uses vertical tray unchanged).",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.5",

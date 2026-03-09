@@ -207,3 +207,14 @@ DisplayServer.WindowSetSize() rather than ContentScaleSize since the project has
 scale mode configured. Each resolution gets a labeled screenshot and visibility assertions on
 the grid and reagent tray. This gives us a "before" snapshot to compare against after LO.4+.
 Commit: e448093
+
+## LO.4: Move reagent tray from sidebar to bottom horizontal strip
+The central layout restructuring. The reagent tray moves from the right sidebar to a horizontal
+strip at the bottom, freeing the sidebar to become a narrower info column (objective, legend,
+violations). ReagentTray gained a SetOrientation() method that switches between VBoxContainer
+(vertical, default) and HBoxContainer (horizontal) item flow. ReagentTrayItem gained a compact
+layout mode — vertical stack of shape preview + aspect dots, no name label, 80px minimum width —
+activated via a new overload. PuzzleScreen is completely untouched; the vertical tray is the
+default path. WebDemoScreen.BuildSidebar became BuildInfoColumn (160px min width) with a new
+BuildTrayStrip placing the horizontal ScrollContainer between the separator and status bar.
+Commit: f2a15b5
