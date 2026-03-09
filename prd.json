@@ -1788,7 +1788,7 @@
       "phase": "game-jam",
       "depends_on": [],
       "verification": "dotnet test. Place non-heavy reagent mid-air in gravity bag -> falls to bottom.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.2",

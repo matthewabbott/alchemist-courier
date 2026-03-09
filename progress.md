@@ -1033,3 +1033,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 2b152dd
 - Notes: Updated minimum heights on all interactive elements for mobile touch targets. Button bar buttons in WebDemoScreen: 34px → 44px (Apple HIG standard). ReagentTrayItem: added 44px min height for both compact (horizontal) and full (vertical) layouts. ViolationListPanel entry buttons: added 40px min height. AspectLegendEntry header panels: added 40px min height. Added integration test checks that walk the WebDemoScreen node tree to verify ReagentTrayItem min heights >= 44px and button bar buttons >= 44px. All 806 unit tests pass, build clean.
+
+## GJ.1 — Soften gravity constraint — unsupported placement + auto-fall
+- Date: 2026-03-09
+- Commit: 40f9824
+- Notes: Removed IsGravityValid gate from CanPlaceReagent — gravity is now advisory only (warnings via GetGravityViolations). Added PlaceReagentWithFall(reagent, position) method that calls CalculateFallPosition then PlaceReagent at the fallen position. Updated MetaGridView.UpdateGhostPreview to apply fall to ALL reagents in gravity bags, not just Heavy (removed HasAspect gate). Updated 4 existing tests that expected gravity-unsupported placement to fail — now succeed. Added 3 new PlaceReagentWithFall tests: non-heavy in gravity bag falls to bottom, non-heavy in normal bag stays put, two reagents stack correctly. All 809 tests pass (806 existing adjusted + 3 new).
