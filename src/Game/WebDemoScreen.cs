@@ -228,7 +228,7 @@ public partial class WebDemoScreen : Control
     private void BuildInfoColumn(HBoxContainer parent)
     {
         var infoColumn = new VBoxContainer();
-        infoColumn.SizeFlagsVertical = SizeFlags.ExpandFill;
+        infoColumn.SizeFlagsVertical = SizeFlags.ShrinkBegin;
         infoColumn.AddThemeConstantOverride("separation", 10);
         infoColumn.CustomMinimumSize = new Vector2(160, 0);
         parent.AddChild(infoColumn);

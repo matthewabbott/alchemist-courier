@@ -21,6 +21,8 @@ public partial class AspectLegendPanel : PanelContainer
     public void SetPuzzleContext(List<ReactionRule> rules, List<Reagent> reagents)
     {
         _rules = rules;
+        ClipContents = true;
+        CustomMinimumSize = new Vector2(0, 120);
 
         // Semi-transparent dark background
         var style = new StyleBoxFlat

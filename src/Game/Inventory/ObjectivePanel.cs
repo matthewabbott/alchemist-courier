@@ -16,6 +16,7 @@ public partial class ObjectivePanel : VBoxContainer
     public void Initialize(PuzzleType puzzleType)
     {
         _puzzleType = puzzleType;
+        CustomMinimumSize = new Vector2(160, 0);
 
         AddThemeConstantOverride("separation", 4);
 

@@ -35,6 +35,8 @@ public partial class ViolationListPanel : PanelContainer
 
     private void BuildUI()
     {
+        CustomMinimumSize = new Vector2(0, 80);
+
         var style = new StyleBoxFlat
         {
             BgColor = new Color(0.1f, 0.1f, 0.13f, 0.9f),
