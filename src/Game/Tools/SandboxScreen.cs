@@ -434,9 +434,7 @@ public partial class SandboxScreen : Control
 
         var allItems = ReagentCatalog.GetAll();
         var groups = allItems
-            .GroupBy(d => d.AspectsPerCell.Count > 0
-                ? d.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? "unknown"
-                : "unknown")
+            .GroupBy(d => GetPrimaryAspectId(d))
             .OrderBy(g => GetAspectSortOrder(g.Key));
 
         foreach (var group in groups)
@@ -480,10 +478,7 @@ public partial class SandboxScreen : Control
     private PanelContainer CreatePickerCard(ReagentDefinition def)
     {
         var panel = new PanelContainer { LayoutMode = 2 };
-        var style = new StyleBoxFlat { BgColor = CardBgColor };
-        style.SetCornerRadiusAll(3);
-        style.SetContentMarginAll(4);
-        panel.AddThemeStyleboxOverride("panel", style);
+        panel.AddThemeStyleboxOverride("panel", CreateCardStyle(CardBgColor));
 
         var vbox = new VBoxContainer { LayoutMode = 2 };
         vbox.AddThemeConstantOverride("separation", 2);
@@ -518,10 +513,7 @@ public partial class SandboxScreen : Control
     {
         int rows = def.ShapeRows;
         int cols = def.ShapeCols;
-        string primaryAspect = def.AspectsPerCell.Count > 0
-            ? def.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? ""
-            : "";
-        var color = GridConstants.GetAspectColor(primaryAspect);
+        var color = GridConstants.GetAspectColor(GetPrimaryAspectId(def, ""));
 
         var container = new Control
         {
@@ -550,12 +542,7 @@ public partial class SandboxScreen : Control
     {
         // Deselect previous
         if (_selectedCard != null)
-        {
-            var oldStyle = new StyleBoxFlat { BgColor = CardBgColor };
-            oldStyle.SetCornerRadiusAll(3);
-            oldStyle.SetContentMarginAll(4);
-            _selectedCard.AddThemeStyleboxOverride("panel", oldStyle);
-        }
+            _selectedCard.AddThemeStyleboxOverride("panel", CreateCardStyle(CardBgColor));
 
         // Create a new reagent instance from the definition
         _selectedReagent = new Reagent(def);
@@ -563,10 +550,7 @@ public partial class SandboxScreen : Control
         _playGridView?.SetSelectedReagent(_selectedReagent);
 
         // Highlight selected card
-        var selStyle = new StyleBoxFlat { BgColor = SelectedCardColor };
-        selStyle.SetCornerRadiusAll(3);
-        selStyle.SetContentMarginAll(4);
-        card.AddThemeStyleboxOverride("panel", selStyle);
+        card.AddThemeStyleboxOverride("panel", CreateCardStyle(SelectedCardColor));
         _selectedCard = card;
 
         UpdatePlayStatus($"Selected: {def.Name}  |  R = rotate  |  Click grid to place  |  Esc = cancel");
@@ -657,10 +641,7 @@ public partial class SandboxScreen : Control
         _playGridView?.SetSelectedReagent(null);
         if (_selectedCard != null)
         {
-            var style = new StyleBoxFlat { BgColor = CardBgColor };
-            style.SetCornerRadiusAll(3);
-            style.SetContentMarginAll(4);
-            _selectedCard.AddThemeStyleboxOverride("panel", style);
+            _selectedCard.AddThemeStyleboxOverride("panel", CreateCardStyle(CardBgColor));
             _selectedCard = null;
         }
     }
@@ -880,10 +861,7 @@ public partial class SandboxScreen : Control
         {
             if (_aspectFilter != null)
             {
-                var primaryAspect = d.AspectsPerCell.Count > 0
-                    ? d.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id
-                    : null;
-                if (primaryAspect != _aspectFilter) return false;
+                if (GetPrimaryAspectId(d) != _aspectFilter) return false;
             }
 
             if (_shapeFilter != null)
@@ -912,9 +890,7 @@ public partial class SandboxScreen : Control
         }
 
         var groups = filtered
-            .GroupBy(d => d.AspectsPerCell.Count > 0
-                ? d.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? "unknown"
-                : "unknown")
+            .GroupBy(d => GetPrimaryAspectId(d))
             .OrderBy(g => GetAspectSortOrder(g.Key));
 
         foreach (var group in groups)
@@ -967,13 +943,7 @@ public partial class SandboxScreen : Control
     private PanelContainer CreateReagentCard(ReagentDefinition def)
     {
         var panel = new PanelContainer { LayoutMode = 2 };
-        var style = new StyleBoxFlat
-        {
-            BgColor = CardBgColor,
-        };
-        style.SetCornerRadiusAll(4);
-        style.SetContentMarginAll(8);
-        panel.AddThemeStyleboxOverride("panel", style);
+        panel.AddThemeStyleboxOverride("panel", CreateCardStyle(CardBgColor, 4, 8));
 
         var vbox = new VBoxContainer { LayoutMode = 2 };
         vbox.AddThemeConstantOverride("separation", 4);
@@ -1050,9 +1020,7 @@ public partial class SandboxScreen : Control
             CustomMinimumSize = new Godot.Vector2(cols * cellPx, rows * cellPx)
         };
 
-        string primaryAspect = def.AspectsPerCell.Count > 0
-            ? def.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? ""
-            : "";
+        var primaryAspect = GetPrimaryAspectId(def, "");
 
         for (int r = 0; r < rows; r++)
         {
@@ -1087,6 +1055,21 @@ public partial class SandboxScreen : Control
             VisualState.Exploding => baseColor.Lerp(new Color(1f, 0.8f, 0.2f), 0.5f),
             _ => baseColor,
         };
+    }
+
+    private static string GetPrimaryAspectId(ReagentDefinition def, string fallback = "unknown")
+    {
+        if (def.AspectsPerCell.Count > 0)
+            return def.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? fallback;
+        return fallback;
+    }
+
+    private static StyleBoxFlat CreateCardStyle(Color bgColor, int cornerRadius = 3, int contentMargin = 4)
+    {
+        var style = new StyleBoxFlat { BgColor = bgColor };
+        style.SetCornerRadiusAll(cornerRadius);
+        style.SetContentMarginAll(contentMargin);
+        return style;
     }
 
     private static int GetAspectSortOrder(string aspectId) => aspectId switch
