@@ -14,6 +14,7 @@ public partial class AspectLegendPanel : PanelContainer
     private VBoxContainer _content = null!;
     private readonly Dictionary<string, AspectLegendEntry> _entries = new();
     private List<ReactionRule> _rules = new();
+    private bool _isCompact;
 
     [Signal]
     public delegate void AspectSelectedEventHandler(string aspectId);
@@ -66,6 +67,21 @@ public partial class AspectLegendPanel : PanelContainer
             _content.AddChild(entry);
         }
     }
+
+    /// <summary>
+    /// Toggle compact mode: icon + name only, no expandable details.
+    /// Used at narrower viewport widths.
+    /// </summary>
+    public void SetCompactMode(bool compact)
+    {
+        if (_isCompact == compact) return;
+        _isCompact = compact;
+        foreach (var entry in _entries.Values)
+            entry.SetCompactMode(compact);
+    }
+
+    /// <summary>Whether the panel is currently in compact mode.</summary>
+    public bool IsCompactMode => _isCompact;
 
     /// <summary>Number of aspect entries displayed.</summary>
     public int EntryCount => _entries.Count;
@@ -148,6 +164,7 @@ public partial class AspectLegendEntry : VBoxContainer
     private bool _isExpanded;
     private bool _isHighlighted;
     private bool _isAnimating;
+    private bool _isCompact;
     private StyleBoxFlat _normalBg = null!;
     private StyleBoxFlat _highlightBg = null!;
     private PanelContainer _headerPanel = null!;
@@ -284,6 +301,7 @@ public partial class AspectLegendEntry : VBoxContainer
 
     public void ToggleExpand()
     {
+        if (_isCompact) return;
         _isExpanded = !_isExpanded;
 
         // Kill any in-progress animation
@@ -333,6 +351,23 @@ public partial class AspectLegendEntry : VBoxContainer
                 ClipContents = false;
                 _detail.CustomMinimumSize = new Vector2(0, 0);
             }));
+        }
+    }
+
+    public void SetCompactMode(bool compact)
+    {
+        if (_isCompact == compact) return;
+        _isCompact = compact;
+        if (compact && _isExpanded)
+        {
+            // Collapse immediately without animation
+            _expandTween?.Kill();
+            _expandTween = null;
+            _isExpanded = false;
+            _isAnimating = false;
+            _detail.Visible = false;
+            _detail.CustomMinimumSize = new Vector2(0, 0);
+            ClipContents = false;
         }
     }
 

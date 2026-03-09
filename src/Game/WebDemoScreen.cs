@@ -50,6 +50,11 @@ public partial class WebDemoScreen : Control
     private ReagentProfilePanel _profilePanel = null!;
     private Control _tooltipLayer = null!;
 
+    // Responsive layout
+    private VBoxContainer _infoColumn = null!;
+    private Control _infoSpacer = null!;
+    private Label _violationBadge = null!;
+
     // State
     private string? _legendSelectedAspect;
     private int _selectedViolationIndex = -1;
@@ -138,7 +143,8 @@ public partial class WebDemoScreen : Control
         vbox.AddChild(hbox);
 
         BuildGridSection(hbox);
-        hbox.AddChild(new Control { CustomMinimumSize = new Vector2(20, 0) });
+        _infoSpacer = new Control { CustomMinimumSize = new Vector2(20, 0) };
+        hbox.AddChild(_infoSpacer);
         BuildInfoColumn(hbox);
 
         // ---- Bottom ----
@@ -161,6 +167,7 @@ public partial class WebDemoScreen : Control
         _resultOverlay = new ResultOverlayPanel();
         AddChild(_resultOverlay);
 
+        BuildViolationBadge();
         BuildTooltipLayer();
     }
 
@@ -229,26 +236,26 @@ public partial class WebDemoScreen : Control
 
     private void BuildInfoColumn(HBoxContainer parent)
     {
-        var infoColumn = new VBoxContainer();
-        infoColumn.SizeFlagsVertical = SizeFlags.ShrinkBegin;
-        infoColumn.AddThemeConstantOverride("separation", 10);
-        infoColumn.CustomMinimumSize = new Vector2(160, 0);
-        parent.AddChild(infoColumn);
+        _infoColumn = new VBoxContainer();
+        _infoColumn.SizeFlagsVertical = SizeFlags.ShrinkBegin;
+        _infoColumn.AddThemeConstantOverride("separation", 10);
+        _infoColumn.CustomMinimumSize = new Vector2(160, 0);
+        parent.AddChild(_infoColumn);
 
         // Objective
         _objectivePanel = new ObjectivePanel();
         _objectivePanel.Initialize(_puzzleType);
-        infoColumn.AddChild(_objectivePanel);
+        _infoColumn.AddChild(_objectivePanel);
 
         // Compact aspect legend (hover triggers floating tooltip, no inline expand)
         _legendPanel = new AspectLegendPanel();
         _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
-        infoColumn.AddChild(_legendPanel);
+        _infoColumn.AddChild(_legendPanel);
 
         // Live violation list
         _violationPanel = new ViolationListPanel();
         _violationPanel.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
-        infoColumn.AddChild(_violationPanel);
+        _infoColumn.AddChild(_violationPanel);
     }
 
     private void BuildTrayStrip(VBoxContainer parent)
@@ -330,6 +337,90 @@ public partial class WebDemoScreen : Control
 
         _profilePanel = new ReagentProfilePanel();
         _tooltipLayer.AddChild(_profilePanel);
+    }
+
+    private void BuildViolationBadge()
+    {
+        _violationBadge = new Label
+        {
+            Text = "",
+            Visible = false,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            CustomMinimumSize = new Vector2(28, 28),
+        };
+        var badgeStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.8f, 0.2f, 0.2f, 0.9f),
+            ContentMarginLeft = 4, ContentMarginRight = 4,
+            ContentMarginTop = 2, ContentMarginBottom = 2,
+            CornerRadiusTopLeft = 14, CornerRadiusTopRight = 14,
+            CornerRadiusBottomLeft = 14, CornerRadiusBottomRight = 14,
+        };
+        _violationBadge.AddThemeStyleboxOverride("normal", badgeStyle);
+        _violationBadge.AddThemeColorOverride("font_color", new Color(1, 1, 1));
+        _violationBadge.AddThemeFontSizeOverride("font_size", 11);
+        AddChild(_violationBadge);
+    }
+
+    public override void _Notification(int what)
+    {
+        if (what == NotificationResized)
+            AdaptLayout();
+    }
+
+    private void AdaptLayout()
+    {
+        float width = Size.X;
+
+        if (width >= 1280)
+        {
+            // Standard layout: info column at full width
+            _infoColumn.Visible = true;
+            _infoSpacer.Visible = true;
+            _infoColumn.CustomMinimumSize = new Vector2(160, 0);
+            _legendPanel.SetCompactMode(false);
+            _violationBadge.Visible = false;
+        }
+        else if (width >= 800)
+        {
+            // Narrower: info column shrinks, legend goes compact
+            _infoColumn.Visible = true;
+            _infoSpacer.Visible = true;
+            _infoColumn.CustomMinimumSize = new Vector2(140, 0);
+            _legendPanel.SetCompactMode(true);
+            _violationBadge.Visible = false;
+        }
+        else
+        {
+            // Narrow: info column hidden, violation badge on grid corner
+            _infoColumn.Visible = false;
+            _infoSpacer.Visible = false;
+            _legendPanel.SetCompactMode(true);
+            UpdateViolationBadge();
+        }
+    }
+
+    private void UpdateViolationBadge()
+    {
+        var violations = _violationPanel.CurrentViolations;
+        int count = violations.Count;
+        if (count > 0)
+        {
+            _violationBadge.Text = count.ToString();
+            _violationBadge.Visible = true;
+
+            // Position at top-right corner of grid
+            var gridRect = _gridView.GetRect();
+            _violationBadge.Position = new Vector2(
+                gridRect.End.X - _violationBadge.Size.X - 4,
+                gridRect.Position.Y + 4
+            );
+        }
+        else
+        {
+            _violationBadge.Visible = false;
+        }
     }
 
     // --- Signal Wiring ---
@@ -657,6 +748,8 @@ public partial class WebDemoScreen : Control
         UpdateUndoRedoButtons();
         UpdateStatusThresholds();
         _violationPanel.Refresh();
+        if (!_infoColumn.Visible)
+            UpdateViolationBadge();
     }
 
     private void UpdateUndoRedoButtons()
