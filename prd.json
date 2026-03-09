@@ -1658,6 +1658,126 @@
       "verification": "dotnet test passes. Spanning reagent is force-removed when one of its bags moves, no orphaned cell occupancy remains.",
       "status": "done",
       "source": "code-review-2026-03-08"
+    },
+    {
+      "id": "LO.1",
+      "title": "Public panel accessors on WebDemoScreen",
+      "description": "Expose internal panels as public read-only properties on WebDemoScreen so that integration tests can inspect layout state. Add the following properties: GridView (MetaGridView), ReagentTray (ReagentTray), StatusBar (StatusBarPanel), Objective (ObjectivePanel), LegendPanel (AspectLegendPanel), ViolationPanel (ViolationListPanel), ResultOverlay (ResultOverlayPanel), Grid (MetaGrid), TrayReagents (IReadOnlyList<Reagent>). Follow the pattern already established in PuzzleScreen.cs (lines 66-79 have similar public accessors). These are simple getters returning existing private fields. No behavioral change. Files: src/Game/WebDemoScreen.cs.",
+      "priority": 120,
+      "phase": "layout-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. No behavioral change.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.2",
+      "title": "Layout test infrastructure: LayoutTestHelper + WebDemoLayout test",
+      "description": "Create src/Game/Testing/LayoutTestHelper.cs -- a static class with reusable assertions for UI layout verification. Methods: CheckMinSize(Control control, float minWidth, float minHeight, out string reason) -- verifies GetRect().Size >= thresholds. CheckVisible(Control control, out string reason) -- visible and non-zero size. CheckNoOverlap(Control a, Control b, out string reason) -- GetGlobalRect() rects do not intersect. CheckContainedIn(Control child, Control parent, out string reason) -- child fits within parent bounds. Then add Test_WebDemoLayout() to src/Game/Testing/TestHarness.cs: instantiate a WebDemoScreen (generate puzzle via PuzzleGenerator with seed 42, same pattern as WebDemoScreen._Ready), add as child, await 3 frames for Godot layout to settle, then check: GridView has non-zero size, ReagentTray is visible, StatusBar is visible, sidebar panels have min width >= 180. Take a screenshot. Then remove the WebDemoScreen and clean up. Files: new src/Game/Testing/LayoutTestHelper.cs, modify src/Game/Testing/TestHarness.cs.",
+      "priority": 121,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.1"
+      ],
+      "verification": "dotnet build succeeds. Run test harness -- new layout test passes.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.3",
+      "title": "Baseline responsive viewport tests",
+      "description": "Add Test_WebDemoResponsive() to TestHarness.cs. Creates a WebDemoScreen (same setup as LO.2) and tests layout at multiple viewport sizes: 1280x720 (reference), 1024x768 (narrow), 800x600 (very narrow). For each size: resize viewport via GetTree().Root.ContentScaleSize = new Vector2I(width, height), wait several frames for layout, verify that grid and reagent tray are both visible with non-zero size, take a screenshot labeled with the resolution. Restore original viewport size at the end. This captures a baseline BEFORE layout changes. Add SetViewportSize(SceneTree tree, int width, int height) helper to LayoutTestHelper for reuse. Files: src/Game/Testing/TestHarness.cs, src/Game/Testing/LayoutTestHelper.cs.",
+      "priority": 122,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.2"
+      ],
+      "verification": "dotnet build succeeds. Responsive test passes at all 3 sizes.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.4",
+      "title": "Move reagent tray from sidebar to bottom horizontal strip",
+      "description": "Central layout change. Move the ReagentTray from the right sidebar to a horizontal strip at the bottom of the screen, between the separator and status bar. Current layout: Header, HBox(Grid | Sidebar[Tray, Objective, Legend, Violations]), StatusBar, Buttons. New layout: Header, HBox(Grid | InfoColumn[Objective, Legend, Violations]), HBox(horizontal tray strip), StatusBar, Buttons. Changes: (1) WebDemoScreen.cs -- rename BuildSidebar() to BuildInfoColumn(), remove tray creation from it, reduce CustomMinimumSize to 160px. (2) WebDemoScreen.cs -- add BuildTrayStrip() that creates a horizontal ScrollContainer with the ReagentTray inside, inserted between separator and status bar in the main VBox. (3) ReagentTray.cs -- support horizontal orientation. Current base class is VBoxContainer. Create a new internal container approach: ReagentTray becomes a wrapper Control that creates an internal HBoxContainer or VBoxContainer based on a SetOrientation(bool horizontal) method. Default is vertical (backward compatible). When horizontal, items flow left-to-right in an HBox. (4) ReagentTrayItem.cs -- in horizontal mode, use compact layout: show shape preview and aspect color dots, optionally hide the name label. Set CustomMinimumSize width (e.g. 80px) so items do not collapse. CRITICAL: PuzzleScreen.cs is NOT modified. It continues using vertical tray. Files: src/Game/WebDemoScreen.cs, src/Game/Inventory/ReagentTray.cs, src/Game/Inventory/ReagentTrayItem.cs.",
+      "priority": 123,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.1"
+      ],
+      "verification": "dotnet build succeeds. Run web_demo via Godot MCP -- tray appears at bottom, horizontal scroll works, items selectable. Existing PuzzleScreen integration tests still pass (PuzzleScreen uses vertical tray unchanged).",
+      "status": "pending"
+    },
+    {
+      "id": "LO.5",
+      "title": "Stable panel sizing to prevent layout jumps",
+      "description": "Prevent layout jumps when panel content changes (violations added/removed, legend expanded/collapsed). (1) ViolationListPanel.cs: Set CustomMinimumSize height to 80px. When empty, show 'No issues' but maintain the min height. (2) AspectLegendPanel.cs: Set CustomMinimumSize height so expand/collapse does not resize the info column. (3) ObjectivePanel.cs: Set CustomMinimumSize width matching info column width. (4) WebDemoScreen.cs: Info column uses SizeFlagsVertical = SizeFlags.ShrinkBegin so it does not stretch to fill the full height, preventing jumpy vertical expansion. Files: src/Game/Inventory/ViolationListPanel.cs, src/Game/Inventory/AspectLegendPanel.cs, src/Game/Inventory/ObjectivePanel.cs, src/Game/WebDemoScreen.cs.",
+      "priority": 124,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.4"
+      ],
+      "verification": "dotnet build succeeds. Place/remove reagents -- panels do not jump. Layout test verifies minimum sizes maintained.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.6",
+      "title": "ReagentProfilePanel popup class",
+      "description": "Create src/Game/Inventory/ReagentProfilePanel.cs -- a new PanelContainer popup showing detailed reagent information. Separate from ItemDetailPanel (which PuzzleScreen still uses). Style: dark semi-transparent background matching FloatingTooltip pattern (src/Game/Inventory/FloatingTooltip.cs lines 30-50 for reference). Content: enlarged shape preview (24px cells using DetailShapePreview pattern from ItemDetailPanel.cs), reagent name (16pt), flavor text (12pt italic), aspect breakdown with full descriptions from AspectMetadataDatabase.GetMetadata(aspectId), constraint info (e.g. 'Fragile: vulnerable to Sharp, Heavy, thermal stress'). API: ShowForReagent(Reagent reagent, Vector2 globalPosition) -- positions near click, clamps to viewport bounds via GetViewportRect(). HideProfile() -- fades out with tween. Properties: CurrentReagent (Reagent?), IsShowing (bool). Z-index 100 (tooltip layer). MouseFilter = Stop so it can receive input. Dismiss on: click outside (via _UnhandledInput), Escape key. CustomMinimumSize width = 240px so content reads clearly. Files: new src/Game/Inventory/ReagentProfilePanel.cs.",
+      "priority": 125,
+      "phase": "layout-overhaul",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. Class compiles but is not yet wired.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.7",
+      "title": "Wire ReagentProfilePanel into WebDemoScreen",
+      "description": "Connect ReagentProfilePanel to interaction in WebDemoScreen. (1) Add _profilePanel field, create in BuildTooltipLayer() at z-index 100. (2) Tray item click: select reagent (existing behavior) AND show profile panel at a position near the tray item. (3) Right-click (or secondary click) on a placed grid reagent: show profile for that reagent, positioned near the click location. (4) Hover behavior is unchanged -- still shows compact FloatingDetailTooltip. (5) Escape key dismisses profile if showing. (6) Clicking a different reagent replaces the currently shown profile. (7) Add ReagentProfilePanel accessor property for integration tests. Files: src/Game/WebDemoScreen.cs, possibly src/Game/Inventory/ReagentTray.cs (may need a new signal for right-click or click-with-profile distinction).",
+      "priority": 126,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.6",
+        "LO.4"
+      ],
+      "verification": "dotnet build succeeds. Run web_demo -- click tray item shows profile popup. Right-click grid reagent shows profile. Click outside dismisses. Escape dismisses.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.8",
+      "title": "Responsive layout adaptation for viewport sizes",
+      "description": "Make WebDemoScreen layout adapt to different viewport sizes per the responsive spec in docs/visual-polish-design.md section 9. (1) Override _Notification() in WebDemoScreen to detect NotificationResized. (2) Width >= 1280: standard layout with info column at 160px+. (3) Width 800-1279: info column narrows, legend enters compact mode via _legendPanel.SetCompactMode(true) which shows icon-only entries without descriptions. (4) Width < 800: info column hides entirely. Key info (violation count) shown as an overlay badge on the grid corner. (5) Add SetCompactMode(bool compact) to AspectLegendPanel.cs -- toggles between full aspect entries and a compact icon-only row. When compact, hide description text and show only colored squares with aspect names. Files: src/Game/WebDemoScreen.cs, src/Game/Inventory/AspectLegendPanel.cs.",
+      "priority": 127,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.4",
+        "LO.5"
+      ],
+      "verification": "dotnet build succeeds. Run web_demo at different window sizes -- layout adapts at breakpoints.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.9",
+      "title": "Update layout integration tests for new layout",
+      "description": "Update the integration tests from LO.2 and LO.3 to assert against the NEW layout structure (tray at bottom, info column, profile panel). Test assertions: (1) At 1280x720: grid visible, tray at bottom with height >= 50px, info column visible with width >= 140px, all panels visible. (2) At 1024x768: grid visible, tray visible, info column narrower but visible. (3) Profile panel: create WebDemoScreen, programmatically trigger reagent selection, verify profile panel is visible with size >= 240x100. (4) No overlap: grid and tray do not overlap (using CheckNoOverlap), grid and info column do not overlap. (5) Min widths: profile popup >= 240px wide, info column panels >= 140px wide. Files: src/Game/Testing/TestHarness.cs, src/Game/Testing/LayoutTestHelper.cs.",
+      "priority": 128,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.4",
+        "LO.7",
+        "LO.8"
+      ],
+      "verification": "dotnet build succeeds. All integration tests pass.",
+      "status": "pending"
+    },
+    {
+      "id": "LO.10",
+      "title": "Touch-friendly minimum sizing for interactive elements",
+      "description": "Ensure all interactive elements meet minimum touch target sizes for mobile-friendly interaction (44px height minimum per Apple HIG). (1) Button bar buttons in WebDemoScreen: increase CustomMinimumSize from Vector2(100, 34) to Vector2(100, 44). (2) ReagentTrayItem.cs: ensure CustomMinimumSize height >= 44px. (3) ViolationListPanel entries: ensure each violation entry has min height 40px. (4) AspectLegendPanel entries: ensure each aspect entry has min height 40px. (5) Update layout integration tests to verify interactive element heights >= 40px. Files: src/Game/Inventory/ReagentTrayItem.cs, src/Game/WebDemoScreen.cs, src/Game/Inventory/ViolationListPanel.cs, src/Game/Inventory/AspectLegendPanel.cs.",
+      "priority": 129,
+      "phase": "layout-overhaul",
+      "depends_on": [
+        "LO.4"
+      ],
+      "verification": "dotnet build succeeds. Layout test checks interactive element heights >= 40px.",
+      "status": "pending"
     }
   ]
 }
