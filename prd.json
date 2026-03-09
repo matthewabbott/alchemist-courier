@@ -1739,7 +1739,7 @@
         "LO.4"
       ],
       "verification": "dotnet build succeeds. Run web_demo -- click tray item shows profile popup. Right-click grid reagent shows profile. Click outside dismisses. Escape dismisses.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "LO.8",

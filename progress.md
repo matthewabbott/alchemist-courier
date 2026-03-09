@@ -997,3 +997,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: de3d91a
 - Notes: Created src/Game/Inventory/ReagentProfilePanel.cs — a PanelContainer popup for detailed reagent info. 24px-cell ProfileShapePreview (separate from ItemDetailPanel's 16px DetailShapePreview), reagent name (16pt), flavor text (12pt), full aspect breakdown with descriptions and constraint text from AspectMetadataDatabase. Dark semi-transparent style matching FloatingTooltip. Dismisses on click outside (_UnhandledInput) or Escape. ShowForReagent(reagent, globalPosition) positions near click with viewport clamping via CallDeferred. HideProfile() fades out with tween. Z-index 100, MouseFilter=Stop. CustomMinimumSize width=240px. Not yet wired into any screen. All 806 tests pass.
+
+## LO.7 — Wire ReagentProfilePanel into WebDemoScreen
+- Date: 2026-03-08
+- Commit: a1e5b13
+- Notes: Wired ReagentProfilePanel into WebDemoScreen with two interaction triggers. (1) Tray item click: OnReagentSelected now also shows the profile panel near the tray position, alongside existing reagent selection behavior. (2) Grid reagent click: added PlacedReagentClicked signal to MetaGridView, emitted when left-clicking on a placed reagent with no reagent selected (HandleLeftClick early-return path); WebDemoScreen connects and shows profile at the reagent's grid position offset. Profile auto-hides on ClearSelectionState (after placement, reset, undo/redo). Escape key dismisses profile with higher priority than violation/legend highlight clearing. Added ProfilePanel public accessor property for integration tests. PuzzleScreen unaffected — doesn't connect to the new signal. All 806 tests pass.

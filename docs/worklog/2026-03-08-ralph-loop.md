@@ -241,3 +241,12 @@ descriptions from the metadata database, and constraint warnings for things like
 placement. The panel positions itself near the click point with viewport clamping, and dismisses
 on click-outside or Escape. Built as standalone class, not yet wired into WebDemoScreen — that's LO.7.
 Commit: de3d91a
+
+## LO.7: Wire ReagentProfilePanel into WebDemoScreen
+Connected ReagentProfilePanel to two interaction points in WebDemoScreen. Clicking a tray item
+now shows the profile popup alongside selection (so you can see what you're about to place).
+Clicking a placed reagent on the grid also shows the profile — this required adding a new
+PlacedReagentClicked signal to MetaGridView that fires when left-clicking a placed reagent with
+no selection active. Profile dismisses on Escape (with priority over other Escape handlers),
+and auto-hides when selection clears (placement, reset, undo/redo). PuzzleScreen is untouched.
+Commit: a1e5b13
