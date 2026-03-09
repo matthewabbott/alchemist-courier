@@ -1518,7 +1518,8 @@
       "depends_on": [
         "SB.1"
       ],
-      "verification": "Run scenes/sandbox.tscn, switch to Playground, draw custom bag, place reagents, confirm triggers reactions, undo/redo works"
+      "verification": "Run scenes/sandbox.tscn, switch to Playground, draw custom bag, place reagents, confirm triggers reactions, undo/redo works",
+      "status": "done"
     },
     {
       "id": "GO.1",

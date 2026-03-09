@@ -951,3 +951,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-08
 - Commit: 89053de
 - Notes: Created LayoutTestHelper static class with 4 reusable layout assertions: CheckMinSize (verifies Control rect meets minimum thresholds), CheckVisible (visible + non-zero size), CheckNoOverlap (GetGlobalRect intersection check), CheckContainedIn (child fits within parent bounds). Added Test_WebDemoLayout to TestHarness that instantiates a WebDemoScreen, waits 3 frames for Godot layout to settle, then verifies GridView visibility/size, ReagentTray visibility, StatusBar visibility, and LegendPanel minimum width >= 180px. All 806 unit tests pass.
+
+## SB.2 — Add playground mode to SandboxScreen
+- Date: 2026-03-08
+- Commit: b40fc35
+- Notes: Added Playground tab to SandboxScreen with full interactive sandbox. Features: 12x12 MetaGridView, BagEditorPanel sidebar (reused from editor) with "Apply Bags" button to rebuild the grid, reagent catalog picker grouped by aspect with clickable cards, Confirm triggers ChemistryEngine.Evaluate + ReactionAnimator, Reset clears grid, Undo/Redo buttons + Ctrl+Z/Y keyboard shortcuts wired to ActionHistory, StatusBarPanel showing cumulative aspect totals. Tab switching between Catalog (existing) and Playground with lazy initialization. No win/lose conditions — purely exploratory. All 806 tests pass.

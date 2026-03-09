@@ -183,3 +183,12 @@ consumer is Test_WebDemoLayout, which instantiates a WebDemoScreen and verifies 
 key panels (grid, tray, status bar, legend) are visible and correctly sized after Godot's
 layout engine settles. This gives us a baseline before the bigger layout changes in LO.4+.
 Commit: 89053de
+
+## SB.2: Add playground mode to SandboxScreen
+Added the Playground tab to complete the two-mode SandboxScreen. The catalog tab remains
+unchanged; the playground offers a free-form 12x12 grid where users can draw custom bags
+via the reused BagEditorPanel, pick reagents from a catalog picker, and experiment without
+win/lose conditions. Confirm triggers the reaction animator for visual feedback. Undo/Redo
+(with keyboard shortcuts) is wired through ActionHistory. Lazy initialization means the
+playground only builds its UI on first tab switch, keeping catalog-only usage fast.
+Commit: b40fc35
