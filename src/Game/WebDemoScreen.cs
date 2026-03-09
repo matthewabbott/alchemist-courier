@@ -57,6 +57,14 @@ public partial class WebDemoScreen : Control
 
     // Public inspection
     public MetaGridView GridView => _gridView;
+    public ReagentTray ReagentTray => _reagentTray;
+    public StatusBarPanel StatusBar => _statusBar;
+    public ObjectivePanel Objective => _objectivePanel;
+    public AspectLegendPanel LegendPanel => _legendPanel;
+    public ViolationListPanel ViolationPanel => _violationPanel;
+    public ResultOverlayPanel ResultOverlay => _resultOverlay;
+    public MetaGrid Grid => _metaGrid;
+    public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
     public FloatingDetailTooltip DetailTooltip => _detailTooltip;
     public FloatingAspectTooltip AspectTooltip => _aspectTooltip;
 
