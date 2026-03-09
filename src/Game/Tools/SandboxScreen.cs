@@ -1,23 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using AlchemistCourier.Core.Bags;
 using AlchemistCourier.Core.Chemistry;
+using AlchemistCourier.Core.Grid;
+using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Core.Visual;
+using AlchemistCourier.Game.Animation;
+using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Game.Inventory;
 using AlchemistCourier.Game.Visual;
+using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Tools;
 
 /// <summary>
-/// Sandbox tool for viewing all catalog reagents with sprite previews and visual state toggling.
+/// Sandbox tool with two modes:
 /// Catalog tab: scrollable grid showing all reagent sprites grouped by aspect, filterable.
-/// Playground tab is deferred to SB.2.
+/// Playground tab: free-form 12x12 grid where the user can draw bags, place reagents, and trigger reactions.
 /// </summary>
 public partial class SandboxScreen : Control
 {
     private const int PreviewCellSize = 32;
     private const int LargePreviewCellSize = 64;
+    private const int PlaygroundGridSize = 12;
 
     private static readonly Color BgColor = new(0.12f, 0.12f, 0.16f);
     private static readonly Color HeaderColor = new(0.9f, 0.85f, 0.7f);
@@ -26,7 +33,9 @@ public partial class SandboxScreen : Control
     private static readonly Color CardBgColor = new(0.18f, 0.18f, 0.22f);
     private static readonly Color ActiveTabColor = new(0.3f, 0.3f, 0.4f);
     private static readonly Color InactiveTabColor = new(0.18f, 0.18f, 0.22f);
+    private static readonly Color SelectedCardColor = new(0.3f, 0.35f, 0.5f);
 
+    // Catalog mode state
     private VisualState _currentState = VisualState.Normal;
     private string? _aspectFilter;
     private string? _shapeFilter;
@@ -37,9 +46,40 @@ public partial class SandboxScreen : Control
     private OptionButton _aspectDropdown = null!;
     private OptionButton _shapeDropdown = null!;
 
-    // Tracked for visual state updates
     private readonly List<(SpriteStateRenderer renderer, ReagentSpriteSheet sheet)> _spriteRenderers = new();
     private readonly List<(ColorRect rect, string aspectId)> _fallbackCells = new();
+
+    // Tab management
+    private Control _catalogContainer = null!;
+    private Control? _playgroundContainer;
+    private Button _tabCatalog = null!;
+    private Button _tabPlayground = null!;
+    private VBoxContainer _root = null!;
+    private bool _isCatalogActive = true;
+
+    // Playground state
+    private MetaGrid? _playGrid;
+    private MetaGridView? _playGridView;
+    private BagEditorPanel? _bagEditor;
+    private ActionHistory? _actionHistory;
+    private ReactionAnimator? _reactionAnimator;
+    private StatusBarPanel? _playStatusBar;
+    private Reagent? _selectedReagent;
+    private Button? _undoButton;
+    private Button? _redoButton;
+    private Button? _confirmButton;
+    private Label? _playStatusLabel;
+    private PanelContainer? _selectedCard;
+    private readonly List<Reagent> _playgroundReagents = new();
+
+    /// <summary>Grid view for testing.</summary>
+    public MetaGridView? PlayGridView => _playGridView;
+
+    /// <summary>MetaGrid for testing.</summary>
+    public MetaGrid? PlayGrid => _playGrid;
+
+    /// <summary>Action history for testing.</summary>
+    public ActionHistory? PlayActionHistory => _actionHistory;
 
     public override void _Ready()
     {
@@ -49,12 +89,36 @@ public partial class SandboxScreen : Control
         bg.SetAnchorsPreset(LayoutPreset.FullRect);
         AddChild(bg);
 
-        var root = new VBoxContainer { LayoutMode = 2 };
-        root.SetAnchorsPreset(LayoutPreset.FullRect);
-        root.AddThemeConstantOverride("separation", 0);
-        AddChild(root);
+        _root = new VBoxContainer { LayoutMode = 2 };
+        _root.SetAnchorsPreset(LayoutPreset.FullRect);
+        _root.AddThemeConstantOverride("separation", 0);
+        AddChild(_root);
 
-        // Header bar
+        BuildHeaderBar();
+        BuildCatalogContainer();
+    }
+
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (!_isCatalogActive && @event is InputEventKey key && key.Pressed)
+        {
+            if (key.Keycode == Key.Z && key.CtrlPressed)
+            {
+                OnUndo();
+                GetViewport().SetInputAsHandled();
+            }
+            else if (key.Keycode == Key.Y && key.CtrlPressed)
+            {
+                OnRedo();
+                GetViewport().SetInputAsHandled();
+            }
+        }
+    }
+
+    // ─── Header ───────────────────────────────────────────────────────
+
+    private void BuildHeaderBar()
+    {
         var headerMargin = new MarginContainer { LayoutMode = 2 };
         headerMargin.AddThemeConstantOverride("margin_left", 16);
         headerMargin.AddThemeConstantOverride("margin_right", 16);
@@ -69,15 +133,13 @@ public partial class SandboxScreen : Control
         title.AddThemeColorOverride("font_color", HeaderColor);
         headerBar.AddChild(title);
 
-        // Tab bar (Catalog | Playground)
-        var tabCatalog = CreateTabButton("Catalog", true);
-        var tabPlayground = CreateTabButton("Playground", false);
-        tabPlayground.Disabled = true;
-        tabPlayground.TooltipText = "Coming soon (SB.2)";
-        headerBar.AddChild(tabCatalog);
-        headerBar.AddChild(tabPlayground);
+        _tabCatalog = CreateTabButton("Catalog", true);
+        _tabCatalog.Pressed += () => SwitchTab(true);
+        _tabPlayground = CreateTabButton("Playground", false);
+        _tabPlayground.Pressed += () => SwitchTab(false);
+        headerBar.AddChild(_tabCatalog);
+        headerBar.AddChild(_tabPlayground);
 
-        // Spacer
         var spacer = new Control { LayoutMode = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
         headerBar.AddChild(spacer);
 
@@ -87,7 +149,49 @@ public partial class SandboxScreen : Control
         headerBar.AddChild(_countLabel);
 
         headerMargin.AddChild(headerBar);
-        root.AddChild(headerMargin);
+        _root.AddChild(headerMargin);
+    }
+
+    private void SwitchTab(bool catalog)
+    {
+        _isCatalogActive = catalog;
+        UpdateTabStyles(_tabCatalog, catalog);
+        UpdateTabStyles(_tabPlayground, !catalog);
+        _countLabel.Visible = catalog;
+
+        _catalogContainer.Visible = catalog;
+
+        if (!catalog)
+        {
+            if (_playgroundContainer == null)
+                BuildPlaygroundContainer();
+            _playgroundContainer!.Visible = true;
+        }
+        else if (_playgroundContainer != null)
+        {
+            _playgroundContainer.Visible = false;
+        }
+    }
+
+    private void UpdateTabStyles(Button btn, bool active)
+    {
+        var style = new StyleBoxFlat
+        {
+            BgColor = active ? ActiveTabColor : InactiveTabColor,
+        };
+        style.SetCornerRadiusAll(4);
+        style.SetContentMarginAll(6);
+        btn.AddThemeStyleboxOverride("normal", style);
+        btn.AddThemeStyleboxOverride("hover", style);
+        btn.AddThemeStyleboxOverride("pressed", style);
+    }
+
+    // ─── Catalog Tab ──────────────────────────────────────────────────
+
+    private void BuildCatalogContainer()
+    {
+        _catalogContainer = new VBoxContainer { LayoutMode = 2, SizeFlagsVertical = SizeFlags.ExpandFill };
+        ((VBoxContainer)_catalogContainer).AddThemeConstantOverride("separation", 0);
 
         // Filter bar
         var filterMargin = new MarginContainer { LayoutMode = 2 };
@@ -98,7 +202,6 @@ public partial class SandboxScreen : Control
         var filterBar = new HBoxContainer { LayoutMode = 2 };
         filterBar.AddThemeConstantOverride("separation", 12);
 
-        // Aspect filter
         var aspectLabel = new Label { Text = "Aspect:", LayoutMode = 2 };
         aspectLabel.AddThemeFontSizeOverride("font_size", 13);
         aspectLabel.AddThemeColorOverride("font_color", LabelColor);
@@ -113,7 +216,6 @@ public partial class SandboxScreen : Control
         _aspectDropdown.ItemSelected += OnAspectFilterChanged;
         filterBar.AddChild(_aspectDropdown);
 
-        // Shape filter
         var shapeLabel = new Label { Text = "Shape:", LayoutMode = 2 };
         shapeLabel.AddThemeFontSizeOverride("font_size", 13);
         shapeLabel.AddThemeColorOverride("font_color", LabelColor);
@@ -126,7 +228,6 @@ public partial class SandboxScreen : Control
         _shapeDropdown.ItemSelected += OnShapeFilterChanged;
         filterBar.AddChild(_shapeDropdown);
 
-        // Visual state toggle
         var stateLabel = new Label { Text = "State:", LayoutMode = 2 };
         stateLabel.AddThemeFontSizeOverride("font_size", 13);
         stateLabel.AddThemeColorOverride("font_color", LabelColor);
@@ -157,7 +258,7 @@ public partial class SandboxScreen : Control
         filterBar.AddChild(_stateButtons);
 
         filterMargin.AddChild(filterBar);
-        root.AddChild(filterMargin);
+        _catalogContainer.AddChild(filterMargin);
 
         // Scrollable catalog content
         var scrollContainer = new ScrollContainer
@@ -184,10 +285,531 @@ public partial class SandboxScreen : Control
         contentMargin.AddThemeConstantOverride("margin_right", 16);
         contentMargin.AddThemeConstantOverride("margin_bottom", 16);
         contentMargin.AddChild(scrollContainer);
-        root.AddChild(contentMargin);
+        _catalogContainer.AddChild(contentMargin);
 
+        _root.AddChild(_catalogContainer);
         BuildCatalog();
     }
+
+    // ─── Playground Tab ───────────────────────────────────────────────
+
+    private void BuildPlaygroundContainer()
+    {
+        _actionHistory = new ActionHistory();
+        _playGrid = new MetaGrid(PlaygroundGridSize, PlaygroundGridSize);
+
+        // Add a default 4x4 Normal bag at origin
+        var defaultBagDef = new BagDefinition("bag_0", "Bag 1",
+            new bool[,] { { true, true, true, true },
+                          { true, true, true, true },
+                          { true, true, true, true },
+                          { true, true, true, true } });
+        var defaultBag = new Bag(defaultBagDef);
+        _playGrid.PlaceBag(defaultBag, new CoreVec(0, 0));
+
+        _playgroundContainer = new VBoxContainer
+        {
+            LayoutMode = 2,
+            SizeFlagsVertical = SizeFlags.ExpandFill
+        };
+        ((VBoxContainer)_playgroundContainer).AddThemeConstantOverride("separation", 0);
+
+        // Main content: HBox with grid (left) + sidebar (right)
+        var mainHBox = new HBoxContainer
+        {
+            LayoutMode = 2,
+            SizeFlagsVertical = SizeFlags.ExpandFill
+        };
+        mainHBox.AddThemeConstantOverride("separation", 8);
+
+        // Left: grid area with margin
+        var gridMargin = new MarginContainer { LayoutMode = 2 };
+        gridMargin.AddThemeConstantOverride("margin_left", 16);
+        gridMargin.AddThemeConstantOverride("margin_top", 8);
+        gridMargin.AddThemeConstantOverride("margin_bottom", 8);
+
+        _playGridView = new MetaGridView();
+        _playGridView.Initialize(_playGrid);
+        _playGridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
+        _playGridView.SetActionHistory(_actionHistory);
+        _playGridView.ReagentPlaced += OnPlaygroundReagentPlaced;
+        _playGridView.ReagentRemoved += OnPlaygroundReagentRemoved;
+
+        gridMargin.AddChild(_playGridView);
+        mainHBox.AddChild(gridMargin);
+
+        // Right: sidebar with bag editor + reagent picker
+        var sidebar = new VBoxContainer
+        {
+            LayoutMode = 2,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+            CustomMinimumSize = new Godot.Vector2(240, 0)
+        };
+        sidebar.AddThemeConstantOverride("separation", 4);
+
+        var sideScroll = new ScrollContainer
+        {
+            LayoutMode = 2,
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled
+        };
+
+        var sideContent = new VBoxContainer
+        {
+            LayoutMode = 2,
+            SizeFlagsHorizontal = SizeFlags.ExpandFill
+        };
+        sideContent.AddThemeConstantOverride("separation", 8);
+
+        // Bag editor section
+        _bagEditor = new BagEditorPanel();
+        _bagEditor.Initialize();
+        // Set initial bag matching the default
+        var initialBag = PuzzleBag.FromMatrix(new bool[,] {
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true },
+            { true, true, true, true } }, 0, 0);
+        _bagEditor.SetBags(new List<PuzzleBag> { initialBag });
+
+        sideContent.AddChild(_bagEditor);
+
+        // Apply Bags button
+        var applyBagsBtn = new Button
+        {
+            Text = "Apply Bags",
+            LayoutMode = 2,
+            CustomMinimumSize = new Godot.Vector2(0, 34)
+        };
+        ApplyButtonStyle(applyBagsBtn, new Color(0.3f, 0.5f, 0.3f));
+        applyBagsBtn.Pressed += OnApplyBags;
+        sideContent.AddChild(applyBagsBtn);
+
+        sideContent.AddChild(new HSeparator { LayoutMode = 2 });
+
+        // Reagent catalog picker
+        BuildReagentPicker(sideContent);
+
+        sideScroll.AddChild(sideContent);
+        sidebar.AddChild(sideScroll);
+        mainHBox.AddChild(sidebar);
+
+        _playgroundContainer.AddChild(mainHBox);
+
+        // Status bar
+        _playStatusBar = new StatusBarPanel();
+        _playStatusBar.Initialize(_playGrid, ReactionRuleDatabase.GetMvpRules());
+        var statusMargin = new MarginContainer { LayoutMode = 2 };
+        statusMargin.AddThemeConstantOverride("margin_left", 16);
+        statusMargin.AddThemeConstantOverride("margin_right", 16);
+        statusMargin.AddChild(_playStatusBar);
+        _playgroundContainer.AddChild(statusMargin);
+
+        // Bottom button bar
+        BuildPlaygroundButtonBar();
+
+        // Reaction animator
+        _reactionAnimator = new ReactionAnimator
+        {
+            MouseFilter = MouseFilterEnum.Ignore
+        };
+        _reactionAnimator.SetContext(_playGridView, _playGrid);
+        _reactionAnimator.AllAnimationsComplete += OnReactionAnimationsComplete;
+        _playGridView.AddChild(_reactionAnimator);
+
+        _root.AddChild(_playgroundContainer);
+    }
+
+    private void BuildReagentPicker(VBoxContainer parent)
+    {
+        var pickerHeader = new Label { Text = "Reagents", LayoutMode = 2 };
+        pickerHeader.AddThemeColorOverride("font_color", HeaderColor);
+        pickerHeader.AddThemeFontSizeOverride("font_size", 14);
+        parent.AddChild(pickerHeader);
+
+        var hint = new Label { Text = "Click to select, then click grid to place", LayoutMode = 2 };
+        hint.AddThemeFontSizeOverride("font_size", 10);
+        hint.AddThemeColorOverride("font_color", LabelColor);
+        parent.AddChild(hint);
+
+        var allItems = ReagentCatalog.GetAll();
+        var groups = allItems
+            .GroupBy(d => d.AspectsPerCell.Count > 0
+                ? d.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? "unknown"
+                : "unknown")
+            .OrderBy(g => GetAspectSortOrder(g.Key));
+
+        foreach (var group in groups)
+        {
+            // Aspect group header
+            var headerBox = new HBoxContainer { LayoutMode = 2 };
+            headerBox.AddThemeConstantOverride("separation", 6);
+
+            var icon = new ColorRect
+            {
+                Color = GridConstants.GetAspectColor(group.Key),
+                CustomMinimumSize = new Godot.Vector2(12, 12),
+                LayoutMode = 2
+            };
+            headerBox.AddChild(icon);
+
+            var label = new Label
+            {
+                Text = CapitalizeFirst(group.Key),
+                LayoutMode = 2
+            };
+            label.AddThemeFontSizeOverride("font_size", 12);
+            label.AddThemeColorOverride("font_color", SubHeaderColor);
+            headerBox.AddChild(label);
+            parent.AddChild(headerBox);
+
+            // Reagent cards in a flow
+            var flow = new HFlowContainer { LayoutMode = 2, SizeFlagsHorizontal = SizeFlags.ExpandFill };
+            flow.AddThemeConstantOverride("h_separation", 4);
+            flow.AddThemeConstantOverride("v_separation", 4);
+
+            foreach (var def in group)
+            {
+                var card = CreatePickerCard(def);
+                flow.AddChild(card);
+            }
+            parent.AddChild(flow);
+        }
+    }
+
+    private PanelContainer CreatePickerCard(ReagentDefinition def)
+    {
+        var panel = new PanelContainer { LayoutMode = 2 };
+        var style = new StyleBoxFlat { BgColor = CardBgColor };
+        style.SetCornerRadiusAll(3);
+        style.SetContentMarginAll(4);
+        panel.AddThemeStyleboxOverride("panel", style);
+
+        var vbox = new VBoxContainer { LayoutMode = 2 };
+        vbox.AddThemeConstantOverride("separation", 2);
+
+        // Small colored shape preview
+        var preview = CreateSmallShapePreview(def, 6);
+        vbox.AddChild(preview);
+
+        var nameLabel = new Label
+        {
+            Text = def.Name,
+            LayoutMode = 2,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        nameLabel.AddThemeFontSizeOverride("font_size", 9);
+        nameLabel.AddThemeColorOverride("font_color", Colors.White);
+        vbox.AddChild(nameLabel);
+
+        panel.AddChild(vbox);
+
+        // Make clickable
+        panel.GuiInput += (ev) =>
+        {
+            if (ev is InputEventMouseButton mb && mb.Pressed && mb.ButtonIndex == MouseButton.Left)
+                OnPickerCardClicked(def, panel);
+        };
+
+        return panel;
+    }
+
+    private Control CreateSmallShapePreview(ReagentDefinition def, int cellPx)
+    {
+        int rows = def.ShapeRows;
+        int cols = def.ShapeCols;
+        string primaryAspect = def.AspectsPerCell.Count > 0
+            ? def.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? ""
+            : "";
+        var color = GridConstants.GetAspectColor(primaryAspect);
+
+        var container = new Control
+        {
+            LayoutMode = 2,
+            CustomMinimumSize = new Godot.Vector2(cols * cellPx, rows * cellPx)
+        };
+
+        for (int r = 0; r < rows; r++)
+        {
+            for (int c = 0; c < cols; c++)
+            {
+                if (!def.Shape[r, c]) continue;
+                var rect = new ColorRect
+                {
+                    Color = color,
+                    Position = new Godot.Vector2(c * cellPx, r * cellPx),
+                    Size = new Godot.Vector2(cellPx - 1, cellPx - 1)
+                };
+                container.AddChild(rect);
+            }
+        }
+        return container;
+    }
+
+    private void OnPickerCardClicked(ReagentDefinition def, PanelContainer card)
+    {
+        // Deselect previous
+        if (_selectedCard != null)
+        {
+            var oldStyle = new StyleBoxFlat { BgColor = CardBgColor };
+            oldStyle.SetCornerRadiusAll(3);
+            oldStyle.SetContentMarginAll(4);
+            _selectedCard.AddThemeStyleboxOverride("panel", oldStyle);
+        }
+
+        // Create a new reagent instance from the definition
+        _selectedReagent = new Reagent(def);
+        _playgroundReagents.Add(_selectedReagent);
+        _playGridView?.SetSelectedReagent(_selectedReagent);
+
+        // Highlight selected card
+        var selStyle = new StyleBoxFlat { BgColor = SelectedCardColor };
+        selStyle.SetCornerRadiusAll(3);
+        selStyle.SetContentMarginAll(4);
+        card.AddThemeStyleboxOverride("panel", selStyle);
+        _selectedCard = card;
+
+        UpdatePlayStatus($"Selected: {def.Name}  |  R = rotate  |  Click grid to place  |  Esc = cancel");
+    }
+
+    private void OnApplyBags()
+    {
+        if (_bagEditor == null || _playGridView == null) return;
+
+        var bags = _bagEditor.GetBags();
+        if (bags.Count == 0)
+        {
+            UpdatePlayStatus("Add at least one bag before applying.");
+            return;
+        }
+
+        // Clear everything and rebuild
+        _playgroundReagents.Clear();
+        _selectedReagent = null;
+        _selectedCard = null;
+        _actionHistory?.Clear();
+
+        _playGrid = new MetaGrid(PlaygroundGridSize, PlaygroundGridSize);
+
+        int bagIndex = 0;
+        foreach (var puzzleBag in bags)
+        {
+            var shape = puzzleBag.ToShapeMatrix();
+            var props = new List<BagPropertyType>();
+            foreach (var propName in puzzleBag.Properties)
+            {
+                if (System.Enum.TryParse<BagPropertyType>(propName, out var pt))
+                    props.Add(pt);
+            }
+            var bagDef = new BagDefinition($"bag_{bagIndex}", $"Bag {bagIndex + 1}", shape, props);
+            var bag = new Bag(bagDef);
+            var pos = new CoreVec(puzzleBag.PositionCol, puzzleBag.PositionRow);
+            if (!_playGrid.PlaceBag(bag, pos))
+            {
+                UpdatePlayStatus($"Bag {bagIndex + 1} could not be placed at ({puzzleBag.PositionCol}, {puzzleBag.PositionRow}).");
+            }
+            bagIndex++;
+        }
+
+        // Reinitialize the grid view
+        RebuildGridView();
+        UpdatePlayStatus($"Applied {bagIndex} bag(s). Select a reagent to place.");
+    }
+
+    private void RebuildGridView()
+    {
+        if (_playGridView == null || _playGrid == null) return;
+
+        var parent = _playGridView.GetParent();
+        _playGridView.QueueFree();
+
+        _playGridView = new MetaGridView();
+        _playGridView.Initialize(_playGrid);
+        _playGridView.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
+        _playGridView.SetActionHistory(_actionHistory!);
+        _playGridView.ReagentPlaced += OnPlaygroundReagentPlaced;
+        _playGridView.ReagentRemoved += OnPlaygroundReagentRemoved;
+        parent?.AddChild(_playGridView);
+
+        _reactionAnimator?.SetContext(_playGridView, _playGrid);
+
+        _playStatusBar?.Initialize(_playGrid, ReactionRuleDatabase.GetMvpRules());
+    }
+
+    // ─── Playground Signals ───────────────────────────────────────────
+
+    private void OnPlaygroundReagentPlaced()
+    {
+        ClearPlaygroundSelection();
+        RefreshPlayground();
+        UpdatePlayStatus("Placed reagent. Select another or press Confirm.");
+    }
+
+    private void OnPlaygroundReagentRemoved()
+    {
+        RefreshPlayground();
+        UpdatePlayStatus("Removed reagent.");
+    }
+
+    private void ClearPlaygroundSelection()
+    {
+        _selectedReagent = null;
+        _playGridView?.SetSelectedReagent(null);
+        if (_selectedCard != null)
+        {
+            var style = new StyleBoxFlat { BgColor = CardBgColor };
+            style.SetCornerRadiusAll(3);
+            style.SetContentMarginAll(4);
+            _selectedCard.AddThemeStyleboxOverride("panel", style);
+            _selectedCard = null;
+        }
+    }
+
+    private void RefreshPlayground()
+    {
+        _playGridView?.RefreshDisplay();
+        _playStatusBar?.Refresh();
+        UpdateUndoRedoButtons();
+    }
+
+    // ─── Playground Button Bar ────────────────────────────────────────
+
+    private void BuildPlaygroundButtonBar()
+    {
+        var barMargin = new MarginContainer { LayoutMode = 2 };
+        barMargin.AddThemeConstantOverride("margin_left", 16);
+        barMargin.AddThemeConstantOverride("margin_right", 16);
+        barMargin.AddThemeConstantOverride("margin_top", 4);
+        barMargin.AddThemeConstantOverride("margin_bottom", 8);
+
+        var barVBox = new VBoxContainer { LayoutMode = 2 };
+        barVBox.AddThemeConstantOverride("separation", 4);
+
+        var buttonBar = new HBoxContainer { LayoutMode = 2 };
+        buttonBar.AddThemeConstantOverride("separation", 8);
+
+        _confirmButton = new Button { Text = "Confirm", LayoutMode = 2, CustomMinimumSize = new Godot.Vector2(90, 34) };
+        ApplyButtonStyle(_confirmButton, new Color(0.3f, 0.5f, 0.3f));
+        _confirmButton.Pressed += OnConfirm;
+        buttonBar.AddChild(_confirmButton);
+
+        var resetBtn = new Button { Text = "Reset", LayoutMode = 2, CustomMinimumSize = new Godot.Vector2(90, 34) };
+        ApplyButtonStyle(resetBtn, new Color(0.5f, 0.3f, 0.3f));
+        resetBtn.Pressed += OnReset;
+        buttonBar.AddChild(resetBtn);
+
+        _undoButton = new Button { Text = "Undo", LayoutMode = 2, CustomMinimumSize = new Godot.Vector2(70, 34), Disabled = true };
+        ApplyButtonStyle(_undoButton, new Color(0.3f, 0.3f, 0.4f));
+        _undoButton.Pressed += OnUndo;
+        buttonBar.AddChild(_undoButton);
+
+        _redoButton = new Button { Text = "Redo", LayoutMode = 2, CustomMinimumSize = new Godot.Vector2(70, 34), Disabled = true };
+        ApplyButtonStyle(_redoButton, new Color(0.3f, 0.3f, 0.4f));
+        _redoButton.Pressed += OnRedo;
+        buttonBar.AddChild(_redoButton);
+
+        barVBox.AddChild(buttonBar);
+
+        _playStatusLabel = new Label { Text = "Select a reagent from the sidebar to place.", LayoutMode = 2 };
+        _playStatusLabel.AddThemeFontSizeOverride("font_size", 12);
+        _playStatusLabel.AddThemeColorOverride("font_color", LabelColor);
+        barVBox.AddChild(_playStatusLabel);
+
+        barMargin.AddChild(barVBox);
+        _playgroundContainer!.AddChild(barMargin);
+    }
+
+    private void OnConfirm()
+    {
+        if (_playGrid == null || _reactionAnimator == null) return;
+
+        var reactions = ChemistryEngine.Evaluate(_playGrid, ReactionRuleDatabase.GetMvpRules());
+        if (reactions.Count == 0)
+        {
+            UpdatePlayStatus("No reactions detected. Everything is stable!");
+        }
+        else
+        {
+            UpdatePlayStatus($"{reactions.Count} reaction(s) detected! Playing animations...");
+            _confirmButton!.Disabled = true;
+            _reactionAnimator.PlayReactions(reactions);
+        }
+    }
+
+    private void OnReactionAnimationsComplete()
+    {
+        _confirmButton!.Disabled = false;
+        UpdatePlayStatus("Reaction animations complete.");
+    }
+
+    private void OnReset()
+    {
+        if (_playGrid == null) return;
+        ClearPlaygroundSelection();
+
+        for (int i = _playGrid.PlacedReagents.Count - 1; i >= 0; i--)
+        {
+            var reagent = _playGrid.PlacedReagents[i];
+            _playGrid.RemoveReagent(reagent);
+            reagent.Rotation = 0;
+        }
+        _playgroundReagents.Clear();
+        _actionHistory?.Clear();
+
+        RefreshPlayground();
+        UpdatePlayStatus("Grid cleared. Select a reagent to begin.");
+    }
+
+    private void OnUndo()
+    {
+        if (_actionHistory == null || _playGrid == null) return;
+        if (_actionHistory.Undo(_playGrid))
+            RefreshPlayground();
+    }
+
+    private void OnRedo()
+    {
+        if (_actionHistory == null || _playGrid == null) return;
+        if (_actionHistory.Redo(_playGrid))
+            RefreshPlayground();
+    }
+
+    private void UpdateUndoRedoButtons()
+    {
+        if (_undoButton != null) _undoButton.Disabled = !(_actionHistory?.CanUndo ?? false);
+        if (_redoButton != null) _redoButton.Disabled = !(_actionHistory?.CanRedo ?? false);
+    }
+
+    private void UpdatePlayStatus(string text)
+    {
+        if (_playStatusLabel != null) _playStatusLabel.Text = text;
+    }
+
+    private static void ApplyButtonStyle(Button btn, Color bgColor)
+    {
+        btn.Flat = true;
+        var style = new StyleBoxFlat { BgColor = bgColor };
+        style.SetCornerRadiusAll(4);
+        style.SetContentMarginAll(6);
+        btn.AddThemeStyleboxOverride("normal", style);
+
+        var hoverStyle = new StyleBoxFlat { BgColor = bgColor.Lightened(0.15f) };
+        hoverStyle.SetCornerRadiusAll(4);
+        hoverStyle.SetContentMarginAll(6);
+        btn.AddThemeStyleboxOverride("hover", hoverStyle);
+
+        var pressedStyle = new StyleBoxFlat { BgColor = bgColor.Darkened(0.1f) };
+        pressedStyle.SetCornerRadiusAll(4);
+        pressedStyle.SetContentMarginAll(6);
+        btn.AddThemeStyleboxOverride("pressed", pressedStyle);
+
+        var disabledStyle = new StyleBoxFlat { BgColor = bgColor.Darkened(0.4f) };
+        disabledStyle.SetCornerRadiusAll(4);
+        disabledStyle.SetContentMarginAll(6);
+        btn.AddThemeStyleboxOverride("disabled", disabledStyle);
+    }
+
+    // ─── Catalog Mode Handlers ────────────────────────────────────────
 
     private Button CreateTabButton(string text, bool active)
     {
@@ -226,25 +848,21 @@ public partial class SandboxScreen : Control
     {
         _currentState = state;
 
-        // Update toggle states
         foreach (var child in _stateButtons.GetChildren())
         {
             if (child is Button btn)
                 btn.ButtonPressed = btn == pressed;
         }
 
-        // Update all renderers
         foreach (var (renderer, _) in _spriteRenderers)
             renderer.SetState(state);
 
-        // Update fallback cells
         foreach (var (rect, aspectId) in _fallbackCells)
             rect.Color = GetFallbackColor(aspectId, state);
     }
 
     private void RebuildCatalog()
     {
-        // Remove all children
         foreach (var child in _catalogContent.GetChildren())
             child.QueueFree();
 
@@ -258,7 +876,6 @@ public partial class SandboxScreen : Control
     {
         var allItems = ReagentCatalog.GetAll();
 
-        // Apply filters
         var filtered = allItems.Where(d =>
         {
             if (_aspectFilter != null)
@@ -294,7 +911,6 @@ public partial class SandboxScreen : Control
             return;
         }
 
-        // Group by aspect
         var groups = filtered
             .GroupBy(d => d.AspectsPerCell.Count > 0
                 ? d.AspectsPerCell[0].Aspects.FirstOrDefault()?.Id ?? "unknown"
@@ -309,14 +925,13 @@ public partial class SandboxScreen : Control
 
     private void AddAspectGroup(string aspectId, List<ReagentDefinition> items)
     {
-        // Aspect header with colored icon
         var headerBox = new HBoxContainer { LayoutMode = 2 };
         headerBox.AddThemeConstantOverride("separation", 8);
 
         var icon = new ColorRect
         {
             Color = GridConstants.GetAspectColor(aspectId),
-            CustomMinimumSize = new Vector2(16, 16),
+            CustomMinimumSize = new Godot.Vector2(16, 16),
             LayoutMode = 2
         };
         headerBox.AddChild(icon);
@@ -332,7 +947,6 @@ public partial class SandboxScreen : Control
 
         _catalogContent.AddChild(headerBox);
 
-        // Item cards in a flow container
         var flow = new HFlowContainer
         {
             LayoutMode = 2,
@@ -352,7 +966,6 @@ public partial class SandboxScreen : Control
 
     private PanelContainer CreateReagentCard(ReagentDefinition def)
     {
-        // Card background
         var panel = new PanelContainer { LayoutMode = 2 };
         var style = new StyleBoxFlat
         {
@@ -365,7 +978,6 @@ public partial class SandboxScreen : Control
         var vbox = new VBoxContainer { LayoutMode = 2 };
         vbox.AddThemeConstantOverride("separation", 4);
 
-        // Reagent name
         var nameLabel = new Label
         {
             Text = def.Name,
@@ -376,15 +988,12 @@ public partial class SandboxScreen : Control
         nameLabel.AddThemeColorOverride("font_color", Colors.White);
         vbox.AddChild(nameLabel);
 
-        // 1x sprite preview (or colored rectangles fallback)
         var previewContainer = CreateSpritePreview(def, PreviewCellSize);
         vbox.AddChild(previewContainer);
 
-        // 2x sprite preview
         var largePreview = CreateSpritePreview(def, LargePreviewCellSize);
         vbox.AddChild(largePreview);
 
-        // Shape name + ID
         var shapeName = ReagentCatalog.GetShapeName(def) ?? "custom";
         var infoLabel = new Label
         {
@@ -396,7 +1005,6 @@ public partial class SandboxScreen : Control
         infoLabel.AddThemeColorOverride("font_color", LabelColor);
         vbox.AddChild(infoLabel);
 
-        // Cell count + rarity
         int cellCount = ShapeUtil.CellCount(def.Shape);
         var detailLabel = new Label
         {
@@ -426,7 +1034,6 @@ public partial class SandboxScreen : Control
             return renderer;
         }
 
-        // Fallback: colored rectangles for the shape
         return CreateFallbackShapePreview(def, cellSize);
     }
 
@@ -440,7 +1047,7 @@ public partial class SandboxScreen : Control
         var container = new Control
         {
             LayoutMode = 2,
-            CustomMinimumSize = new Vector2(cols * cellPx, rows * cellPx)
+            CustomMinimumSize = new Godot.Vector2(cols * cellPx, rows * cellPx)
         };
 
         string primaryAspect = def.AspectsPerCell.Count > 0
@@ -456,8 +1063,8 @@ public partial class SandboxScreen : Control
                 var cellRect = new ColorRect
                 {
                     Color = GetFallbackColor(primaryAspect, _currentState),
-                    Position = new Vector2(c * cellPx, r * cellPx),
-                    Size = new Vector2(cellPx - 1, cellPx - 1)
+                    Position = new Godot.Vector2(c * cellPx, r * cellPx),
+                    Size = new Godot.Vector2(cellPx - 1, cellPx - 1)
                 };
                 container.AddChild(cellRect);
                 _fallbackCells.Add((cellRect, primaryAspect));
