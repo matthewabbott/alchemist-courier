@@ -259,3 +259,7 @@ and the aspect legend switches to compact mode (no expandable details, just icon
 grid corner. The compact mode feature required teaching AspectLegendEntry to collapse immediately
 and refuse expansion, which was a clean addition to the existing expand/collapse animation system.
 Commit: 823a70a
+
+## Code Review (2026-03-08g)
+Reviewed LO.6, LO.7, LO.8 (de3d91a..5adedea): ReagentProfilePanel popup, WebDemoScreen wiring, and responsive layout.
+Clean batch — no P0-P2 issues. Three P3 observations (magic tray width, long method, dual Escape handling) and one P4 (hardcoded breakpoints), all intentional or below the fix threshold. No fixes applied, no tasks created. Desloppify blocked by shell permissions.
