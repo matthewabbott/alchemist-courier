@@ -1182,3 +1182,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 2fc9224
 - Notes: Extracted duplicated TextureRect/ColorRect aspect icon fallback pattern into UIThemeLoader.CreateAspectIcon(aspectId, size) — replaced 5 call sites across InfoColumnManager (x2), AspectLegendPanel, StatusBarPanel, ComponentInspector. Created AspectFormatHelpers static class consolidating FormatRule, Capitalize, FormatSensitivity, FormatAspects, and GetRuleColor — replaced 4 files (InfoColumnManager, AspectLegendPanel, FloatingAspectTooltip, AspectPrimerPanel). Net -158 lines. All 811 tests pass.
+
+## VP.4 — Per-cell aspect tile rendering on grid + single-aspect reagents
+- Date: 2026-03-10
+- Commit: 0b0134b
+- Notes: Added UpdateAspectTiles() to MetaGridView — renders a 32x32 TextureRect per occupied cell using UIThemeLoader.GetAspectTileTexture(aspectId) with Nearest filtering, falling back to existing ColorRect when no tile sprite exists. Multi-cell polyominoes show N separate tiles (not one stretched sprite). Added SingleAspectOnly property to DifficultyParams (default true) and wired it into PuzzleGenerator.AssignAspects() to force all cells of each reagent to share one uniform aspect. BalanceHotCold post-processing may still clear some cells, but all populated cells remain homogeneous. 1 new test. All 812 tests pass (811 existing + 1 new).

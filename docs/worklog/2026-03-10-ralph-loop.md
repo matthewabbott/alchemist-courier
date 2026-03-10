@@ -39,3 +39,7 @@ Commit: 4873d74
 ## R1: Extract shared CreateAspectIcon helper to UIThemeLoader
 Pure deduplication pass addressing the code review findings. The TextureRect/ColorRect aspect icon fallback was copy-pasted across 5 sites — now a single UIThemeLoader.CreateAspectIcon(aspectId, size) call. Similarly, FormatRule/Capitalize/FormatSensitivity/GetRuleColor were duplicated across 4 UI panel files — now consolidated into AspectFormatHelpers static class. Net removal of 158 lines with zero behavior change.
 Commit: 2fc9224
+
+## VP.4: Per-cell aspect tile rendering on grid + single-aspect reagents
+Structural change to how reagents render on the grid. Previously, placed reagents either showed a single sprite stretched across the bounding box (via SpriteStateRenderer) or fell back to colored rectangles. Now, each occupied cell independently renders its own 32x32 aspect tile via UpdateAspectTiles() — multi-cell polyominoes show N separate tiles that tile naturally with the grid. The per-cell infrastructure reads aspect data that was always there (indexed by row-major traversal of true cells in the shape) but previously only used for coloring. Also added SingleAspectOnly constraint to DifficultyParams (default true) so all generated reagents have uniform aspects across their cells — the per-cell rendering infrastructure still works with per-cell data for future multi-aspect support.
+Commit: 0b0134b
