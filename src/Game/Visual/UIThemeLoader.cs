@@ -64,6 +64,13 @@ public static class UIThemeLoader
     }
 
     /// <summary>
+    /// Returns raw Texture2D from panels/{name}.png or null if not found.
+    /// Useful for tiling backgrounds where a StyleBox is not needed.
+    /// </summary>
+    public static Texture2D? GetPanelTexture(string name)
+        => LoadTexture("panel", PanelPath, name);
+
+    /// <summary>
     /// Returns Texture2D from tiles/{aspectName}.png or null if not found.
     /// Aspect tiles are 32x32 at base resolution.
     /// </summary>

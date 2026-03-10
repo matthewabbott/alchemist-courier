@@ -114,13 +114,29 @@ public partial class WebDemoScreen : Control
 
     private void BuildUI()
     {
-        // Background
-        var bg = new ColorRect
+        // Background — tiled parchment texture
+        var parchmentTex = UIThemeLoader.GetPanelTexture("parchment_plain");
+        if (parchmentTex != null)
         {
-            Color = new Color(0.1f, 0.1f, 0.12f),
-        };
-        bg.SetAnchorsPreset(LayoutPreset.FullRect);
-        AddChild(bg);
+            var bg = new TextureRect
+            {
+                Texture = parchmentTex,
+                StretchMode = TextureRect.StretchModeEnum.Tile,
+                Modulate = new Color(0.4f, 0.35f, 0.3f),
+                TextureFilter = TextureFilterEnum.Nearest,
+            };
+            bg.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(bg);
+        }
+        else
+        {
+            var bg = new ColorRect
+            {
+                Color = new Color(0.1f, 0.1f, 0.12f),
+            };
+            bg.SetAnchorsPreset(LayoutPreset.FullRect);
+            AddChild(bg);
+        }
 
         // Main layout
         var margin = new MarginContainer();
