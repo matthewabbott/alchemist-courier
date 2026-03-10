@@ -1088,3 +1088,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 74bb9b2
 - Notes: Generated celtic stone frame border (96x96) via RetroDiffusion kells-alchemy style, plus corner and horizontal edge variants for reference. Implemented NinePatchRect-based bag border rendering in MetaGridView: when border_default.png exists in art/sprites/custom/bags/, bags render with a 9-patch celtic frame (24px patch margins, 4px padding, tiled stretching). Falls back to the original ColorRect edge borders when texture is absent. Added SpriteSwapper.LoadBagBorderTexture() with custom/bags → ui/sliced fallback chain. Art assets gitignored. Balance: ~$49 remaining. All 811 tests pass.
+
+## SI.1 — UIThemeLoader — sprite texture loading with fallback
+- Date: 2026-03-09
+- Commit: eedb1e8
+- Notes: Created static UIThemeLoader (src/Game/Visual/UIThemeLoader.cs) providing five methods for loading UI textures from art/sprites/ui/ subdirectories: GetPanelStyleBox (panels/), GetAspectTileTexture (tiles/), GetDecorationTexture (decorations/), GetButtonStyleBox (sliced/button_*), GetBagThemeTexture (sliced/bag_*). All methods cache results in static dictionaries. Panel and button methods return StyleBoxTexture with 9-patch margins when textures exist, or StyleBoxFlat fallback with appropriate dark colors. Missing files trigger GD.PushWarning. Follows SpriteSwapper pattern for ResourceLoader.Exists/GD.Load chain. Respects density conventions: sliced Kit 01 elements at 1x, tileable panels and decorations at 2x. All 811 tests pass.

@@ -1888,7 +1888,7 @@
       "phase": "ui-sprite-integration",
       "depends_on": [],
       "verification": "dotnet build succeeds. UIThemeLoader methods callable. Missing-file fallback returns non-null StyleBoxFlat.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.2",
