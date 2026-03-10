@@ -2419,11 +2419,11 @@ public partial class TestHarness : Control
                     Check(trayItem.CustomMinimumSize.Y >= 44,
                         $"ReagentTrayItem min height ({trayItem.CustomMinimumSize.Y}) < 44px");
                 }
-                else if (node is Button btn && btn.CustomMinimumSize.X >= 100)
+                else if (node is BaseButton baseBtn && baseBtn.CustomMinimumSize.X >= 90)
                 {
                     foundButton = true;
-                    Check(btn.CustomMinimumSize.Y >= 44,
-                        $"Button '{btn.Text}' min height ({btn.CustomMinimumSize.Y}) < 44px");
+                    Check(baseBtn.CustomMinimumSize.Y >= 44,
+                        $"Button min height ({baseBtn.CustomMinimumSize.Y}) < 44px");
                 }
             }
             Check(foundTrayItem, "No ReagentTrayItem found in WebDemoScreen");
@@ -2868,12 +2868,16 @@ public partial class TestHarness : Control
         Check(LayoutTestHelper.CheckVisible(demo.StatusBar, out var rStatus), rStatus);
         Check(LayoutTestHelper.CheckVisible(demo.LegendPanel, out var rLegend), rLegend);
 
-        // Verify button textures by checking that buttons use StyleBoxTexture (not StyleBoxFlat)
+        // Verify button textures: TextureButton (VP.9 sprite buttons) or Button with StyleBoxTexture
         int texturedButtons = 0;
         int flatButtons = 0;
         foreach (var node in GetAllDescendants(demo))
         {
-            if (node is Button btn && btn.HasThemeStyleboxOverride("normal"))
+            if (node is TextureButton tb && tb.TextureNormal != null)
+            {
+                texturedButtons++;
+            }
+            else if (node is Button btn && btn.HasThemeStyleboxOverride("normal"))
             {
                 var style = btn.GetThemeStylebox("normal");
                 if (style is StyleBoxTexture)
@@ -2884,8 +2888,14 @@ public partial class TestHarness : Control
         }
 
         Log($"[STATE] textured_buttons={texturedButtons} flat_buttons={flatButtons}");
-        // We expect at least some textured buttons if button sprite files exist
-        if (ResourceLoader.Exists("res://art/sprites/ui/sliced/button_normal.png"))
+        // We expect textured buttons if button sprite files exist (TextureButton or StyleBoxTexture)
+        bool hasButtonSprites = false;
+        foreach (var name in new[] { "confirm", "reset", "hint", "undo", "redo" })
+        {
+            if (ResourceLoader.Exists($"res://art/sprites/ui/sliced/btn_{name}.png"))
+            { hasButtonSprites = true; break; }
+        }
+        if (hasButtonSprites)
             Check(texturedButtons > 0, "Expected textured buttons but found none");
 
         // Verify aspect tiles loaded into legend entries (TextureRect present)
