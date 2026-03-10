@@ -1073,3 +1073,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: ba00959
 - Notes: Generated all 8 aspect monomino sprites via RetroDiffusion kells-alchemy custom style at 96x96, resized to 32x32 with PIL nearest-neighbor. 24 API calls (3 per aspect), best selected by visual inspection. Hot=celtic border fire crystal, Cold=celtic frost teardrop, Volatile=electric crackling crystal, Sharp=diamond blade with celtic knot, Fragile=gold-framed pink gem, Heavy=dark ore nugget, Stable=green jade celtic knot sphere, Toxic=purple crystals with skull and drip (NEW — was missing from GJ.5b). Updated manifest.json with all 8 entries. All sprites are gitignored (art/sprites/custom/). Balance: ~$51 remaining. All 811 tests pass.
+
+## GJ.7 — Alchemical cell frame/mount texture
+- Date: 2026-03-10
+- Commit: 0402157
+- Notes: Generated Celtic knot cell mount texture via RetroDiffusion kells-alchemy style (96x96, resized to 32x32 and 64x64 with PIL). White center converted to transparent for overlay use. Created CellMountOverlay (src/Game/Inventory/CellMountOverlay.cs) — renders aspect-tinted perimeter frames around ALL placed reagent cells. Monominos get the full texture overlay; multi-cell reagents use colored edge rects (3px wide) on perimeter edges only, computed via HoverFrameResolver.GetPerimeterEdges(). Wired into MetaGridView at Z-index 2 (between base cells and hover frame), called from RefreshDisplay(). Added CellMountAlpha and CellMountEdgeWidth constants to GridConstants. Art assets saved to art/sprites/custom/frames/ (gitignored). Balance: ~$49 remaining. All 811 tests pass.

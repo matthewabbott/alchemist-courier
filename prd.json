@@ -1866,7 +1866,7 @@
         "GJ.5"
       ],
       "verification": "dotnet build. Placed reagents show alchemical frame. Multi-cell reagents have connected frames.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.8",
