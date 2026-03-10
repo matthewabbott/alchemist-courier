@@ -125,7 +125,7 @@ public partial class AspectBar : HBoxContainer
     private ColorRect _bgRect = null!;
 
     private const int BarWidth = 100;
-    private const int BarHeight = 14;
+    private const int BarHeight = 32;
 
     public int CurrentValue => _currentValue;
     public int Threshold => _threshold;

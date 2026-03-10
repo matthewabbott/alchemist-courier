@@ -39,7 +39,8 @@ public partial class InfoColumnManager : VBoxContainer
 
     // Aspect detail widgets
     private Label _adNameLabel = null!;
-    private ColorRect _adIcon = null!;
+    private Control _adIcon = null!;
+    private CenterContainer _adIconCenter = null!;
     private Label _adDescriptionLabel = null!;
     private Label _adConstraintLabel = null!;
     private VBoxContainer _adRulesList = null!;
@@ -233,10 +234,10 @@ public partial class InfoColumnManager : VBoxContainer
         headerRow.AddThemeConstantOverride("separation", 8);
         _aspectDetailView.AddChild(headerRow);
 
-        var iconCenter = new CenterContainer { CustomMinimumSize = new Vector2(18, 18) };
-        _adIcon = new ColorRect { CustomMinimumSize = new Vector2(18, 18) };
-        iconCenter.AddChild(_adIcon);
-        headerRow.AddChild(iconCenter);
+        _adIconCenter = new CenterContainer { CustomMinimumSize = new Vector2(32, 32) };
+        _adIcon = new ColorRect { CustomMinimumSize = new Vector2(32, 32) };
+        _adIconCenter.AddChild(_adIcon);
+        headerRow.AddChild(_adIconCenter);
 
         _adNameLabel = new Label();
         _adNameLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
@@ -320,12 +321,28 @@ public partial class InfoColumnManager : VBoxContainer
             var headerRow = new HBoxContainer();
             headerRow.AddThemeConstantOverride("separation", 6);
 
-            var icon = new ColorRect
+            Control icon;
+            var rdTileTex = UIThemeLoader.GetAspectTileTexture(id);
+            if (rdTileTex != null)
             {
-                CustomMinimumSize = new Vector2(12, 12),
-                Color = GridConstants.GetAspectColor(id),
-            };
-            var iconCenter = new CenterContainer { CustomMinimumSize = new Vector2(12, 14) };
+                icon = new TextureRect
+                {
+                    Texture = rdTileTex,
+                    CustomMinimumSize = new Vector2(32, 32),
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                    TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                };
+            }
+            else
+            {
+                icon = new ColorRect
+                {
+                    CustomMinimumSize = new Vector2(32, 32),
+                    Color = GridConstants.GetAspectColor(id),
+                };
+            }
+            var iconCenter = new CenterContainer { CustomMinimumSize = new Vector2(32, 32) };
             iconCenter.AddChild(icon);
             headerRow.AddChild(iconCenter);
 
@@ -373,7 +390,7 @@ public partial class InfoColumnManager : VBoxContainer
         if (metadata == null)
         {
             _adNameLabel.Text = Capitalize(aspectId);
-            _adIcon.Color = GridConstants.GetAspectColor(aspectId);
+            RebuildAspectIcon(aspectId);
             _adDescriptionLabel.Text = "";
             _adConstraintLabel.Visible = false;
             ClearContainer(_adRulesList);
@@ -383,7 +400,7 @@ public partial class InfoColumnManager : VBoxContainer
         }
 
         _adNameLabel.Text = metadata.Name;
-        _adIcon.Color = GridConstants.GetAspectColor(aspectId);
+        RebuildAspectIcon(aspectId);
         _adDescriptionLabel.Text = metadata.Description;
 
         if (!string.IsNullOrEmpty(metadata.ConstraintText))
@@ -464,6 +481,32 @@ public partial class InfoColumnManager : VBoxContainer
     {
         ShowPuzzleOverview();
         EmitSignal(SignalName.BackPressed);
+    }
+
+    private void RebuildAspectIcon(string aspectId)
+    {
+        _adIcon.QueueFree();
+        var tileTex = UIThemeLoader.GetAspectTileTexture(aspectId);
+        if (tileTex != null)
+        {
+            _adIcon = new TextureRect
+            {
+                Texture = tileTex,
+                CustomMinimumSize = new Vector2(32, 32),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            };
+        }
+        else
+        {
+            _adIcon = new ColorRect
+            {
+                CustomMinimumSize = new Vector2(32, 32),
+                Color = GridConstants.GetAspectColor(aspectId),
+            };
+        }
+        _adIconCenter.AddChild(_adIcon);
     }
 
     // --- Helpers ---

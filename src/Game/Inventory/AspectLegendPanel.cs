@@ -188,7 +188,7 @@ public partial class AspectLegendEntry : VBoxContainer
         };
 
         _headerPanel = new PanelContainer();
-        _headerPanel.CustomMinimumSize = new Vector2(0, 40);
+        _headerPanel.CustomMinimumSize = new Vector2(0, 44);
         _headerPanel.AddThemeStyleboxOverride("panel", _normalBg);
         AddChild(_headerPanel);
 
@@ -196,15 +196,15 @@ public partial class AspectLegendEntry : VBoxContainer
         _header.AddThemeConstantOverride("separation", 6);
         _headerPanel.AddChild(_header);
 
-        // Aspect tile sprite (fallback to colored square)
-        var iconContainer = new CenterContainer { CustomMinimumSize = new Vector2(16, 16) };
+        // Aspect tile sprite (fallback to colored square) — 32x32 native size
+        var iconContainer = new CenterContainer { CustomMinimumSize = new Vector2(32, 32) };
         var tileTex = UIThemeLoader.GetAspectTileTexture(_metadata.Id);
         if (tileTex != null)
         {
             _icon = new TextureRect
             {
                 Texture = tileTex,
-                CustomMinimumSize = new Vector2(16, 16),
+                CustomMinimumSize = new Vector2(32, 32),
                 ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
                 StretchMode = TextureRect.StretchModeEnum.KeepAspect,
                 TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
@@ -214,7 +214,7 @@ public partial class AspectLegendEntry : VBoxContainer
         {
             _icon = new ColorRect
             {
-                CustomMinimumSize = new Vector2(16, 16),
+                CustomMinimumSize = new Vector2(32, 32),
                 Color = GridConstants.GetAspectColor(_metadata.Id),
             };
         }
@@ -378,11 +378,11 @@ public partial class AspectLegendEntry : VBoxContainer
         _headerPanel.AddThemeStyleboxOverride("panel", highlighted ? _highlightBg : _normalBg);
         if (highlighted)
         {
-            _icon.CustomMinimumSize = new Vector2(18, 18);
+            _icon.CustomMinimumSize = new Vector2(34, 34);
         }
         else
         {
-            _icon.CustomMinimumSize = new Vector2(16, 16);
+            _icon.CustomMinimumSize = new Vector2(32, 32);
         }
     }
 
