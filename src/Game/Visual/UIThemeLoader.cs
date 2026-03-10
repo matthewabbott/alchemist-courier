@@ -20,10 +20,23 @@ public static class UIThemeLoader
     private const string DecorationPath = "res://art/sprites/ui/decorations/";
     private const string SlicedPath = "res://art/sprites/ui/sliced/";
 
-    private const int PanelMargin = 16;
+    private const int DefaultPanelMargin = 8;
     private const int ButtonMargin = 4;
     private const int ButtonContentMarginH = 12;
     private const int ButtonContentMarginV = 4;
+
+    // Per-panel margin overrides for texture-based panels
+    private static readonly Dictionary<string, int> PanelMarginOverrides = new()
+    {
+        { "parchment_bordered", 8 },
+        { "dark_leather", 6 },
+    };
+
+    // Panels that should use StyleBoxFlat with hand-drawn borders instead of 9-patch
+    private static readonly HashSet<string> FlatBorderPanels = new()
+    {
+        "parchment_plain",
+    };
 
     private static readonly Dictionary<string, StyleBox> _styleBoxCache = new();
     private static readonly Dictionary<string, Texture2D?> _textureCache = new();
@@ -39,18 +52,31 @@ public static class UIThemeLoader
         if (_styleBoxCache.TryGetValue(cacheKey, out var cached))
             return cached;
 
+        // Panels designated for flat hand-drawn borders skip 9-patch entirely
+        if (FlatBorderPanels.Contains(name))
+        {
+            var flat = CreateHandDrawnPanelStyle();
+            _styleBoxCache[cacheKey] = flat;
+            return flat;
+        }
+
         string path = $"{PanelPath}{name}.png";
         if (ResourceLoader.Exists(path))
         {
             var tex = GD.Load<Texture2D>(path);
             if (tex != null)
             {
+                int margin = PanelMarginOverrides.GetValueOrDefault(name, DefaultPanelMargin);
                 var styleBox = new StyleBoxTexture();
                 styleBox.Texture = tex;
-                styleBox.TextureMarginLeft = PanelMargin;
-                styleBox.TextureMarginTop = PanelMargin;
-                styleBox.TextureMarginRight = PanelMargin;
-                styleBox.TextureMarginBottom = PanelMargin;
+                styleBox.TextureMarginLeft = margin;
+                styleBox.TextureMarginTop = margin;
+                styleBox.TextureMarginRight = margin;
+                styleBox.TextureMarginBottom = margin;
+                styleBox.ContentMarginLeft = margin;
+                styleBox.ContentMarginTop = margin;
+                styleBox.ContentMarginRight = margin;
+                styleBox.ContentMarginBottom = margin;
                 styleBox.AxisStretchHorizontal = StyleBoxTexture.AxisStretchMode.Tile;
                 styleBox.AxisStretchVertical = StyleBoxTexture.AxisStretchMode.Tile;
                 _styleBoxCache[cacheKey] = styleBox;
@@ -59,11 +85,31 @@ public static class UIThemeLoader
         }
 
         GD.PushWarning($"UIThemeLoader: Panel texture not found: {path}");
-        var fallback = new StyleBoxFlat();
-        fallback.BgColor = new Color(0.12f, 0.1f, 0.08f);
-        fallback.SetCornerRadiusAll(2);
+        var fallback = CreateHandDrawnPanelStyle();
         _styleBoxCache[cacheKey] = fallback;
         return fallback;
+    }
+
+    /// <summary>
+    /// Creates a StyleBoxFlat with a thin warm brown/gold border for a hand-drawn look.
+    /// Used for simpler panels and as the fallback when textures are missing.
+    /// </summary>
+    private static StyleBoxFlat CreateHandDrawnPanelStyle()
+    {
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.18f, 0.15f, 0.12f, 0.85f),
+            BorderColor = new Color(0.55f, 0.42f, 0.25f),
+            BorderWidthLeft = 2,
+            BorderWidthTop = 2,
+            BorderWidthRight = 2,
+            BorderWidthBottom = 2,
+            ContentMarginLeft = 8,
+            ContentMarginRight = 8,
+            ContentMarginTop = 6,
+            ContentMarginBottom = 6,
+        };
+        return style;
     }
 
     /// <summary>
