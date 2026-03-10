@@ -40,6 +40,10 @@ public static class GridConstants
     public const float TooltipFadeInDuration = 0.15f;
     public const float TooltipFadeOutDuration = 0.1f;
 
+    // Cell mount overlay (always-visible frames on placed reagents)
+    public const float CellMountAlpha = 0.7f;
+    public const float CellMountEdgeWidth = 3f;
+
     // Hover frame overlay
     public const float FramePulseAlphaMin = 0.25f;
     public const float FramePulseAlphaMax = 0.55f;

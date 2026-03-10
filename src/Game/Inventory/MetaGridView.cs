@@ -83,6 +83,9 @@ public partial class MetaGridView : Control
     private FallingAnimator? _fallingAnimator;
     private CoreVec? _effectivePlacePos; // May differ from _hoverGridPos for Heavy falling
 
+    // Cell mount overlay (aspect-tinted frames around ALL placed reagent cells)
+    private CellMountOverlay _cellMountOverlay = null!;
+
     // Hover frame overlay
     private HoverFrameOverlay _hoverFrameOverlay = null!;
 
@@ -146,6 +149,13 @@ public partial class MetaGridView : Control
 
         CreateCellNodes();
         CreateGridLines();
+
+        _cellMountOverlay = new CellMountOverlay
+        {
+            ZIndex = 2,
+            MouseFilter = MouseFilterEnum.Ignore,
+        };
+        AddChild(_cellMountOverlay);
 
         _hoverFrameOverlay = new HoverFrameOverlay
         {
@@ -372,6 +382,9 @@ public partial class MetaGridView : Control
         // Update sprite renderers for placed reagents
         UpdateSpriteRenderers();
 
+        // Draw cell mount frames around all placed reagent cells
+        _cellMountOverlay.Render(_metaGrid);
+
         // Draw bag borders
         CreateBagBorders(bagIndexMap);
 
@@ -445,6 +458,9 @@ public partial class MetaGridView : Control
 
     /// <summary>Number of bag state tint elements currently rendered, for testing.</summary>
     public int BagStateTintCount => _bagStateOverlay.RenderedCount;
+
+    /// <summary>Number of cell mount frame elements currently rendered, for testing.</summary>
+    public int CellMountCount => _cellMountOverlay.RenderedCount;
 
     /// <summary>Number of bags with active thermal tint, for testing.</summary>
     public int BagStateActiveGroupCount => _bagStateOverlay.ActiveGroupCount;
