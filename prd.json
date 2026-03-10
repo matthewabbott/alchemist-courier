@@ -1977,7 +1977,7 @@
         "SI.6"
       ],
       "verification": "dotnet build. Different bag types display distinct visual frame themes. Bags without a theme texture fall back to procedural borders.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.9",

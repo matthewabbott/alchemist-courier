@@ -1138,3 +1138,17 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: a1f1483
 - Notes: Replaced StyleBoxFlat button styles with StyleBoxTexture from sliced Kit 01 sprites. CreateStyledButton now loads textures via UIThemeLoader.GetButtonStyleBox() — standard buttons use button_normal/hover/pressed, Confirm button uses alt variant for visual distinction. Disabled state duplicates normal texture with desaturated ModulateColor (0.5, 0.5, 0.5, 0.6). Falls back to StyleBoxFlat when textures are missing. Also added content margins (12/12/4/4) to button StyleBoxTextures in UIThemeLoader. Styled the reagent tray horizontal scrollbar with themed grabber (warm brown StyleBoxFlat in 3 states) and track (dark semi-transparent). scrollbar_track.png exists but is vertical-oriented so used procedural fallback for horizontal tray. All 811 tests pass.
+
+## Integration Review — 2026-03-09c
+- Reviewed commits: e2f8961..8166361 (SI.2–SI.7, code reviews)
+- Build: PASS (811/811 unit tests)
+- Harness: 41/41 tests pass, 0 failures
+- Visual: 62 screenshots verified, no regressions
+- Issues: 0
+- Coverage: SI.2–SI.7 are visual-only changes with graceful fallbacks, verified via screenshot inspection. All recent features (GJ.1–GJ.4, GO.7–GO.12, LO.2–LO.5) have integration tests. Minor gap: InfoColumnManager aspect detail view untested (reagent detail view is tested).
+- Pre-existing cosmetic issues unchanged: tutorial vertical text, Heat label left-edge clipping, base thresholds in status bar.
+
+## SI.8 — Bag visual themes — distinct panel frames per bag type
+- Date: 2026-03-09
+- Commit: e73bf5b
+- Notes: Replaced single-texture bag border rendering with per-bag-type themed textures. GetBagThemeName() maps bag properties to theme names: Reinforced/Null → ornate (dark subdued), Insulated → warm (golden knots), Gravity → brass (clean golden corners), None → default (brown celtic knotwork). Each bag now loads its own texture via UIThemeLoader.GetBagThemeTexture() which looks up art/sprites/ui/sliced/bag_{themeName}.png. Fallback is per-bag (not global) — if a specific bag's theme texture is missing, only that bag falls back to procedural ColorRect borders. Removed global _bagBorderTexture/_bagBorderTextureChecked fields and SpriteSwapper dependency from bag border rendering. Also improved fallback ColorRect rendering to use HashSet-based boundary detection per bag instead of full-grid iteration. All 811 tests pass.
