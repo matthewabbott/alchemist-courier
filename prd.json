@@ -2043,7 +2043,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Adjacent bags have no visible gaps between them. Bag NinePatchRect borders connect seamlessly.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.6",

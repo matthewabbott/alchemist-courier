@@ -1198,3 +1198,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Added: `MetaGridView.AspectTileCount` public accessor for test observability
 - Coverage: VP.1–VP.4 all verified (direct + indirect). GJ.7–GJ.8 now have integration coverage. R1 pure refactor confirmed by all existing tests passing.
 - Pre-existing cosmetic issues unchanged: left-edge label clipping, tutorial vertical text, base thresholds in status bar.
+
+## VP.5 — Fix bag sprite gaps between adjacent bags
+- Date: 2026-03-10
+- Commit: 01195bc
+- Notes: Set BagBorderPadding from 4 to 0 so NinePatchRect panels align exactly at cell boundaries with no gaps between adjacent bags. Added minimum size clamping (center-expand to 2*PatchMargin) for bags smaller than 48px on either axis, preventing NinePatch corner distortion on 1-cell-wide bags. Simple 2-file change (GridConstants.cs + MetaGridView.cs). All 812 tests pass.
