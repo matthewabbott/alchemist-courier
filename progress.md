@@ -1177,3 +1177,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: d1cb459..3029bd6 (VP.1, VP.2, VP.3)
 - Findings: 3 (P0: 0, P1: 1, P2: 2)
 - Fixed: 1 (StatusBarPanel missing icon fallback), Tasks created: 1 (R1 — extract shared CreateAspectIcon + FormatRule helpers)
+
+## R1 — Extract shared CreateAspectIcon helper to UIThemeLoader
+- Date: 2026-03-10
+- Commit: 2fc9224
+- Notes: Extracted duplicated TextureRect/ColorRect aspect icon fallback pattern into UIThemeLoader.CreateAspectIcon(aspectId, size) — replaced 5 call sites across InfoColumnManager (x2), AspectLegendPanel, StatusBarPanel, ComponentInspector. Created AspectFormatHelpers static class consolidating FormatRule, Capitalize, FormatSensitivity, FormatAspects, and GetRuleColor — replaced 4 files (InfoColumnManager, AspectLegendPanel, FloatingAspectTooltip, AspectPrimerPanel). Net -158 lines. All 811 tests pass.

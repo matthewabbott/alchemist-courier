@@ -2101,7 +2101,7 @@
       "phase": "review-fix",
       "depends_on": [],
       "verification": "dotnet build succeeds, dotnet test passes, all 5 icon sites use the shared helper, no remaining duplicate FormatRule/Capitalize definitions",
-      "status": "pending",
+      "status": "done",
       "source": "code-review-2026-03-10b"
     }
   ]

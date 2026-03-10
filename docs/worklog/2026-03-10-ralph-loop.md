@@ -35,3 +35,7 @@ Commit: a9665c8
 ## Code Review (VP.1-VP.3)
 Reviewed the visual-polish commits. Found StatusBarPanel.AspectBar silently dropped the aspect icon when no sprite texture existed (P1) — all other sites fall back to a ColorRect. Fixed directly. Also flagged two P2 DRY violations exceeding Rule of Three: the TextureRect-or-ColorRect icon pattern (5 sites) and FormatRule/Capitalize helpers (4 copies). Created R1 task in prd.json to extract shared helpers.
 Commit: 4873d74
+
+## R1: Extract shared CreateAspectIcon helper to UIThemeLoader
+Pure deduplication pass addressing the code review findings. The TextureRect/ColorRect aspect icon fallback was copy-pasted across 5 sites — now a single UIThemeLoader.CreateAspectIcon(aspectId, size) call. Similarly, FormatRule/Capitalize/FormatSensitivity/GetRuleColor were duplicated across 4 UI panel files — now consolidated into AspectFormatHelpers static class. Net removal of 158 lines with zero behavior change.
+Commit: 2fc9224
