@@ -322,17 +322,7 @@ public partial class InfoColumnManager : VBoxContainer
         foreach (var child in _rdAspectList.GetChildren())
             child.QueueFree();
 
-        var aspectTotals = new Dictionary<string, (Aspect aspect, int totalMagnitude)>();
-        foreach (var pos in reagent.GetLocalCellPositions())
-        {
-            foreach (var aspect in reagent.GetAspectsAtLocalPosition(pos).Aspects)
-            {
-                if (aspectTotals.TryGetValue(aspect.Id, out var existing))
-                    aspectTotals[aspect.Id] = (existing.aspect, existing.totalMagnitude + aspect.Magnitude);
-                else
-                    aspectTotals[aspect.Id] = (aspect, aspect.Magnitude);
-            }
-        }
+        var aspectTotals = reagent.GetAggregatedAspects();
 
         foreach (var (id, (aspect, total)) in aspectTotals)
         {

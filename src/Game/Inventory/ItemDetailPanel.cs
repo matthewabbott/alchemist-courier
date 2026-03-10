@@ -148,23 +148,7 @@ public partial class ItemDetailPanel : PanelContainer
         }
 
         // Aggregate aspects across all cells: sum magnitudes per unique aspect ID
-        var aspectTotals = new Dictionary<string, (Aspect aspect, int totalMagnitude)>();
-        var cellPositions = reagent.GetLocalCellPositions();
-        foreach (var pos in cellPositions)
-        {
-            var aspects = reagent.GetAspectsAtLocalPosition(pos);
-            foreach (var aspect in aspects.Aspects)
-            {
-                if (aspectTotals.TryGetValue(aspect.Id, out var existing))
-                {
-                    aspectTotals[aspect.Id] = (existing.aspect, existing.totalMagnitude + aspect.Magnitude);
-                }
-                else
-                {
-                    aspectTotals[aspect.Id] = (aspect, aspect.Magnitude);
-                }
-            }
-        }
+        var aspectTotals = reagent.GetAggregatedAspects();
 
         foreach (var (id, (aspect, total)) in aspectTotals)
         {

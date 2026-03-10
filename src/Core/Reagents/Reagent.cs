@@ -179,6 +179,26 @@ public class Reagent
     }
 
     /// <summary>
+    /// Aggregate aspects across all cells, summing magnitudes per unique aspect ID.
+    /// Returns a dictionary mapping aspect ID to (Aspect instance, total magnitude).
+    /// </summary>
+    public Dictionary<string, (Aspect aspect, int totalMagnitude)> GetAggregatedAspects()
+    {
+        var result = new Dictionary<string, (Aspect aspect, int totalMagnitude)>();
+        foreach (var pos in GetLocalCellPositions())
+        {
+            foreach (var aspect in GetAspectsAtLocalPosition(pos).Aspects)
+            {
+                if (result.TryGetValue(aspect.Id, out var existing))
+                    result[aspect.Id] = (existing.aspect, existing.totalMagnitude + aspect.Magnitude);
+                else
+                    result[aspect.Id] = (aspect, aspect.Magnitude);
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
     /// Get the aspects at a specific meta-grid position.
     /// Returns empty if the reagent doesn't occupy that position.
     /// </summary>
