@@ -1820,7 +1820,7 @@
         "GJ.1"
       ],
       "verification": "dotnet build. Click bag -> highlights. Drag -> moves. Right-click -> rotates. Reagents carried.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.5",
