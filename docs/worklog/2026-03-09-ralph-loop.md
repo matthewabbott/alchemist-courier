@@ -25,4 +25,4 @@ Commit: 247f381
 
 ## GJ.5b: Wire existing tiling_suitable sprites as proof-of-concept
 First end-to-end test of the "drop PNG → shows in game" workflow. Mapped 7 RetroDiffusion images from the tiling_suitable batch to aspect-based monomino sprites (e.g., the firevine leaf/celtic image → monomino_hot.png). Extended SpriteSwapper with a monomino fallback path: when loading a sprite for a reagent, it now also checks monomino_{aspectId}.png, so every monomino reagent of a given aspect benefits from a single shared sprite. Extended ReagentSpriteSheet with IsSingleTile detection — a 32x32 single-tile image is used as-is for all visual states rather than attempting sprite sheet region extraction. Interesting design trade-off: the monomino sprites are shared across all reagents of an aspect (e.g., both the monomino Hot item and any future Hot reagent without a custom sprite), which is a natural fallback but means the art isn't item-specific.
-Commit: TBD
+Commit: e4b10de

@@ -1842,7 +1842,7 @@
         "GJ.5"
       ],
       "verification": "dotnet build. Run asset_preview — at least 5 aspects show custom sprites instead of dev art.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.6",

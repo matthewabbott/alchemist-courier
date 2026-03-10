@@ -1066,5 +1066,5 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 
 ## GJ.5b — Wire existing tiling_suitable sprites as proof-of-concept
 - Date: 2026-03-09
-- Commit: TBD
+- Commit: e4b10de
 - Notes: Mapped 7 existing RetroDiffusion images from art/generated/tiling_suitable/ to aspect monomino sprites. Resized from various sizes (96x96, 128x128, 384x384) to 32x32 using PIL nearest-neighbor. Stored as art/sprites/custom/monomino_{aspectId}.png (gitignored). Extended SpriteSwapper with monomino fallback: LoadReagentTexture(reagentId, aspectId?) checks custom/monomino_{aspectId}.png when aspectId is provided. Extended ReagentSpriteSheet with IsSingleTile property — when loaded texture dimensions are <= cell size, GetAtlasTexture returns the whole image for all visual states instead of extracting sprite sheet regions. Updated all callers (MetaGridView, AssetPreview, ReactionAnimator, SandboxScreen) to pass PrimaryAspectId through the loading chain. Created manifest.json documenting aspect-to-source mappings. Covers 7 of 8 aspects (Toxic has no tiling_suitable source). All 811 unit tests pass, 40/40 integration tests pass.
