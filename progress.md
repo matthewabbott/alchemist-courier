@@ -1162,3 +1162,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 51aa125
 - Notes: Replaced the solid black ColorRect background (0.1, 0.1, 0.12) in WebDemoScreen with a TextureRect tiling parchment_plain.png (64x64). Uses StretchMode.Tile with a dark warm modulate (0.4, 0.35, 0.3) so the parchment reads as a subtle warm background without competing with foreground panels. Falls back to the original solid color if the texture is missing. Added GetPanelTexture() to UIThemeLoader for raw panel texture access (vs the existing GetPanelStyleBox which wraps in a 9-patch StyleBox). All 811 unit tests pass.
+
+## VP.2 — Fix tray texture tiling (not stretching)
+- Date: 2026-03-10
+- Commit: 3da3887
+- Notes: Set AxisStretchHorizontal and AxisStretchVertical to StyleBoxTexture.AxisStretchMode.Tile in UIThemeLoader.GetPanelStyleBox(). This applies to all panel StyleBoxTextures (dark_leather tray, parchment panels) so the 9-patch center region tiles instead of stretching. Two-line change. All 811 tests pass.

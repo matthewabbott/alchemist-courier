@@ -23,3 +23,7 @@ Commit: d5bbf0b
 ## VP.1: Full-page tiled parchment background
 First visual-polish task — swapped the flat black ColorRect background in WebDemoScreen for a TextureRect tiling parchment_plain.png (64x64, StretchMode.Tile). The dark warm modulate (0.4, 0.35, 0.3) keeps the parchment subtle enough to not compete with foreground panels while giving the whole screen a warm alchemy manuscript feel. Added GetPanelTexture() to UIThemeLoader so textures can be loaded raw without being wrapped in a 9-patch StyleBox — useful for tiling backgrounds where edges don't need special treatment. Falls back gracefully to the original solid dark color if the texture is missing.
 Commit: 51aa125
+
+## VP.2: Fix tray texture tiling (not stretching)
+Tiny but impactful fix — the dark_leather tray background was being stretched across its entire area instead of tiling. Two lines in UIThemeLoader.GetPanelStyleBox() to set AxisStretchHorizontal/Vertical to Tile on all panel StyleBoxTextures. The leather pattern will now repeat naturally across the tray width instead of being distorted into a single smeared image.
+Commit: 3da3887

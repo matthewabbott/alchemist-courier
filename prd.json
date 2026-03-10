@@ -2011,7 +2011,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Tray background shows tiled dark_leather.png pattern, not a single stretched copy.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.3",
