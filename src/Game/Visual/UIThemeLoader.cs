@@ -50,6 +50,8 @@ public static class UIThemeLoader
                 styleBox.TextureMarginTop = PanelMargin;
                 styleBox.TextureMarginRight = PanelMargin;
                 styleBox.TextureMarginBottom = PanelMargin;
+                styleBox.AxisStretchHorizontal = StyleBoxTexture.AxisStretchMode.Tile;
+                styleBox.AxisStretchVertical = StyleBoxTexture.AxisStretchMode.Tile;
                 _styleBoxCache[cacheKey] = styleBox;
                 return styleBox;
             }
