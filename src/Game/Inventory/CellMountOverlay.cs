@@ -65,10 +65,7 @@ public partial class CellMountOverlay : Control
     public void Clear()
     {
         foreach (var node in _visuals)
-        {
-            if (node is Node n)
-                n.QueueFree();
-        }
+            node.QueueFree();
         _visuals.Clear();
     }
 
