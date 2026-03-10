@@ -382,7 +382,11 @@ public partial class AspectLegendEntry : VBoxContainer
         _headerPanel.AddThemeStyleboxOverride("panel", flashBg);
 
         var timer = GetTree().CreateTimer(0.4);
-        timer.Timeout += () => _headerPanel.AddThemeStyleboxOverride("panel", originalBg);
+        timer.Timeout += () =>
+        {
+            if (IsInstanceValid(_headerPanel))
+                _headerPanel.AddThemeStyleboxOverride("panel", originalBg);
+        };
     }
 
     private void OnHeaderInput(InputEvent @event)

@@ -2117,6 +2117,17 @@
       "verification": "dotnet build succeeds, dotnet test passes, all 5 icon sites use the shared helper, no remaining duplicate FormatRule/Capitalize definitions",
       "status": "done",
       "source": "code-review-2026-03-10b"
+    },
+    {
+      "id": "R2",
+      "title": "Extract shared aspect aggregation helper from 4 UI panels",
+      "description": "The aspect-aggregation pattern (iterate reagent.GetLocalCellPositions(), call GetAspectsAtLocalPosition, accumulate into Dictionary<string, (Aspect, int)>) is copy-pasted in 4 files: InfoColumnManager.cs:325-335, ItemDetailPanel.cs:151-167, ReagentProfilePanel.cs (BuildAspectBreakdown), and FloatingDetailTooltip.cs:137-153. Extract a static helper method (e.g., Reagent.GetAggregatedAspects() or a ReagentHelpers.AggregateAspects(Reagent)) that returns Dictionary<string, (Aspect, int)>. Replace all 4 call sites. Consider whether this belongs on Reagent itself (Core) or as a Game-layer helper.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes, only one copy of the aggregation loop remains",
+      "status": "pending",
+      "source": "code-review-2026-03-10"
     }
   ]
 }

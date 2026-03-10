@@ -486,7 +486,8 @@ public partial class InfoColumnManager : VBoxContainer
 
     private void RebuildAspectIcon(string aspectId)
     {
-        _adIcon.QueueFree();
+        _adIconCenter.RemoveChild(_adIcon);
+        _adIcon.Free();
         _adIcon = UIThemeLoader.CreateAspectIcon(aspectId, 32);
         _adIconCenter.AddChild(_adIcon);
     }
