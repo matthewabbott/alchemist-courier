@@ -1053,3 +1053,18 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: 2fb8a8b
 - Notes: Wired existing MetaGrid.MoveBag()/RotateBag() to interactive MetaGridView UI. Added bag selection state (click empty bag cell to select, cyan border highlight), click-then-drag to move (ghost preview with blue valid/red invalid overlay), right-click to rotate 90° CW. Bag selection is mutually exclusive with reagent selection. Added CanMoveBag() read-only validation method to MetaGrid for ghost preview without mutation. Added 3 new signals (BagSelected, BagMoved, BagRotated) wired through WebDemoScreen with info column status updates. Files changed: MetaGrid.cs (+CanMoveBag), GridConstants.cs (+4 bag selection constants), MetaGridView.cs (+264 lines for selection/drag/rotate), WebDemoScreen.cs (+signal wiring). All 811 tests pass.
+
+## Code Review — 2026-03-09
+- Reviewed commits: 6533bca..2c017fc (GJ.3, GJ.4)
+- Findings: 1 (P0: 0, P1: 0, P2: 1)
+- Fixed: 0, Tasks created: 0
+
+## GJ.5 — Art loading infrastructure — AssetPreviewScene + sprite swap
+- Date: 2026-03-09
+- Commit: 247f381
+- Notes: Created SpriteSwapper (src/Game/Visual/SpriteSwapper.cs) — static utility for custom-first sprite loading. Checks art/sprites/custom/{reagentId}.png before art/sprites/reagents/{reagentId}.png for reagent textures, and art/sprites/custom/frames/ before art/sprites/frames/dev/ for frame textures. Wired into ReagentSpriteSheet.TryLoad() and HoverFrameOverlay.LoadFrameTexture() to replace hardcoded paths with the fallback chain. Created AssetPreview tool scene (scenes/asset_preview.tscn + src/Game/Tools/AssetPreview.cs) with dropdown for category switching (Reagents/BagBorders/Background), reagent preview showing all 24 catalog items at 1x/2x/4x zoom with polyomino shape preview, grouped by aspect, with [custom] badge for items with custom sprites. Screenshot capture button. Bag and background views are placeholder with instructions for future art drops. All 811 tests pass.
+
+## GJ.5b — Wire existing tiling_suitable sprites as proof-of-concept
+- Date: 2026-03-09
+- Commit: TBD
+- Notes: Mapped 7 existing RetroDiffusion images from art/generated/tiling_suitable/ to aspect monomino sprites. Resized from various sizes (96x96, 128x128, 384x384) to 32x32 using PIL nearest-neighbor. Stored as art/sprites/custom/monomino_{aspectId}.png (gitignored). Extended SpriteSwapper with monomino fallback: LoadReagentTexture(reagentId, aspectId?) checks custom/monomino_{aspectId}.png when aspectId is provided. Extended ReagentSpriteSheet with IsSingleTile property — when loaded texture dimensions are <= cell size, GetAtlasTexture returns the whole image for all visual states instead of extracting sprite sheet regions. Updated all callers (MetaGridView, AssetPreview, ReactionAnimator, SandboxScreen) to pass PrimaryAspectId through the loading chain. Created manifest.json documenting aspect-to-source mappings. Covers 7 of 8 aspects (Toxic has no tiling_suitable source). All 811 unit tests pass, 40/40 integration tests pass.

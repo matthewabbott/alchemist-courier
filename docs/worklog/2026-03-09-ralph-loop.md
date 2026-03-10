@@ -15,3 +15,14 @@ Commit: 6533bca
 ## GJ.4: Bag movement UI — select, drag to move, right-click to rotate
 Wired the existing MetaGrid.MoveBag()/RotateBag() Core methods to interactive UI in MetaGridView. Click an empty cell within a bag to select it (cyan border highlight, mutually exclusive with reagent selection). While selected, click the bag again to start dragging — mouse motion shows a ghost preview (blue=valid, red=invalid placement). Click to confirm the move, or right-click to cancel the drag. Right-click without dragging rotates the bag 90° CW. Escape or clicking outside deselects. Added CanMoveBag() to MetaGrid as a read-only validation method for the ghost preview (avoids grid mutation during drag). Three new signals (BagSelected, BagMoved, BagRotated) wired through WebDemoScreen with status bar messages.
 Commit: 2fb8a8b
+
+## Code Review
+Reviewed GJ.3 (InfoColumnManager) and GJ.4 (bag movement UI) commits. Code quality is clean — good Core/Game separation, consistent UI patterns, proper mutual exclusivity between bag and reagent selection. One P2 finding: CanMoveBag doesn't check HasLockedOrphanedReagent like MoveBag does, so ghost preview could show valid for a rejected move — but locked spanning reagents are not reachable in current game flow, so no fix needed yet. No P0/P1 issues. 811 tests pass, build clean.
+
+## GJ.5: Art loading infrastructure — AssetPreviewScene + sprite swap
+Created the SpriteSwapper fallback chain (custom/ → reagents/) and AssetPreview tool scene for browsing all 24 catalog sprites at multiple zoom levels. This is the foundation for dropping in real art — any PNG in art/sprites/custom/{reagentId}.png automatically replaces the dev-generated sprite sheet.
+Commit: 247f381
+
+## GJ.5b: Wire existing tiling_suitable sprites as proof-of-concept
+First end-to-end test of the "drop PNG → shows in game" workflow. Mapped 7 RetroDiffusion images from the tiling_suitable batch to aspect-based monomino sprites (e.g., the firevine leaf/celtic image → monomino_hot.png). Extended SpriteSwapper with a monomino fallback path: when loading a sprite for a reagent, it now also checks monomino_{aspectId}.png, so every monomino reagent of a given aspect benefits from a single shared sprite. Extended ReagentSpriteSheet with IsSingleTile detection — a 32x32 single-tile image is used as-is for all visual states rather than attempting sprite sheet region extraction. Interesting design trade-off: the monomino sprites are shared across all reagents of an aspect (e.g., both the monomino Hot item and any future Hot reagent without a custom sprite), which is a natural fallback but means the art isn't item-specific.
+Commit: TBD

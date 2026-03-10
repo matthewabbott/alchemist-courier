@@ -993,7 +993,7 @@ public partial class SandboxScreen : Control
     private Control CreateSpritePreview(ReagentDefinition def, int cellSize)
     {
         var spec = SpriteSheetSpec.DefaultReagentSpec(cellSize, cellSize);
-        var sheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec);
+        var sheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec, def.PrimaryAspectId);
 
         if (sheet != null)
         {

@@ -24,11 +24,28 @@ public class ReagentSpriteSheet
     }
 
     /// <summary>
+    /// True if the loaded texture is a single tile (not a full sprite sheet).
+    /// Single-tile textures show the same image for all visual states.
+    /// </summary>
+    public bool IsSingleTile => Texture.GetWidth() <= Spec.CellWidth
+                                && Texture.GetHeight() <= Spec.CellHeight;
+
+    /// <summary>
     /// Returns an AtlasTexture for the given visual state and frame,
     /// or null if the state/frame is invalid.
     /// </summary>
     public AtlasTexture? GetAtlasTexture(VisualState state, int frame = 0)
     {
+        // Single-tile textures use the whole image for all states
+        if (IsSingleTile)
+        {
+            return new AtlasTexture
+            {
+                Atlas = Texture,
+                Region = new Rect2(0, 0, Texture.GetWidth(), Texture.GetHeight()),
+            };
+        }
+
         var region = Spec.GetRegion(state, frame);
         if (region == null) return null;
 
@@ -48,7 +65,15 @@ public class ReagentSpriteSheet
     /// </summary>
     public static ReagentSpriteSheet? TryLoad(string reagentId, SpriteSheetSpec spec)
     {
-        var texture = SpriteSwapper.LoadReagentTexture(reagentId);
+        return TryLoad(reagentId, spec, null);
+    }
+
+    /// <summary>
+    /// Tries to load a sprite sheet with optional aspect-based monomino fallback.
+    /// </summary>
+    public static ReagentSpriteSheet? TryLoad(string reagentId, SpriteSheetSpec spec, string? aspectId)
+    {
+        var texture = SpriteSwapper.LoadReagentTexture(reagentId, aspectId);
         if (texture == null) return null;
 
         return new ReagentSpriteSheet(texture, spec, reagentId);
@@ -62,10 +87,18 @@ public class ReagentSpriteSheet
     /// </summary>
     public static ReagentSpriteSheet? GetOrLoad(string reagentId, SpriteSheetSpec spec)
     {
+        return GetOrLoad(reagentId, spec, null);
+    }
+
+    /// <summary>
+    /// Loads a sprite sheet with caching and optional aspect-based monomino fallback.
+    /// </summary>
+    public static ReagentSpriteSheet? GetOrLoad(string reagentId, SpriteSheetSpec spec, string? aspectId)
+    {
         if (_cache.TryGetValue(reagentId, out var cached))
             return cached;
 
-        var sheet = TryLoad(reagentId, spec);
+        var sheet = TryLoad(reagentId, spec, aspectId);
         _cache[reagentId] = sheet;
         return sheet;
     }

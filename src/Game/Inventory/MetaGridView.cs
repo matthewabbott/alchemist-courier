@@ -687,7 +687,7 @@ public partial class MetaGridView : Control
             int pixelH = shapeRows * GridConstants.CellSize;
 
             var spec = SpriteSheetSpec.DefaultReagentSpec(pixelW, pixelH);
-            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec);
+            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec, reagent.Definition.PrimaryAspectId);
             if (spriteSheet == null) continue;
 
             // Resolve visual state: pick the most critical state across all cells

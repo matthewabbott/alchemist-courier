@@ -170,7 +170,8 @@ public partial class AssetPreview : Control
             foreach (var def in group)
             {
                 totalCount++;
-                bool hasCustom = SpriteSwapper.HasCustomReagentSprite(def.Id);
+                bool hasCustom = SpriteSwapper.HasCustomReagentSprite(def.Id)
+                    || (def.PrimaryAspectId != null && SpriteSwapper.HasMonominoSprite(def.PrimaryAspectId));
                 if (hasCustom) customCount++;
 
                 var card = BuildReagentCard(def, hasCustom);
@@ -218,7 +219,7 @@ public partial class AssetPreview : Control
         zoomRow.AddThemeConstantOverride("separation", 8);
 
         var spec = SpriteSheetSpec.DefaultReagentSpec(32, 32);
-        var spriteSheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec);
+        var spriteSheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec, def.PrimaryAspectId);
 
         // 1x (32px), 2x (64px), 4x (128px)
         int[] zooms = { 1, 2, 4 };
@@ -288,7 +289,7 @@ public partial class AssetPreview : Control
         int cols = def.ShapeCols;
         container.CustomMinimumSize = new Vector2(cols * cellSize + 4, rows * cellSize + 4);
 
-        var spriteSheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec);
+        var spriteSheet = ReagentSpriteSheet.GetOrLoad(def.Id, spec, def.PrimaryAspectId);
         var aspectColor = GridConstants.GetAspectColor(def.PrimaryAspectId ?? "unknown");
 
         for (int r = 0; r < rows; r++)

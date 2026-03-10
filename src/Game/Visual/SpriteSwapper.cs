@@ -10,6 +10,7 @@ namespace AlchemistCourier.Game.Visual;
 public static class SpriteSwapper
 {
     private const string CustomReagentPath = "res://art/sprites/custom/";
+    private const string CustomMonominoPath = "res://art/sprites/custom/monomino_";
     private const string DefaultReagentPath = "res://art/sprites/reagents/";
     private const string CustomFramePath = "res://art/sprites/custom/frames/";
     private const string DefaultFramePath = "res://art/sprites/frames/dev/";
@@ -20,12 +21,32 @@ public static class SpriteSwapper
     /// </summary>
     public static Texture2D? LoadReagentTexture(string reagentId)
     {
+        return LoadReagentTexture(reagentId, null);
+    }
+
+    /// <summary>
+    /// Tries to load a reagent sprite texture with optional aspect-based monomino fallback.
+    /// Check order: custom/{reagentId}.png → custom/monomino_{aspectId}.png → reagents/{reagentId}.png.
+    /// </summary>
+    public static Texture2D? LoadReagentTexture(string reagentId, string? aspectId)
+    {
         // Try custom sprite first
         string customPath = $"{CustomReagentPath}{reagentId}.png";
         if (ResourceLoader.Exists(customPath))
         {
             var tex = GD.Load<Texture2D>(customPath);
             if (tex != null) return tex;
+        }
+
+        // Try monomino aspect sprite if aspectId is provided
+        if (aspectId != null)
+        {
+            string monominoPath = $"{CustomMonominoPath}{aspectId}.png";
+            if (ResourceLoader.Exists(monominoPath))
+            {
+                var tex = GD.Load<Texture2D>(monominoPath);
+                if (tex != null) return tex;
+            }
         }
 
         // Fall back to default (dev-generated) sprite
@@ -68,6 +89,14 @@ public static class SpriteSwapper
     public static bool HasCustomReagentSprite(string reagentId)
     {
         return ResourceLoader.Exists($"{CustomReagentPath}{reagentId}.png");
+    }
+
+    /// <summary>
+    /// Checks whether a custom monomino sprite exists for the given aspect.
+    /// </summary>
+    public static bool HasMonominoSprite(string aspectId)
+    {
+        return ResourceLoader.Exists($"{CustomMonominoPath}{aspectId}.png");
     }
 
     /// <summary>

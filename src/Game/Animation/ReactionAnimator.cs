@@ -294,7 +294,7 @@ public partial class ReactionAnimator : Control
             int pixelW = rotatedShape.GetLength(1) * GridConstants.CellSize;
             int pixelH = rotatedShape.GetLength(0) * GridConstants.CellSize;
             var spec = SpriteSheetSpec.DefaultReagentSpec(pixelW, pixelH);
-            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec);
+            var spriteSheet = ReagentSpriteSheet.GetOrLoad(catalogId, spec, reagent.Definition.PrimaryAspectId);
             if (spriteSheet == null) continue;
 
             anyHasSprite = true;
