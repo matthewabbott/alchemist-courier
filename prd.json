@@ -2092,6 +2092,17 @@
       "depends_on": ["VP.1", "VP.2", "VP.3", "VP.4", "VP.5", "VP.6", "VP.7", "VP.8", "VP.9"],
       "verification": "All visual polish items verified via screenshot. No colored rectangles, no stretching, no gaps, no beveled borders, no overflow. Warm alchemy aesthetic throughout.",
       "status": "pending"
+    },
+    {
+      "id": "R1",
+      "title": "Extract shared CreateAspectIcon helper to UIThemeLoader",
+      "description": "The TextureRect-or-ColorRect fallback pattern for aspect tile icons is copy-pasted 5 times across InfoColumnManager (x2), AspectLegendPanel, StatusBarPanel, and ComponentInspector. Extract a static method UIThemeLoader.CreateAspectIcon(string aspectId, float size) returning a Control (TextureRect if sprite found, ColorRect fallback). Replace all 5 call sites. Also consider extracting the shared FormatRule/Capitalize/FormatSensitivity helpers (4 copies across InfoColumnManager, AspectLegendPanel, FloatingAspectTooltip, AspectPrimerPanel) into a shared static class like AspectFormatHelpers.",
+      "priority": 0,
+      "phase": "review-fix",
+      "depends_on": [],
+      "verification": "dotnet build succeeds, dotnet test passes, all 5 icon sites use the shared helper, no remaining duplicate FormatRule/Capitalize definitions",
+      "status": "pending",
+      "source": "code-review-2026-03-10b"
     }
   ]
 }
