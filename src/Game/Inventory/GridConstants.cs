@@ -40,6 +40,11 @@ public static class GridConstants
     public const float TooltipFadeInDuration = 0.15f;
     public const float TooltipFadeOutDuration = 0.1f;
 
+    // Bag border texture (NinePatchRect)
+    public const int BagBorderPatchMargin = 24;
+    public const int BagBorderPadding = 4;
+    public const float BagBorderTextureAlpha = 0.85f;
+
     // Cell mount overlay (always-visible frames on placed reagents)
     public const float CellMountAlpha = 0.7f;
     public const float CellMountEdgeWidth = 3f;

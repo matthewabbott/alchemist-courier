@@ -14,6 +14,8 @@ public static class SpriteSwapper
     private const string DefaultReagentPath = "res://art/sprites/reagents/";
     private const string CustomFramePath = "res://art/sprites/custom/frames/";
     private const string DefaultFramePath = "res://art/sprites/frames/dev/";
+    private const string CustomBagBorderPath = "res://art/sprites/custom/bags/";
+    private const string SlicedBagBorderPath = "res://art/sprites/ui/sliced/";
 
     /// <summary>
     /// Tries to load a reagent sprite texture, checking custom path first.
@@ -105,5 +107,28 @@ public static class SpriteSwapper
     public static bool HasCustomFrameTexture(string filename)
     {
         return ResourceLoader.Exists($"{CustomFramePath}{filename}");
+    }
+
+    /// <summary>
+    /// Tries to load a bag border texture.
+    /// Check order: custom/bags/{name}.png → ui/sliced/{name}.png.
+    /// </summary>
+    public static Texture2D? LoadBagBorderTexture(string name)
+    {
+        string customPath = $"{CustomBagBorderPath}{name}.png";
+        if (ResourceLoader.Exists(customPath))
+        {
+            var tex = GD.Load<Texture2D>(customPath);
+            if (tex != null) return tex;
+        }
+
+        string slicedPath = $"{SlicedBagBorderPath}{name}.png";
+        if (ResourceLoader.Exists(slicedPath))
+        {
+            var tex = GD.Load<Texture2D>(slicedPath);
+            if (tex != null) return tex;
+        }
+
+        return null;
     }
 }

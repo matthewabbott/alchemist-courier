@@ -39,8 +39,11 @@ public partial class MetaGridView : Control
     // Grid line nodes
     private readonly List<ColorRect> _gridLines = new();
 
-    // Bag border nodes
+    // Bag border nodes (ColorRect fallback + NinePatchRect textured)
     private readonly List<ColorRect> _bagBorders = new();
+    private readonly List<NinePatchRect> _bagBorderPatches = new();
+    private Texture2D? _bagBorderTexture;
+    private bool _bagBorderTextureChecked;
 
     // Hinted reagent border nodes
     private readonly List<ColorRect> _hintedBorders = new();
@@ -338,10 +341,11 @@ public partial class MetaGridView : Control
     {
         // Clear old bag borders
         foreach (var border in _bagBorders)
-        {
             border.QueueFree();
-        }
         _bagBorders.Clear();
+        foreach (var patch in _bagBorderPatches)
+            patch.QueueFree();
+        _bagBorderPatches.Clear();
 
         // Build a bag-to-index map for tinting
         var bagIndexMap = new Dictionary<Bag, int>();
@@ -408,6 +412,76 @@ public partial class MetaGridView : Control
     }
 
     private void CreateBagBorders(Dictionary<Bag, int> bagIndexMap)
+    {
+        LoadBagBorderTextureIfNeeded();
+
+        if (_bagBorderTexture != null)
+        {
+            CreateTexturedBagBorders(bagIndexMap);
+        }
+        else
+        {
+            CreateColorRectBagBorders();
+        }
+    }
+
+    private void LoadBagBorderTextureIfNeeded()
+    {
+        if (_bagBorderTextureChecked) return;
+        _bagBorderTextureChecked = true;
+        _bagBorderTexture = SpriteSwapper.LoadBagBorderTexture("border_default");
+    }
+
+    private void CreateTexturedBagBorders(Dictionary<Bag, int> bagIndexMap)
+    {
+        foreach (var bag in _metaGrid.PlacedBags)
+        {
+            if (!bag.IsPlaced) continue;
+
+            // Compute bag bounding box in grid coords
+            var positions = bag.GetCurrentMetaGridPositions();
+            if (positions.Count == 0) continue;
+
+            int minCol = int.MaxValue, maxCol = int.MinValue;
+            int minRow = int.MaxValue, maxRow = int.MinValue;
+            foreach (var p in positions)
+            {
+                if (p.Col < minCol) minCol = p.Col;
+                if (p.Col > maxCol) maxCol = p.Col;
+                if (p.Row < minRow) minRow = p.Row;
+                if (p.Row > maxRow) maxRow = p.Row;
+            }
+
+            float cs = GridConstants.CellSize;
+            int pad = GridConstants.BagBorderPadding;
+
+            // Pixel position and size of the bounding box, with padding for the border frame
+            float pixelX = minCol * cs - pad;
+            float pixelY = minRow * cs - pad;
+            float pixelW = (maxCol - minCol + 1) * cs + pad * 2;
+            float pixelH = (maxRow - minRow + 1) * cs + pad * 2;
+
+            var patch = new NinePatchRect
+            {
+                Texture = _bagBorderTexture,
+                Position = new Vector2(pixelX, pixelY),
+                Size = new Vector2(pixelW, pixelH),
+                PatchMarginLeft = GridConstants.BagBorderPatchMargin,
+                PatchMarginRight = GridConstants.BagBorderPatchMargin,
+                PatchMarginTop = GridConstants.BagBorderPatchMargin,
+                PatchMarginBottom = GridConstants.BagBorderPatchMargin,
+                AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
+                AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
+                Modulate = new Color(1f, 1f, 1f, GridConstants.BagBorderTextureAlpha),
+                ZIndex = 1,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            AddChild(patch);
+            _bagBorderPatches.Add(patch);
+        }
+    }
+
+    private void CreateColorRectBagBorders()
     {
         for (int col = 0; col < _metaGrid.Width; col++)
         {
