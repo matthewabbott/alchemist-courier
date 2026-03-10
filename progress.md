@@ -1233,3 +1233,17 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 06cc8c5
 - Notes: Added Reagent.GetAggregatedAspects() to Core, replacing identical 10-17 line aggregation loops in InfoColumnManager, ItemDetailPanel, ReagentProfilePanel, and FloatingDetailTooltip. Pure refactor — no Godot deps, no behavior change. 4 new unit tests (empty, single-cell, multi-cell sum, multi-aspect grouping). All 816 tests pass (812 existing + 4 new).
+
+## Integration Review — 2026-03-10c
+- Reviewed commits: HEAD (VP.5–VP.8, R2, code reviews 2026-03-10b–d)
+- Build: PASS (816/816 unit tests)
+- Harness: 44/44 tests pass, 0 failures
+- Visual: 51 screenshots verified, no regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Coverage: VP.5/VP.8 visual-only with screenshot baseline. VP.6 has direct test (`Test_AspectTilesOnGrid`). VP.7 covered by `Test_WebDemoResponsive`. R2 pure refactor with 4 unit tests.
+- Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, tutorial vertical text, base thresholds in status bar.
+
+## VP.9 — Button overhaul — use generated typography sprites
+- Date: 2026-03-10
+- Commit: 7c12a0a
+- Notes: Replaced 9-patch stretched button backgrounds with pre-rendered 192x96 celtic wood typography sprites (btn_undo/redo/confirm/reset/hint.png). Added GetButtonSpriteTexture() to UIThemeLoader for loading per-button sprites from sliced/ directory. CreateStyledButton now tries sprite-based TextureButton first (96x48 at 0.5x clean pixel scaling) with SelfModulate for hover/pressed/disabled visual feedback, falling back to StyleBoxFlat with warm brown fill + gold border when sprites are missing. Changed button field types from Button to BaseButton to support both TextureButton and Button. Added SetButtonDisabled helper for TextureButton disabled modulate. All 816 tests pass.

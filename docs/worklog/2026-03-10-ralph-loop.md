@@ -70,3 +70,7 @@ Commit: 833daba
 ## R2: Extract shared aspect aggregation helper
 Pure deduplication: added `Reagent.GetAggregatedAspects()` in Core returning `Dictionary<string, (Aspect aspect, int totalMagnitude)>`. Replaced identical 10-17 line loops in InfoColumnManager, ItemDetailPanel, ReagentProfilePanel, and FloatingDetailTooltip with a single method call each. The method lives on Reagent (not a static helper) since it delegates to existing `GetLocalCellPositions()` and `GetAspectsAtLocalPosition()`. 4 new unit tests cover empty, single-cell, multi-cell magnitude summing, and multi-aspect grouping. Zero behavior change, zero Godot dependencies.
 Commit: 06cc8c5
+
+## VP.9: Button overhaul — use generated typography sprites
+The last visual-polish implementation task before the final verification pass. The 5 action buttons (Undo, Redo, Confirm, Reset, Hint) were using 32x16 9-patch textures stretched to 100x44 — causing massive blurring and stretching artifacts. Replaced them with pre-rendered 192x96 celtic wood sprites with burned-in text labels, displayed via TextureButton at 96x48 (clean 0.5x downscale). The key design choice was changing field types from Button to BaseButton so we can use TextureButton (renders a texture directly, no 9-patch) while falling back to regular Button with StyleBoxFlat when sprites are missing. Hover/pressed/disabled feedback uses SelfModulate — bright for hover, dim for pressed, desaturated for disabled. The fallback uses warm brown fill with gold borders matching the alchemy aesthetic.
+Commit: 7c12a0a
