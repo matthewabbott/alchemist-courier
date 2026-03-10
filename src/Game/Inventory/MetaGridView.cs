@@ -52,6 +52,9 @@ public partial class MetaGridView : Control
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
 
+    // Per-cell aspect tile overlays (one TextureRect per occupied cell with a tile sprite)
+    private readonly List<TextureRect> _aspectTiles = new();
+
     // Sprite state renderers (per placed reagent, keyed by reagent instance)
     private readonly Dictionary<Reagent, SpriteStateRenderer> _spriteRenderers = new();
 
@@ -383,6 +386,9 @@ public partial class MetaGridView : Control
 
         // Update sprite renderers for placed reagents
         UpdateSpriteRenderers();
+
+        // Render per-cell aspect tiles for placed reagents
+        UpdateAspectTiles();
 
         // Draw cell mount frames around all placed reagent cells
         _cellMountOverlay.Render(_metaGrid);
@@ -802,6 +808,49 @@ public partial class MetaGridView : Control
                 renderer.SetState(displayState);
                 AddChild(renderer);
                 _spriteRenderers[reagent] = renderer;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates per-cell TextureRect nodes showing aspect tile sprites for each occupied cell.
+    /// Falls back to the existing ColorRect color when no tile texture is available.
+    /// </summary>
+    private void UpdateAspectTiles()
+    {
+        // Remove old tiles
+        foreach (var tile in _aspectTiles)
+            tile.QueueFree();
+        _aspectTiles.Clear();
+
+        for (int col = 0; col < _metaGrid.Width; col++)
+        {
+            for (int row = 0; row < _metaGrid.Height; row++)
+            {
+                var cell = _metaGrid.GetCell(col, row)!;
+                if (!cell.IsOccupied) continue;
+
+                var reagent = (Reagent)cell.OccupyingReagent!;
+                var localPos = new CoreVec(col, row) - reagent.PlacedPosition!.Value;
+                var aspects = reagent.GetAspectsAtLocalPosition(localPos);
+                if (aspects.IsEmpty || aspects.Aspects.Count == 0) continue;
+
+                var aspectId = aspects.Aspects[0].Id;
+                var texture = UIThemeLoader.GetAspectTileTexture(aspectId);
+                if (texture == null) continue;
+
+                var tileRect = new TextureRect
+                {
+                    Texture = texture,
+                    Position = GridCoordinates.GridToPixel(new CoreVec(col, row)),
+                    Size = new Vector2(GridConstants.CellSize, GridConstants.CellSize),
+                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                    StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                    TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                    MouseFilter = MouseFilterEnum.Ignore,
+                };
+                AddChild(tileRect);
+                _aspectTiles.Add(tileRect);
             }
         }
     }

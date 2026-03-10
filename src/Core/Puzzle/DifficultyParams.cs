@@ -45,6 +45,13 @@ public class DifficultyParams
     /// </summary>
     public ComplexityLevel ComplexityLevel { get; set; }
 
+    /// <summary>
+    /// When true, all cells of each reagent share the same single aspect.
+    /// The per-cell aspect infrastructure still works — every cell just gets the same value.
+    /// Default true for the demo; set false to enable multi-aspect reagents in the future.
+    /// </summary>
+    public bool SingleAspectOnly { get; set; } = true;
+
     public DifficultyParams() { }
 
     public DifficultyParams(

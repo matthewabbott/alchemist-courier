@@ -403,8 +403,10 @@ public class PuzzleGenerator
                     .Where(a => !ConstrainedAspects.Contains(a) || !usedConstrainedAspects.Contains(a))
                     .ToList();
 
-                // Pick how many distinct aspect types this reagent gets (1..MaxAspectCount)
-                int numAspectTypes = rng.Next(1, difficulty.MaxAspectCount + 1);
+                // Pick how many distinct aspect types this reagent gets
+                int numAspectTypes = difficulty.SingleAspectOnly
+                    ? 1
+                    : rng.Next(1, difficulty.MaxAspectCount + 1);
                 var chosenAspects = PickDistinctAspects(rng, numAspectTypes, pool);
 
                 // Track constrained aspect usage
@@ -414,18 +416,29 @@ public class PuzzleGenerator
                         usedConstrainedAspects.Add(a);
                 }
 
-                for (int c = 0; c < cellCount; c++)
+                if (difficulty.SingleAspectOnly && chosenAspects.Count > 0)
                 {
-                    // Each cell gets one aspect (or none with some probability)
-                    if (rng.NextFloat() < 0.7f && chosenAspects.Count > 0)
+                    // All cells get the same single aspect
+                    var aspect = Aspect.FromId(chosenAspects[0]);
+                    var aspectSet = new AspectSet(aspect);
+                    for (int c = 0; c < cellCount; c++)
+                        cellAspects.Add(aspectSet);
+                }
+                else
+                {
+                    for (int c = 0; c < cellCount; c++)
                     {
-                        var aspectId = chosenAspects[rng.Next(chosenAspects.Count)];
-                        var aspect = Aspect.FromId(aspectId);
-                        cellAspects.Add(new AspectSet(aspect));
-                    }
-                    else
-                    {
-                        cellAspects.Add(AspectSet.Empty);
+                        // Each cell gets one aspect (or none with some probability)
+                        if (rng.NextFloat() < 0.7f && chosenAspects.Count > 0)
+                        {
+                            var aspectId = chosenAspects[rng.Next(chosenAspects.Count)];
+                            var aspect = Aspect.FromId(aspectId);
+                            cellAspects.Add(new AspectSet(aspect));
+                        }
+                        else
+                        {
+                            cellAspects.Add(AspectSet.Empty);
+                        }
                     }
                 }
             }

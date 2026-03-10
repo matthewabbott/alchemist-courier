@@ -763,4 +763,35 @@ public class PuzzleGeneratorTests
         Assert.NotNull(state);
         Assert.NotEmpty(state.Solution);
     }
+
+    // --- SingleAspectOnly constraint ---
+
+    [Fact]
+    public void Generate_SingleAspectOnly_AllCellsShareSameAspect()
+    {
+        // Medium difficulty normally has MaxAspectCount=3, but SingleAspectOnly
+        // (default true) forces each reagent to use exactly one aspect for all cells
+        var difficulty = DifficultyParams.ForLevel(DifficultyLevel.Medium);
+        Assert.True(difficulty.SingleAspectOnly);
+
+        for (int seed = 1; seed <= 10; seed++)
+        {
+            var puzzle = _generator.Generate(seed, difficulty);
+            foreach (var pr in puzzle.Reagents)
+            {
+                var nonEmpty = pr.AspectsPerCell
+                    .Where(a => a.Count > 0)
+                    .ToList();
+                if (nonEmpty.Count == 0) continue; // no aspects is fine
+
+                // All non-empty cells must share the same single aspect
+                var firstAspect = nonEmpty[0][0];
+                foreach (var cell in nonEmpty)
+                {
+                    Assert.Single(cell);
+                    Assert.Equal(firstAspect, cell[0]);
+                }
+            }
+        }
+    }
 }
