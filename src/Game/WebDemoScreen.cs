@@ -58,6 +58,10 @@ public partial class WebDemoScreen : Control
     private ConfirmResult _lastConfirmResult = ConfirmResult.None;
     private List<ReactionResult> _lastReactions = new();
 
+    // Decoration overlays
+    private PanelContainer _headerPanel = null!;
+    private TextureRect?[]? _cornerFlourishes;
+
     // Public inspection
     public MetaGridView GridView => _gridView;
     public ReagentTray ReagentTray => _reagentTray;
@@ -144,8 +148,26 @@ public partial class WebDemoScreen : Control
         hbox.AddChild(_infoSpacer);
         BuildInfoColumn(hbox);
 
-        // ---- Bottom ----
-        vbox.AddChild(new HSeparator());
+        // ---- Bottom separator ----
+        var sepTex = UIThemeLoader.GetDecorationTexture("separator");
+        if (sepTex != null)
+        {
+            var sep = new TextureRect
+            {
+                Texture = sepTex,
+                CustomMinimumSize = new Vector2(0, 20),
+                SizeFlagsHorizontal = SizeFlags.ExpandFill,
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            vbox.AddChild(sep);
+        }
+        else
+        {
+            vbox.AddChild(new HSeparator());
+        }
 
         BuildTrayStrip(vbox);
 
@@ -166,16 +188,32 @@ public partial class WebDemoScreen : Control
 
         BuildViolationBadge();
         BuildTooltipLayer();
+        AddCornerFlourishes();
     }
 
     private void BuildHeader(VBoxContainer parent)
     {
-        var headerPanel = new PanelContainer();
-        headerPanel.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_bordered"));
-        parent.AddChild(headerPanel);
+        _headerPanel = new PanelContainer();
+        _headerPanel.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_bordered"));
+        parent.AddChild(_headerPanel);
 
         var hbox = new HBoxContainer();
-        headerPanel.AddChild(hbox);
+        _headerPanel.AddChild(hbox);
+
+        // Title sigil (alchemist seal medallion)
+        var sigilTex = UIThemeLoader.GetDecorationTexture("title_sigil");
+        if (sigilTex != null)
+        {
+            var sigil = new TextureRect
+            {
+                Texture = sigilTex,
+                CustomMinimumSize = new Vector2(28, 28),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            };
+            hbox.AddChild(sigil);
+        }
 
         var title = new Label { Text = "Alchemist Courier" };
         title.AddThemeColorOverride("font_color", new Color(0.3f, 0.2f, 0.1f));
@@ -342,6 +380,49 @@ public partial class WebDemoScreen : Control
         AddChild(_violationBadge);
     }
 
+    private void AddCornerFlourishes()
+    {
+        var tex = UIThemeLoader.GetDecorationTexture("corner_flourish");
+        if (tex == null) return;
+
+        _cornerFlourishes = new TextureRect[4];
+        for (int i = 0; i < 4; i++)
+        {
+            var tr = new TextureRect
+            {
+                Texture = tex,
+                CustomMinimumSize = new Vector2(32, 32),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                FlipH = i == 1 || i == 3,
+                FlipV = i == 2 || i == 3,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            _cornerFlourishes[i] = tr;
+            AddChild(tr);
+        }
+        _headerPanel.Resized += UpdateFlourishPositions;
+    }
+
+    private void UpdateFlourishPositions()
+    {
+        if (_cornerFlourishes == null) return;
+
+        var rect = _headerPanel.GetGlobalRect();
+        var origin = GetGlobalPosition();
+        float s = 32;
+        float x0 = rect.Position.X - origin.X;
+        float y0 = rect.Position.Y - origin.Y;
+        float x1 = rect.End.X - origin.X;
+        float y1 = rect.End.Y - origin.Y;
+
+        _cornerFlourishes[0]!.Position = new Vector2(x0, y0);
+        _cornerFlourishes[1]!.Position = new Vector2(x1 - s, y0);
+        _cornerFlourishes[2]!.Position = new Vector2(x0, y1 - s);
+        _cornerFlourishes[3]!.Position = new Vector2(x1 - s, y1 - s);
+    }
+
     public override void _Notification(int what)
     {
         if (what == NotificationResized)
@@ -378,6 +459,8 @@ public partial class WebDemoScreen : Control
             _infoColumnManager.LegendPanel.SetCompactMode(true);
             UpdateViolationBadge();
         }
+
+        UpdateFlourishPositions();
     }
 
     private void UpdateViolationBadge()
