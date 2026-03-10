@@ -2065,7 +2065,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Info column panels fit within the visible viewport. No overflow past the bottom of the screen. Scrolling or compaction keeps content accessible.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.8",

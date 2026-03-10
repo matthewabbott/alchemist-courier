@@ -54,3 +54,7 @@ Reviewed VP.4 integration tests and VP.5 bag border fix (f69a18a..609f68c). All 
 ## VP.6: Wire aspect tiles into ALL remaining colored-square locations
 Completed the "tile everywhere" pass. Three shape preview classes (ShapePreview 8px, DetailShapePreview 16px, ProfileShapePreview 24px) all used DrawRect with aspect colors — now they use DrawTextureRect with UIThemeLoader.GetAspectTileTexture() when tiles are available, falling back to colored rectangles when not. The ghost overlay during placement now overlays semi-transparent aspect tiles on top of the tinted ghost ColorRects, so the preview matches what the placed reagent will look like. Also bumped the profile panel's aspect breakdown icons from 12px ColorRect to 16px using UIThemeLoader.CreateAspectIcon(). Clean refactor touching 4 files, all with the same pattern.
 Commit: d134000
+
+## VP.7: Constrain info column panel heights
+The info column sidebar (objective, aspects, violations) could overflow past the bottom of the viewport on shorter screens. Fixed by wrapping all three view modes inside a ScrollContainer that fills the available height, so content scrolls when it exceeds the viewport instead of clipping or overflowing. Also reduced excessive minimum heights and padding across the sub-panels — the aspect legend entry headers shrank from 44px to 36px, violation buttons from 40px to 30px, and the panel minimums were zeroed out so the layout is driven by actual content rather than hardcoded floors.
+Commit: b93a195

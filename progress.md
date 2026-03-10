@@ -1213,3 +1213,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Commit: d134000
 - Notes: Replaced colored rectangles with aspect tile textures in 4 remaining locations: ShapePreview (8px tray items), DetailShapePreview (16px detail/tooltip panels), ProfileShapePreview (24px profile panels), and ghost overlay (32px placement preview). All three shape preview classes now use DrawTextureRect() in their _Draw() methods when UIThemeLoader.GetAspectTileTexture() returns a texture, falling back to colored rectangles when none exists. Ghost overlay adds semi-transparent (alpha 0.7) TextureRect nodes on top of the ghost ColorRects. Also upgraded profile aspect breakdown icons from 12px ColorRect to 16px via UIThemeLoader.CreateAspectIcon(). All 812 tests pass.
 - Fixed: 0, Tasks created: 0
+
+## VP.7 — Constrain info column panel heights
+- Date: 2026-03-10
+- Commit: b93a195
+- Notes: Wrapped InfoColumnManager views in a ScrollContainer so panels scroll instead of overflowing past the viewport. Changed SizeFlagsVertical from ShrinkBegin to ExpandFill so the column fills available height. Reduced unnecessary minimum heights: AspectLegendPanel 120→0, ViolationListPanel 80→0, AspectLegendEntry header 44→36, violation entry buttons 40→30. Tightened spacing (separation 10→4/8). All 812 unit tests and 44 integration tests pass.
