@@ -1172,3 +1172,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: a9665c8
 - Notes: Scaled all aspect tile icons from their various small sizes to native 32x32. AspectLegendPanel icons from 16x16 to 32x32 (highlighted 18→34). StatusBarPanel BarHeight from 14 to 32 so tile icons display at native size. InfoColumnManager aspect detail header icon from 18x18 to 32x32 — also refactored to use TextureRect with UIThemeLoader.GetAspectTileTexture() fallback to ColorRect (was always ColorRect before). Reagent detail aspect icons from 12x12 to 32x32 with same TextureRect+fallback pattern. All TextureRects use TextureFilter=Nearest for crisp pixel art. All 811 tests pass.
+
+## Code Review — 2026-03-10b
+- Reviewed commits: d1cb459..3029bd6 (VP.1, VP.2, VP.3)
+- Findings: 3 (P0: 0, P1: 1, P2: 2)
+- Fixed: 1 (StatusBarPanel missing icon fallback), Tasks created: 1 (R1 — extract shared CreateAspectIcon + FormatRule helpers)
