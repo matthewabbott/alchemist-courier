@@ -1123,3 +1123,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: 0c40ede
 - Notes: Replaced colored ColorRect squares in AspectLegendEntry with TextureRect showing 32x32 aspect tile sprites (hot.png, cold.png, etc.) via UIThemeLoader.GetAspectTileTexture(). Changed _icon field type from ColorRect to Control to support both TextureRect and ColorRect fallback. Added aspect tile icons before labels in StatusBarPanel's AspectBar, scaled to bar height with nearest-neighbor filtering. Both components gracefully fall back to existing colored rectangles when texture files are missing. All 811 tests pass.
+
+## SI.5 — Decorative elements — flourishes, separators, sigil
+- Date: 2026-03-09
+- Commit: 05bca8e
+- Notes: Wired three decorative sprites into WebDemoScreen. Corner flourishes: 4 TextureRects overlaid on header panel corners using absolute positioning (FlipH/FlipV for each corner), updated on resize via Resized signal and AdaptLayout. Separator: replaced HSeparator between grid and tray with TextureRect showing golden vine separator.png, KeepAspectCentered stretch. Title sigil: added alchemist seal medallion TextureRect before title label in header HBox. All decorations load via UIThemeLoader.GetDecorationTexture() with graceful fallback (HSeparator for separator, no-op for flourishes/sigil when textures missing). All 811 tests pass.

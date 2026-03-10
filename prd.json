@@ -1939,7 +1939,7 @@
         "SI.2"
       ],
       "verification": "dotnet build. Run component_inspector — decorations render correctly. Run web demo — corner flourishes on header, vine separators between sections, sigil next to title.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.6",

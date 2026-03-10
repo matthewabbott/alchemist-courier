@@ -45,3 +45,7 @@ Commit: 5206d04
 ## SI.4: Aspect tile sprites in legend and status bar
 Wired the 8 generated aspect tile sprites (32x32 pixel art PNGs) into the two UI components that show aspect icons. AspectLegendEntry switches from a plain colored square to a TextureRect with nearest-neighbor filtering, maintaining the same 16x16 display size. StatusBarPanel adds a tile icon before each aspect label. Both paths fall back to the existing procedural ColorRect when textures are missing, so the game still runs without art assets. Changed _icon field from ColorRect to Control to accommodate the polymorphic icon type.
 Commit: 0c40ede
+
+## SI.5: Decorative elements — flourishes, separators, sigil
+Added three decorative sprite elements to WebDemoScreen. The corner flourishes were the most interesting: Godot's PanelContainer manages child sizing, so the flourishes can't be children of the header panel itself. Instead they're overlaid as direct children of the WebDemoScreen Control, positioned absolutely relative to the header panel's global rect. The position recalculates on both the header's Resized signal and the screen's AdaptLayout, covering both initial layout and window resize. The vine separator replaces the plain HSeparator with a KeepAspectCentered TextureRect — it naturally centers at the right height without stretching. Title sigil sits inline in the header HBox before the game title.
+Commit: 05bca8e
