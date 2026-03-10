@@ -1128,3 +1128,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: 05bca8e
 - Notes: Wired three decorative sprites into WebDemoScreen. Corner flourishes: 4 TextureRects overlaid on header panel corners using absolute positioning (FlipH/FlipV for each corner), updated on resize via Resized signal and AdaptLayout. Separator: replaced HSeparator between grid and tray with TextureRect showing golden vine separator.png, KeepAspectCentered stretch. Title sigil: added alchemist seal medallion TextureRect before title label in header HBox. All decorations load via UIThemeLoader.GetDecorationTexture() with graceful fallback (HSeparator for separator, no-op for flourishes/sigil when textures missing). All 811 tests pass.
+
+## Code Review (c) — 2026-03-09
+- Reviewed commits: 5206d04..9de252a (SI.3, SI.4, SI.5)
+- Findings: 3 (P0: 0, P1: 0, P2: 0, P3: 3)
+- Fixed: 0, Tasks created: 0
+
+## SI.7 — Button sprite textures — styled buttons from Kit 01
+- Date: 2026-03-09
+- Commit: a1f1483
+- Notes: Replaced StyleBoxFlat button styles with StyleBoxTexture from sliced Kit 01 sprites. CreateStyledButton now loads textures via UIThemeLoader.GetButtonStyleBox() — standard buttons use button_normal/hover/pressed, Confirm button uses alt variant for visual distinction. Disabled state duplicates normal texture with desaturated ModulateColor (0.5, 0.5, 0.5, 0.6). Falls back to StyleBoxFlat when textures are missing. Also added content margins (12/12/4/4) to button StyleBoxTextures in UIThemeLoader. Styled the reagent tray horizontal scrollbar with themed grabber (warm brown StyleBoxFlat in 3 states) and track (dark semi-transparent). scrollbar_track.png exists but is vertical-oriented so used procedural fallback for horizontal tray. All 811 tests pass.

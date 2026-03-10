@@ -49,3 +49,10 @@ Commit: 0c40ede
 ## SI.5: Decorative elements — flourishes, separators, sigil
 Added three decorative sprite elements to WebDemoScreen. The corner flourishes were the most interesting: Godot's PanelContainer manages child sizing, so the flourishes can't be children of the header panel itself. Instead they're overlaid as direct children of the WebDemoScreen Control, positioned absolutely relative to the header panel's global rect. The position recalculates on both the header's Resized signal and the screen's AdaptLayout, covering both initial layout and window resize. The vine separator replaces the plain HSeparator with a KeepAspectCentered TextureRect — it naturally centers at the right height without stretching. Title sigil sits inline in the header HBox before the game title.
 Commit: 05bca8e
+
+## Code Review (c)
+Reviewed SI.3–SI.5 sprite integration commits (panel backgrounds, aspect tiles, decorative elements). Code is clean — consistent UIThemeLoader usage, graceful fallbacks, correct text color adaptation for parchment theme. Three P3 findings noted (flourish magic number, repeated TextureRect pattern, WebDemoScreen approaching 900 lines) but none warrant fixes or tasks. 811 tests pass, build clean.
+
+## SI.7: Button sprite textures — styled buttons from Kit 01
+Swapped the procedural StyleBoxFlat button styles for Kit 01's sliced button sprites. The interesting design choice was using the standard button textures for most buttons and the alt variant for Confirm — this gives the primary action visual distinction without per-button color tinting (which would fight the pixel art's own palette). Disabled state duplicates the normal texture and applies a desaturated ModulateColor. For the scrollbar, the available track texture is vertical-oriented (ornate column), so the horizontal tray scrollbar gets a procedural palette-matched style instead. Added content margins to UIThemeLoader's button StyleBoxTexture so text padding matches the old flat buttons.
+Commit: a1f1483

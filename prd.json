@@ -1964,7 +1964,7 @@
         "SI.6"
       ],
       "verification": "dotnet build. Run component_inspector — Button component shows textured states (normal/hover/pressed). Run web demo — all buttons use sprite textures, scrollbar styled.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.8",
