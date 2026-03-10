@@ -1798,7 +1798,7 @@
       "phase": "game-jam",
       "depends_on": [],
       "verification": "dotnet test. Place volatile next to hot -> orange indicator. Confirm with violation -> warning.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.3",

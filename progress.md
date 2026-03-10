@@ -1038,3 +1038,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: 40f9824
 - Notes: Removed IsGravityValid gate from CanPlaceReagent — gravity is now advisory only (warnings via GetGravityViolations). Added PlaceReagentWithFall(reagent, position) method that calls CalculateFallPosition then PlaceReagent at the fallen position. Updated MetaGridView.UpdateGhostPreview to apply fall to ALL reagents in gravity bags, not just Heavy (removed HasAspect gate). Updated 4 existing tests that expected gravity-unsupported placement to fail — now succeed. Added 3 new PlaceReagentWithFall tests: non-heavy in gravity bag falls to bottom, non-heavy in normal bag stays put, two reagents stack correctly. All 809 tests pass (806 existing adjusted + 3 new).
+
+## GJ.2 — Debug + fix volatile explosion indicator
+- Date: 2026-03-09
+- Commit: 1fdd2a0
+- Notes: Debugged the volatile explosion indicator chain end-to-end. Core logic (ViolationTracker, DamageOverlay, ReactionRuleDatabase, confirm flow) was all correct — the test harness's volatile_explosion_overlay test passes. The actual bug was in MetaGridView.UpdateGhostPreview: EvaluateProspective was called with _hoverGridPos.Value instead of effectivePos, so in gravity bags the reaction check happened at the hover position (before fall) rather than where the reagent actually lands. This caused the ghost to show "safe" when placement would trigger an explosion. Fix: one-line change to use effectivePos. Added 2 ViolationTracker unit tests for volatile net-hot threshold: cold-buffering (netHot=0 → no explosion) and partial cold-buffering (netHot=1 → explosion). All 811 tests pass.
