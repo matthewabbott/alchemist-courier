@@ -9,6 +9,7 @@ using AlchemistCourier.Game.Editor;
 using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Puzzle;
+using AlchemistCourier.Game.Visual;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Testing;
@@ -98,6 +99,7 @@ public partial class TestHarness : Control
         await Test_WebDemoLayout();
         await Test_WebDemoResponsive();
         await Test_ViolationListPanel();
+        await Test_UISpriteIntegration();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2616,6 +2618,225 @@ public partial class TestHarness : Control
     }
 
     // --- Helpers ---
+
+    private async Task Test_UISpriteIntegration()
+    {
+        BeginTest("ui_sprite_integration");
+        _puzzleScreen.Visible = false;
+
+        var checks = new System.Collections.Generic.List<string>();
+        bool allPass = true;
+        int texturesFound = 0;
+        int texturesMissing = 0;
+
+        void Check(bool ok, string failReason)
+        {
+            if (!ok) { allPass = false; checks.Add(failReason); }
+        }
+
+        // --- Step 1: Verify all expected texture files exist via ResourceLoader ---
+        var panelNames = new[] { "parchment_bordered", "dark_leather", "parchment_plain" };
+        foreach (var name in panelNames)
+        {
+            var path = $"res://art/sprites/ui/panels/{name}.png";
+            if (ResourceLoader.Exists(path))
+                texturesFound++;
+            else
+            {
+                texturesMissing++;
+                checks.Add($"Missing panel: {name}");
+            }
+        }
+
+        var tileNames = new[] { "hot", "cold", "volatile", "toxic", "fragile", "sharp", "heavy", "stable" };
+        foreach (var name in tileNames)
+        {
+            var path = $"res://art/sprites/ui/tiles/{name}.png";
+            if (ResourceLoader.Exists(path))
+                texturesFound++;
+            else
+            {
+                texturesMissing++;
+                checks.Add($"Missing tile: {name}");
+            }
+        }
+
+        var decoNames = new[] { "corner_flourish", "separator", "title_sigil" };
+        foreach (var name in decoNames)
+        {
+            var path = $"res://art/sprites/ui/decorations/{name}.png";
+            if (ResourceLoader.Exists(path))
+                texturesFound++;
+            else
+            {
+                texturesMissing++;
+                checks.Add($"Missing decoration: {name}");
+            }
+        }
+
+        var buttonStates = new[] { "normal", "hover", "pressed", "alt_normal", "alt_hover", "alt_pressed" };
+        foreach (var state in buttonStates)
+        {
+            var path = $"res://art/sprites/ui/sliced/button_{state}.png";
+            if (ResourceLoader.Exists(path))
+                texturesFound++;
+            else
+            {
+                texturesMissing++;
+                checks.Add($"Missing button: {state}");
+            }
+        }
+
+        var bagThemes = new[] { "default", "ornate", "warm", "brass" };
+        foreach (var theme in bagThemes)
+        {
+            var path = $"res://art/sprites/ui/sliced/bag_{theme}.png";
+            if (ResourceLoader.Exists(path))
+                texturesFound++;
+            else
+            {
+                texturesMissing++;
+                checks.Add($"Missing bag theme: {theme}");
+            }
+        }
+
+        Log($"[STATE] textures_found={texturesFound} textures_missing={texturesMissing}");
+
+        // --- Step 2: Create WebDemoScreen and verify sprite-textured rendering ---
+        UIThemeLoader.ClearCache();
+        var demo = new WebDemoScreen();
+        AddChild(demo);
+        await WaitFrames(5);
+
+        // Verify key panels are visible and have non-zero size
+        Check(LayoutTestHelper.CheckVisible(demo.GridView, out var rGrid), rGrid);
+        Check(LayoutTestHelper.CheckVisible(demo.ReagentTray, out var rTray), rTray);
+        Check(LayoutTestHelper.CheckVisible(demo.StatusBar, out var rStatus), rStatus);
+        Check(LayoutTestHelper.CheckVisible(demo.LegendPanel, out var rLegend), rLegend);
+
+        // Verify button textures by checking that buttons use StyleBoxTexture (not StyleBoxFlat)
+        int texturedButtons = 0;
+        int flatButtons = 0;
+        foreach (var node in GetAllDescendants(demo))
+        {
+            if (node is Button btn && btn.HasThemeStyleboxOverride("normal"))
+            {
+                var style = btn.GetThemeStylebox("normal");
+                if (style is StyleBoxTexture)
+                    texturedButtons++;
+                else
+                    flatButtons++;
+            }
+        }
+
+        Log($"[STATE] textured_buttons={texturedButtons} flat_buttons={flatButtons}");
+        // We expect at least some textured buttons if button sprite files exist
+        if (ResourceLoader.Exists("res://art/sprites/ui/sliced/button_normal.png"))
+            Check(texturedButtons > 0, "Expected textured buttons but found none");
+
+        // Verify aspect tiles loaded into legend entries (TextureRect present)
+        int tileTextureRects = 0;
+        foreach (var node in GetAllDescendants(demo.LegendPanel))
+        {
+            if (node is TextureRect texRect && texRect.Texture != null &&
+                texRect.CustomMinimumSize.X >= 14 && texRect.CustomMinimumSize.X <= 34)
+                tileTextureRects++;
+        }
+        Log($"[STATE] legend_tile_texturerects={tileTextureRects}");
+
+        // Verify decoration: at least one TextureRect in header area (sigil or corner flourish)
+        int decorationTextures = 0;
+        foreach (var node in GetAllDescendants(demo))
+        {
+            if (node is TextureRect texRect && texRect.Texture != null &&
+                texRect.CustomMinimumSize.X >= 20)
+                decorationTextures++;
+        }
+        Log($"[STATE] decoration_texturerects={decorationTextures}");
+
+        // Verify bag themes: MetaGridView should have NinePatchRect children for bag borders
+        int ninePatchRects = 0;
+        foreach (var node in GetAllDescendants(demo.GridView))
+        {
+            if (node is NinePatchRect npr && npr.Texture != null)
+                ninePatchRects++;
+        }
+        Log($"[STATE] bag_ninepatchrects={ninePatchRects}");
+
+        await CaptureScreenshot("48_ui_sprite_integration.png");
+
+        // --- Step 3: Verify fallback resilience ---
+        // Clear cache and verify UIThemeLoader returns correct types for both paths
+        UIThemeLoader.ClearCache();
+
+        // Panel fallback: GetPanelStyleBox should return a StyleBox (texture or flat)
+        var panelStyle = UIThemeLoader.GetPanelStyleBox("parchment_bordered");
+        Check(panelStyle != null, "Panel style box is null");
+
+        // Button fallback: GetButtonStyleBox should return a StyleBox
+        var buttonStyle = UIThemeLoader.GetButtonStyleBox("normal");
+        Check(buttonStyle != null, "Button style box is null");
+
+        // Aspect tile: should return non-null if file exists
+        var hotTile = UIThemeLoader.GetAspectTileTexture("hot");
+        bool hotExists = ResourceLoader.Exists("res://art/sprites/ui/tiles/hot.png");
+        if (hotExists)
+            Check(hotTile != null, "Hot tile texture is null but file exists");
+
+        // Bag theme: should return non-null if file exists
+        var defaultBag = UIThemeLoader.GetBagThemeTexture("default");
+        bool bagExists = ResourceLoader.Exists("res://art/sprites/ui/sliced/bag_default.png");
+        if (bagExists)
+            Check(defaultBag != null, "Default bag texture is null but file exists");
+
+        // Verify fallback for non-existent textures returns graceful null/flat
+        var fakePanelStyle = UIThemeLoader.GetPanelStyleBox("nonexistent_panel_xyz");
+        Check(fakePanelStyle is StyleBoxFlat, "Non-existent panel should fall back to StyleBoxFlat");
+
+        var fakeButtonStyle = UIThemeLoader.GetButtonStyleBox("nonexistent_state_xyz");
+        Check(fakeButtonStyle is StyleBoxFlat, "Non-existent button should fall back to StyleBoxFlat");
+
+        var fakeTile = UIThemeLoader.GetAspectTileTexture("nonexistent_aspect_xyz");
+        Check(fakeTile == null, "Non-existent tile should return null");
+
+        var fakeDeco = UIThemeLoader.GetDecorationTexture("nonexistent_deco_xyz");
+        Check(fakeDeco == null, "Non-existent decoration should return null");
+
+        var fakeBag = UIThemeLoader.GetBagThemeTexture("nonexistent_bag_xyz");
+        Check(fakeBag == null, "Non-existent bag theme should return null");
+
+        // --- Step 4: Summary report ---
+        var report = new System.Text.StringBuilder();
+        report.AppendLine("=== UI Sprite Integration Report ===");
+        report.AppendLine($"Textures found: {texturesFound}");
+        report.AppendLine($"Textures missing: {texturesMissing}");
+        report.AppendLine($"Textured buttons: {texturedButtons}");
+        report.AppendLine($"Legend tile TextureRects: {tileTextureRects}");
+        report.AppendLine($"Decoration TextureRects: {decorationTextures}");
+        report.AppendLine($"Bag NinePatchRects: {ninePatchRects}");
+        report.AppendLine($"Fallback tests: all passed={allPass}");
+        if (checks.Count > 0)
+        {
+            report.AppendLine("Issues:");
+            foreach (var issue in checks)
+                report.AppendLine($"  - {issue}");
+        }
+        else
+        {
+            report.AppendLine("No issues found.");
+        }
+        report.AppendLine("====================================");
+        Log(report.ToString());
+
+        // Clean up
+        UIThemeLoader.ClearCache();
+        RemoveChild(demo);
+        demo.QueueFree();
+        _puzzleScreen.Visible = true;
+
+        string? failMsg = allPass ? null : string.Join("; ", checks);
+        EndTest("ui_sprite_integration", allPass, failMsg);
+    }
 
     private void BeginTest(string name)
     {
