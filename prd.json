@@ -1808,7 +1808,7 @@
       "phase": "game-jam",
       "depends_on": [],
       "verification": "dotnet build. Click reagent -> info column shows profile. Click aspect -> aspect detail. Escape -> overview.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.4",
