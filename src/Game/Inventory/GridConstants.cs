@@ -42,7 +42,7 @@ public static class GridConstants
 
     // Bag border texture (NinePatchRect)
     public const int BagBorderPatchMargin = 24;
-    public const int BagBorderPadding = 4;
+    public const int BagBorderPadding = 0;
     public const float BagBorderTextureAlpha = 0.85f;
 
     // Cell mount overlay (always-visible frames on placed reagents)

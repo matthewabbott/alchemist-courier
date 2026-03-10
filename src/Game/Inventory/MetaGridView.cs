@@ -469,21 +469,37 @@ public partial class MetaGridView : Control
 
         float cs = GridConstants.CellSize;
         int pad = GridConstants.BagBorderPadding;
+        int margin = GridConstants.BagBorderPatchMargin;
+        float minPatchSize = margin * 2;
 
         float pixelX = minCol * cs - pad;
         float pixelY = minRow * cs - pad;
         float pixelW = (maxCol - minCol + 1) * cs + pad * 2;
         float pixelH = (maxRow - minRow + 1) * cs + pad * 2;
 
+        // Center-expand if bag area is smaller than NinePatch margins require
+        if (pixelW < minPatchSize)
+        {
+            float deficit = minPatchSize - pixelW;
+            pixelX -= deficit / 2f;
+            pixelW = minPatchSize;
+        }
+        if (pixelH < minPatchSize)
+        {
+            float deficit = minPatchSize - pixelH;
+            pixelY -= deficit / 2f;
+            pixelH = minPatchSize;
+        }
+
         var patch = new NinePatchRect
         {
             Texture = texture,
             Position = new Vector2(pixelX, pixelY),
             Size = new Vector2(pixelW, pixelH),
-            PatchMarginLeft = GridConstants.BagBorderPatchMargin,
-            PatchMarginRight = GridConstants.BagBorderPatchMargin,
-            PatchMarginTop = GridConstants.BagBorderPatchMargin,
-            PatchMarginBottom = GridConstants.BagBorderPatchMargin,
+            PatchMarginLeft = margin,
+            PatchMarginRight = margin,
+            PatchMarginTop = margin,
+            PatchMarginBottom = margin,
             AxisStretchHorizontal = NinePatchRect.AxisStretchMode.Tile,
             AxisStretchVertical = NinePatchRect.AxisStretchMode.Tile,
             Modulate = new Color(1f, 1f, 1f, GridConstants.BagBorderTextureAlpha),
