@@ -2075,7 +2075,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Panel borders look like thin hand-drawn lines, not beveled 3D edges. Borders are 1-3 fat pixels wide in warm brown/gold tones.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.9",

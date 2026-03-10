@@ -1218,3 +1218,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: b93a195
 - Notes: Wrapped InfoColumnManager views in a ScrollContainer so panels scroll instead of overflowing past the viewport. Changed SizeFlagsVertical from ShrinkBegin to ExpandFill so the column fills available height. Reduced unnecessary minimum heights: AspectLegendPanel 120→0, ViolationListPanel 80→0, AspectLegendEntry header 44→36, violation entry buttons 40→30. Tightened spacing (separation 10→4/8). All 812 unit tests and 44 integration tests pass.
+
+## VP.8 — Panel border style overhaul — hand-drawn not beveled
+- Date: 2026-03-10
+- Commit: 5f5d304
+- Notes: Overhauled UIThemeLoader.GetPanelStyleBox() to produce hand-drawn thin-line borders instead of thick beveled 3D edges. Three-tier approach: (1) parchment_bordered keeps StyleBoxTexture but with 8px margins (down from 16px), making the ornate border thinner; (2) parchment_plain switches to StyleBoxFlat with 2px warm brown/gold border (Color(0.55, 0.42, 0.25)) for a hand-drawn line feel; (3) dark_leather keeps StyleBoxTexture with 6px margins. Fallback now also uses the hand-drawn style. Added per-panel margin dictionary and flat-border panel set for clean extensibility. All 812 unit tests and 44 integration tests pass.

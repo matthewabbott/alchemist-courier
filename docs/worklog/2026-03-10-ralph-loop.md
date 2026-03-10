@@ -58,3 +58,7 @@ Commit: d134000
 ## VP.7: Constrain info column panel heights
 The info column sidebar (objective, aspects, violations) could overflow past the bottom of the viewport on shorter screens. Fixed by wrapping all three view modes inside a ScrollContainer that fills the available height, so content scrolls when it exceeds the viewport instead of clipping or overflowing. Also reduced excessive minimum heights and padding across the sub-panels — the aspect legend entry headers shrank from 44px to 36px, violation buttons from 40px to 30px, and the panel minimums were zeroed out so the layout is driven by actual content rather than hardcoded floors.
 Commit: b93a195
+
+## VP.8: Panel border style overhaul — hand-drawn not beveled
+The panel borders looked beveled and 3D due to 16px 9-patch margins on StyleBoxTexture. Overhauled UIThemeLoader.GetPanelStyleBox() with a three-tier approach: panels with decorative borders (parchment_bordered) keep their textures but with 8px margins so the ornate frame is thinner; plain panels (parchment_plain) now use StyleBoxFlat with a 2px warm brown/gold border line for a hand-drawn manuscript feel; and the dark leather tray uses 6px margins. The result is borders that are 2-3 fat pixels wide instead of thick beveled ridges — much closer to the illuminated manuscript aesthetic we're after.
+Commit: 5f5d304
