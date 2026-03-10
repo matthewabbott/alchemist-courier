@@ -27,3 +27,7 @@ Commit: 51aa125
 ## VP.2: Fix tray texture tiling (not stretching)
 Tiny but impactful fix — the dark_leather tray background was being stretched across its entire area instead of tiling. Two lines in UIThemeLoader.GetPanelStyleBox() to set AxisStretchHorizontal/Vertical to Tile on all panel StyleBoxTextures. The leather pattern will now repeat naturally across the tray width instead of being distorted into a single smeared image.
 Commit: 3da3887
+
+## VP.3: Scale up aspect tiles everywhere to 32x32
+The aspect tile sprites (32x32 source PNGs) were being rendered at various tiny sizes — 16x16 in the legend, 14x14 in the status bar, 12x12 in reagent detail, 18x18 in aspect detail. All now display at their native 32x32 resolution. The InfoColumnManager aspect detail header was also refactored from a plain ColorRect to a TextureRect loading the actual aspect tile via UIThemeLoader, with ColorRect fallback. Every TextureRect uses TextureFilter=Nearest for crisp pixel art at 1x scale — no blurry non-integer scaling.
+Commit: a9665c8

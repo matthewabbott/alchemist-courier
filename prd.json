@@ -2021,7 +2021,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Aspect tiles display at 32x32 in legend, status bar, and detail views. No blurry scaling. TextureFilter = Nearest on all tile TextureRects.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.4",

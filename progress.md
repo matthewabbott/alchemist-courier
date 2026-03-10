@@ -1167,3 +1167,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 3da3887
 - Notes: Set AxisStretchHorizontal and AxisStretchVertical to StyleBoxTexture.AxisStretchMode.Tile in UIThemeLoader.GetPanelStyleBox(). This applies to all panel StyleBoxTextures (dark_leather tray, parchment panels) so the 9-patch center region tiles instead of stretching. Two-line change. All 811 tests pass.
+
+## VP.3 — Scale up aspect tiles everywhere to 32x32
+- Date: 2026-03-10
+- Commit: a9665c8
+- Notes: Scaled all aspect tile icons from their various small sizes to native 32x32. AspectLegendPanel icons from 16x16 to 32x32 (highlighted 18→34). StatusBarPanel BarHeight from 14 to 32 so tile icons display at native size. InfoColumnManager aspect detail header icon from 18x18 to 32x32 — also refactored to use TextureRect with UIThemeLoader.GetAspectTileTexture() fallback to ColorRect (was always ColorRect before). Reagent detail aspect icons from 12x12 to 32x32 with same TextureRect+fallback pattern. All TextureRects use TextureFilter=Nearest for crisp pixel art. All 811 tests pass.
