@@ -62,3 +62,7 @@ Commit: b93a195
 ## VP.8: Panel border style overhaul — hand-drawn not beveled
 The panel borders looked beveled and 3D due to 16px 9-patch margins on StyleBoxTexture. Overhauled UIThemeLoader.GetPanelStyleBox() with a three-tier approach: panels with decorative borders (parchment_bordered) keep their textures but with 8px margins so the ornate frame is thinner; plain panels (parchment_plain) now use StyleBoxFlat with a 2px warm brown/gold border line for a hand-drawn manuscript feel; and the dark leather tray uses 6px margins. The result is borders that are 2-3 fat pixels wide instead of thick beveled ridges — much closer to the illuminated manuscript aesthetic we're after.
 Commit: 5f5d304
+
+## Code Review (VP.6–VP.8)
+Reviewed VP.6 through VP.8 commits. Found and fixed two P1 bugs: a QueueFree race in InfoColumnManager.RebuildAspectIcon (old+new icon children briefly coexist) and an unguarded timer callback in AspectLegendPanel.Flash that could fire on a freed node during scene transitions. Also identified a P2 DRY violation — the aspect aggregation loop is copy-pasted across 4 UI panel files — and created task R2 to extract it. Build and 812 unit tests pass.
+Commit: 833daba
