@@ -2055,7 +2055,7 @@
         "VP.4"
       ],
       "verification": "No colored rectangles remain for aspect display anywhere. All previews (tray, detail, profile, ghost) show aspect tile sprites.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.7",

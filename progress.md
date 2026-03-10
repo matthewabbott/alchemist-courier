@@ -1207,4 +1207,9 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 ## Code Review — 2026-03-10c
 - Reviewed commits: f69a18a..609f68c (VP.4 integration tests, VP.5 bag border fix)
 - Findings: 0 (P0: 0, P1: 0, P2: 0)
+
+## VP.6 — Wire aspect tiles into ALL remaining colored-square locations
+- Date: 2026-03-10
+- Commit: d134000
+- Notes: Replaced colored rectangles with aspect tile textures in 4 remaining locations: ShapePreview (8px tray items), DetailShapePreview (16px detail/tooltip panels), ProfileShapePreview (24px profile panels), and ghost overlay (32px placement preview). All three shape preview classes now use DrawTextureRect() in their _Draw() methods when UIThemeLoader.GetAspectTileTexture() returns a texture, falling back to colored rectangles when none exists. Ghost overlay adds semi-transparent (alpha 0.7) TextureRect nodes on top of the ghost ColorRects. Also upgraded profile aspect breakdown icons from 12px ColorRect to 16px via UIThemeLoader.CreateAspectIcon(). All 812 tests pass.
 - Fixed: 0, Tasks created: 0

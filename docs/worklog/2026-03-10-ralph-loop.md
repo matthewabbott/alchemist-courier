@@ -50,3 +50,7 @@ Commit: 01195bc
 
 ## Code Review (Deslop)
 Reviewed VP.4 integration tests and VP.5 bag border fix (f69a18a..609f68c). All clean — no P0-P2 issues. NinePatch clamping logic is well-written defensive code. Test duplication between aspect_tiles and cell_mount tests is acceptable under DAMP/Rule-of-Three. 812 unit tests pass, build clean.
+
+## VP.6: Wire aspect tiles into ALL remaining colored-square locations
+Completed the "tile everywhere" pass. Three shape preview classes (ShapePreview 8px, DetailShapePreview 16px, ProfileShapePreview 24px) all used DrawRect with aspect colors — now they use DrawTextureRect with UIThemeLoader.GetAspectTileTexture() when tiles are available, falling back to colored rectangles when not. The ghost overlay during placement now overlays semi-transparent aspect tiles on top of the tinted ghost ColorRects, so the preview matches what the placed reagent will look like. Also bumped the profile panel's aspect breakdown icons from 12px ColorRect to 16px using UIThemeLoader.CreateAspectIcon(). Clean refactor touching 4 files, all with the same pattern.
+Commit: d134000
