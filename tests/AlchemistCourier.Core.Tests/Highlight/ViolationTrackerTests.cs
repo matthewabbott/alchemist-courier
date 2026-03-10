@@ -148,6 +148,42 @@ public class ViolationTrackerTests
         Assert.DoesNotContain(violations, v => v.Type == ViolationType.VolatileExplosion);
     }
 
+    [Fact]
+    public void ComputeAll_VolatileAdjacentToHotAndCold_NetHotZero_NoExplosion()
+    {
+        // Hot(1) + Cold(1) adjacent to Volatile → netHot = 0 → no explosion
+        var hot = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var cold = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatile_ = MakeSingleCellReagent("vol1", Aspect.FromId(AspectIds.Volatile));
+
+        var grid = SetupGrid(3, 1,
+            (hot, new Vector2I(0, 0)),
+            (volatile_, new Vector2I(1, 0)),
+            (cold, new Vector2I(2, 0)));
+
+        var violations = ViolationTracker.ComputeAll(grid, AllRules);
+        Assert.DoesNotContain(violations, v => v.Type == ViolationType.VolatileExplosion);
+    }
+
+    [Fact]
+    public void ComputeAll_VolatileAdjacentToTwoHotOneCold_NetHotPositive_Explosion()
+    {
+        // Hot(1) + Hot(1) + Cold(1) adjacent to Volatile → netHot = 1 → explosion
+        var hot1 = MakeSingleCellReagent("hot1", Aspect.Hot());
+        var hot2 = MakeSingleCellReagent("hot2", Aspect.Hot());
+        var cold = MakeSingleCellReagent("cold1", Aspect.Cold());
+        var volatile_ = MakeSingleCellReagent("vol1", Aspect.FromId(AspectIds.Volatile));
+
+        var grid = SetupGrid(3, 3,
+            (hot1, new Vector2I(1, 0)),
+            (volatile_, new Vector2I(1, 1)),
+            (cold, new Vector2I(0, 1)),
+            (hot2, new Vector2I(2, 1)));
+
+        var violations = ViolationTracker.ComputeAll(grid, AllRules);
+        Assert.Contains(violations, v => v.Type == ViolationType.VolatileExplosion);
+    }
+
     // --- Fragile piercing ---
 
     [Fact]

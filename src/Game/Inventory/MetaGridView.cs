@@ -909,7 +909,7 @@ public partial class MetaGridView : Control
         else if (_reactionRules != null && _reactionRules.Count > 0)
         {
             var reactions = ChemistryEngine.EvaluateProspective(
-                _metaGrid, _selectedReagent, _hoverGridPos.Value, _reactionRules);
+                _metaGrid, _selectedReagent, effectivePos, _reactionRules);
 
             if (reactions.Count > 0)
             {
