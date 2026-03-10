@@ -415,6 +415,9 @@ public partial class WebDemoScreen : Control
         _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
         _gridView.RejectionFlash += OnRejectionFlash;
         _gridView.PlacedReagentClicked += OnPlacedReagentClicked;
+        _gridView.BagSelected += OnBagSelected;
+        _gridView.BagMoved += OnBagMoved;
+        _gridView.BagRotated += OnBagRotated;
         _infoColumnManager.LegendPanel.AspectSelected += OnLegendAspectSelected;
         _infoColumnManager.ViolationPanel.ViolationClicked += OnViolationClicked;
         _infoColumnManager.BackPressed += OnInfoColumnBack;
@@ -500,6 +503,34 @@ public partial class WebDemoScreen : Control
         if (reagent == null || !reagent.PlacedPosition.HasValue) return;
 
         _infoColumnManager.ShowReagentDetail(reagent);
+    }
+
+    private void OnBagSelected()
+    {
+        var bag = _gridView.SelectedBag;
+        if (bag != null)
+        {
+            ClearSelectionState();
+            UpdateStatus("Bag selected. Click+drag to move, right-click to rotate, Esc to deselect.");
+        }
+        else
+        {
+            UpdateStatus("Select a reagent from the tray.");
+        }
+    }
+
+    private void OnBagMoved()
+    {
+        RefreshAfterGridChange();
+        _reagentTray.RefreshDisplay();
+        UpdateStatus("Bag moved. Reagents carried along.");
+    }
+
+    private void OnBagRotated()
+    {
+        RefreshAfterGridChange();
+        _reagentTray.RefreshDisplay();
+        UpdateStatus("Bag rotated.");
     }
 
     private void OnLegendAspectSelected(string aspectId)

@@ -271,6 +271,27 @@ public class MetaGrid
     }
 
     /// <summary>
+    /// Check whether a bag can be moved to a new origin (validation only, no mutation).
+    /// </summary>
+    public bool CanMoveBag(Bag bag, Vector2I newOrigin)
+    {
+        if (!_placedBags.Contains(bag))
+            return false;
+
+        var newPositions = bag.GetMetaGridPositions(newOrigin);
+        foreach (var pos in newPositions)
+        {
+            if (!IsInBounds(pos))
+                return false;
+
+            var cell = GetCell(pos)!;
+            if (cell.IsInBag && cell.BagOwner != bag)
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>
     /// Rotate a bag 90 degrees clockwise in place. The bag stays at the same origin
     /// but its shape rotates, changing which cells it covers.
     /// Validates that the rotated position is in-bounds and does not overlap other bags.

@@ -103,6 +103,13 @@ public partial class MetaGridView : Control
     private const float TooltipDuration = 2.0f;
     private const float FlashDuration = 0.3f;
 
+    // Bag selection / movement state
+    private Bag? _selectedBag;
+    private bool _isDraggingBag;
+    private CoreVec? _bagDragStartGridPos;
+    private readonly List<ColorRect> _bagGhostCells = new();
+    private readonly List<ColorRect> _selectedBagBorders = new();
+
     [Signal]
     public delegate void ReagentPlacedEventHandler();
 
@@ -117,6 +124,15 @@ public partial class MetaGridView : Control
 
     [Signal]
     public delegate void PlacedReagentClickedEventHandler();
+
+    [Signal]
+    public delegate void BagSelectedEventHandler();
+
+    [Signal]
+    public delegate void BagMovedEventHandler();
+
+    [Signal]
+    public delegate void BagRotatedEventHandler();
 
     public void Initialize(MetaGrid metaGrid)
     {
@@ -227,6 +243,9 @@ public partial class MetaGridView : Control
     {
         _actionHistory = history;
     }
+
+    /// <summary>The currently selected bag (for testing and info column).</summary>
+    public Bag? SelectedBag => _selectedBag;
 
     /// <summary>Last rejection tooltip reason text (for testing).</summary>
     public string? LastRejectionReason => _lastRejectionReason;
@@ -367,6 +386,9 @@ public partial class MetaGridView : Control
 
         // Update damage indicators (fragile + volatile explosion)
         UpdateDamageOverlay();
+
+        // Update selected bag highlight borders
+        UpdateSelectedBagBorders();
 
         // Trigger _Draw() for gravity arrows
         QueueRedraw();
@@ -735,6 +757,9 @@ public partial class MetaGridView : Control
         }
         else
         {
+            // Bag and reagent selection are mutually exclusive
+            if (_selectedBag != null)
+                DeselectBag();
             // Hide hover frame when a reagent is selected for placement
             _hoverFrameOverlay.HideFrame();
             UpdateGhostPreview();
@@ -778,12 +803,17 @@ public partial class MetaGridView : Control
             UpdateGhostPreview();
             _hoverDebounce?.OnMouseEntered();
             UpdateHoveredReagent(gridPos);
+
+            // Update bag ghost preview during drag
+            if (_isDraggingBag)
+                UpdateBagGhostPreview();
         }
         else if (_mouseInsideGrid)
         {
             _mouseInsideGrid = false;
             _hoverGridPos = null;
             ClearGhost();
+            ClearBagGhost();
             if (_hoverDebounce != null)
             {
                 // Debounced: delay clearing hovered reagent
@@ -830,10 +860,23 @@ public partial class MetaGridView : Control
 
         if (mouseBtn.ButtonIndex == MouseButton.Left)
         {
+            // Bag interaction takes priority when a bag is selected or dragging
+            if (_selectedBag != null)
+            {
+                HandleBagLeftClick();
+                return;
+            }
             HandleLeftClick();
         }
         else if (mouseBtn.ButtonIndex == MouseButton.Right)
         {
+            // Bag right-click: rotate selected bag
+            if (_selectedBag != null)
+            {
+                HandleBagRightClick();
+                return;
+            }
+
             if (_selectedReagent != null)
             {
                 _selectedReagent.RotateClockwise();
@@ -869,17 +912,28 @@ public partial class MetaGridView : Control
 
     private void HandleKeyPress(InputEventKey key)
     {
+        if (key.Keycode == Key.Escape)
+        {
+            if (_selectedBag != null)
+            {
+                DeselectBag();
+                return;
+            }
+            if (_selectedReagent != null)
+            {
+                _selectedReagent = null;
+                ClearGhost();
+                return;
+            }
+            return;
+        }
+
         if (_selectedReagent == null) return;
 
         if (key.Keycode == Key.R)
         {
             _selectedReagent.RotateClockwise();
             UpdateGhostPreview();
-        }
-        else if (key.Keycode == Key.Escape)
-        {
-            _selectedReagent = null;
-            ClearGhost();
         }
     }
 
@@ -1009,7 +1063,18 @@ public partial class MetaGridView : Control
             // Left-click on a placed reagent with nothing selected → emit signal
             var clickedReagent = _metaGrid.GetReagentAtCell(_hoverGridPos.Value);
             if (clickedReagent != null)
+            {
                 EmitSignal(SignalName.PlacedReagentClicked);
+                return;
+            }
+
+            // Left-click on an empty bag cell → select the bag
+            var cell = _metaGrid.GetCell(_hoverGridPos.Value);
+            if (cell != null && cell.IsInBag && !cell.IsOccupied)
+            {
+                SelectBag((Bag)cell.BagOwner!);
+                return;
+            }
             return;
         }
 
@@ -1192,5 +1257,194 @@ public partial class MetaGridView : Control
         }
         _ghostCells.Clear();
         _highlightOverlay.Clear();
+    }
+
+    // --- Bag selection / movement ---
+
+    /// <summary>Programmatically select a bag (or null to deselect).</summary>
+    public void SelectBag(Bag? bag)
+    {
+        if (_selectedBag == bag) return;
+
+        _selectedBag = bag;
+        _isDraggingBag = false;
+        _bagDragStartGridPos = null;
+        ClearBagGhost();
+        UpdateSelectedBagBorders();
+        EmitSignal(SignalName.BagSelected);
+    }
+
+    /// <summary>Deselect the currently selected bag.</summary>
+    public void DeselectBag()
+    {
+        if (_selectedBag == null) return;
+        _selectedBag = null;
+        _isDraggingBag = false;
+        _bagDragStartGridPos = null;
+        ClearBagGhost();
+        ClearSelectedBagBorders();
+        EmitSignal(SignalName.BagSelected);
+    }
+
+    private void ClearBagGhost()
+    {
+        foreach (var ghost in _bagGhostCells)
+            ghost.QueueFree();
+        _bagGhostCells.Clear();
+    }
+
+    private void ClearSelectedBagBorders()
+    {
+        foreach (var border in _selectedBagBorders)
+            border.QueueFree();
+        _selectedBagBorders.Clear();
+    }
+
+    private void UpdateSelectedBagBorders()
+    {
+        ClearSelectedBagBorders();
+        if (_selectedBag == null || !_selectedBag.IsPlaced) return;
+
+        var positions = new HashSet<CoreVec>();
+        foreach (var pos in _selectedBag.GetMetaGridPositions(_selectedBag.PositionOnMetaGrid!.Value))
+            positions.Add(pos);
+
+        foreach (var pos in positions)
+        {
+            var pixelPos = GridCoordinates.GridToPixel(pos);
+            foreach (var dir in CoreVec.CardinalDirections)
+            {
+                var neighborPos = pos + dir;
+                bool isBoundary = !positions.Contains(neighborPos);
+                if (!isBoundary) continue;
+
+                var border = CreateBorderRectWithStyle(
+                    pixelPos, dir, GridConstants.SelectedBagBorderWidth, GridConstants.SelectedBagBorderColor);
+                border.ZIndex = 6;
+                AddChild(border);
+                _selectedBagBorders.Add(border);
+            }
+        }
+    }
+
+    private void UpdateBagGhostPreview()
+    {
+        ClearBagGhost();
+        if (_selectedBag == null || !_isDraggingBag || _hoverGridPos == null) return;
+
+        // Compute the new bag origin based on the drag delta
+        var newOrigin = ComputeBagDragOrigin();
+        if (newOrigin == null) return;
+
+        var positions = _selectedBag.GetMetaGridPositions(newOrigin.Value);
+
+        // Check if this move would be valid
+        bool valid = _metaGrid.CanMoveBag(_selectedBag, newOrigin.Value);
+        var ghostColor = valid ? GridConstants.BagGhostValid : GridConstants.BagGhostInvalid;
+
+        foreach (var pos in positions)
+        {
+            if (!_metaGrid.IsInBounds(pos)) continue;
+            var pixelPos = GridCoordinates.GridToPixel(pos);
+            var ghost = new ColorRect
+            {
+                Position = pixelPos,
+                Size = new Vector2(GridConstants.CellSize, GridConstants.CellSize),
+                Color = ghostColor,
+                ZIndex = 3,
+                MouseFilter = MouseFilterEnum.Ignore,
+            };
+            AddChild(ghost);
+            _bagGhostCells.Add(ghost);
+        }
+    }
+
+    private CoreVec? ComputeBagDragOrigin()
+    {
+        if (_selectedBag == null || _bagDragStartGridPos == null || _hoverGridPos == null) return null;
+        var origin = _selectedBag.PositionOnMetaGrid!.Value;
+        var delta = _hoverGridPos.Value - _bagDragStartGridPos.Value;
+        return origin + delta;
+    }
+
+    private void HandleBagLeftClick()
+    {
+        if (_selectedBag == null || _hoverGridPos == null) return;
+
+        if (_isDraggingBag)
+        {
+            // Release drag — attempt to move the bag
+            var newOrigin = ComputeBagDragOrigin();
+            if (newOrigin != null && newOrigin.Value != _selectedBag.PositionOnMetaGrid!.Value)
+            {
+                if (_metaGrid.MoveBag(_selectedBag, newOrigin.Value))
+                {
+                    _isDraggingBag = false;
+                    _bagDragStartGridPos = null;
+                    ClearBagGhost();
+                    RefreshDisplay();
+                    UpdateSelectedBagBorders();
+                    EmitSignal(SignalName.BagMoved);
+                    return;
+                }
+                else
+                {
+                    ShowRejectionTooltip("Cannot move bag here", _hoverGridPos.Value);
+                }
+            }
+
+            // Cancel drag on same-position click or invalid move
+            _isDraggingBag = false;
+            _bagDragStartGridPos = null;
+            ClearBagGhost();
+            return;
+        }
+
+        // Check if clicking on the selected bag to start dragging
+        var cell = _metaGrid.GetCell(_hoverGridPos.Value);
+        if (cell != null && cell.IsInBag && cell.BagOwner == _selectedBag)
+        {
+            _isDraggingBag = true;
+            _bagDragStartGridPos = _hoverGridPos.Value;
+            return;
+        }
+
+        // Clicking outside the selected bag — check if selecting a different bag
+        if (cell != null && cell.IsInBag && !cell.IsOccupied)
+        {
+            var bag = (Bag)cell.BagOwner!;
+            SelectBag(bag);
+            return;
+        }
+
+        // Clicking on a reagent or outside any bag — deselect
+        DeselectBag();
+    }
+
+    private void HandleBagRightClick()
+    {
+        if (_selectedBag == null) return;
+
+        // Cancel drag if active
+        if (_isDraggingBag)
+        {
+            _isDraggingBag = false;
+            _bagDragStartGridPos = null;
+            ClearBagGhost();
+            return;
+        }
+
+        // Rotate the selected bag
+        if (_metaGrid.RotateBag(_selectedBag))
+        {
+            RefreshDisplay();
+            UpdateSelectedBagBorders();
+            EmitSignal(SignalName.BagRotated);
+        }
+        else
+        {
+            if (_hoverGridPos != null)
+                ShowRejectionTooltip("Cannot rotate bag", _hoverGridPos.Value);
+        }
     }
 }

@@ -29,6 +29,12 @@ public static class GridConstants
     // Locked reagent indicator
     public static readonly Color LockedBorderColor = new(0.7f, 0.6f, 0.3f);
 
+    // Bag selection / movement
+    public static readonly Color SelectedBagBorderColor = new(0.4f, 0.85f, 0.95f);
+    public const int SelectedBagBorderWidth = 3;
+    public static readonly Color BagGhostValid = new(0.3f, 0.7f, 0.95f, 0.35f);
+    public static readonly Color BagGhostInvalid = new(0.8f, 0.2f, 0.2f, 0.35f);
+
     // Hover debounce & floating tooltips
     public const float HoverDebounceDelay = 0.25f;
     public const float TooltipFadeInDuration = 0.15f;
