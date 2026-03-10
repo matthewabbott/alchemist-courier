@@ -28,9 +28,7 @@ public partial class WebDemoScreen : Control
     private MetaGridView _gridView = null!;
     private ReagentTray _reagentTray = null!;
     private StatusBarPanel _statusBar = null!;
-    private ObjectivePanel _objectivePanel = null!;
-    private AspectLegendPanel _legendPanel = null!;
-    private ViolationListPanel _violationPanel = null!;
+    private InfoColumnManager _infoColumnManager = null!;
     private Label _statusLabel = null!;
     private Button _confirmButton = null!;
     private Button _resetButton = null!;
@@ -44,14 +42,12 @@ public partial class WebDemoScreen : Control
     private HintState _hintState = new HintState(0);
     private PuzzleType _puzzleType = PuzzleType.FitAllSafely;
 
-    // Floating tooltips and popups (web demo specific)
+    // Floating tooltips (web demo specific)
     private FloatingDetailTooltip _detailTooltip = null!;
     private FloatingAspectTooltip _aspectTooltip = null!;
-    private ReagentProfilePanel _profilePanel = null!;
     private Control _tooltipLayer = null!;
 
     // Responsive layout
-    private VBoxContainer _infoColumn = null!;
     private Control _infoSpacer = null!;
     private Label _violationBadge = null!;
 
@@ -65,16 +61,15 @@ public partial class WebDemoScreen : Control
     public MetaGridView GridView => _gridView;
     public ReagentTray ReagentTray => _reagentTray;
     public StatusBarPanel StatusBar => _statusBar;
-    public ObjectivePanel Objective => _objectivePanel;
-    public AspectLegendPanel LegendPanel => _legendPanel;
-    public ViolationListPanel ViolationPanel => _violationPanel;
+    public ObjectivePanel Objective => _infoColumnManager.ObjectivePanel;
+    public AspectLegendPanel LegendPanel => _infoColumnManager.LegendPanel;
+    public ViolationListPanel ViolationPanel => _infoColumnManager.ViolationPanel;
     public ResultOverlayPanel ResultOverlay => _resultOverlay;
     public MetaGrid Grid => _metaGrid;
     public IReadOnlyList<Reagent> TrayReagents => _trayReagents.AsReadOnly();
     public FloatingDetailTooltip DetailTooltip => _detailTooltip;
     public FloatingAspectTooltip AspectTooltip => _aspectTooltip;
-    public ReagentProfilePanel ProfilePanel => _profilePanel;
-    public VBoxContainer InfoColumn => _infoColumn;
+    public InfoColumnManager InfoColumn => _infoColumnManager;
 
     public override void _Ready()
     {
@@ -237,26 +232,13 @@ public partial class WebDemoScreen : Control
 
     private void BuildInfoColumn(HBoxContainer parent)
     {
-        _infoColumn = new VBoxContainer();
-        _infoColumn.SizeFlagsVertical = SizeFlags.ShrinkBegin;
-        _infoColumn.AddThemeConstantOverride("separation", 10);
-        _infoColumn.CustomMinimumSize = new Vector2(160, 0);
-        parent.AddChild(_infoColumn);
-
-        // Objective
-        _objectivePanel = new ObjectivePanel();
-        _objectivePanel.Initialize(_puzzleType);
-        _infoColumn.AddChild(_objectivePanel);
-
-        // Compact aspect legend (hover triggers floating tooltip, no inline expand)
-        _legendPanel = new AspectLegendPanel();
-        _legendPanel.SetPuzzleContext(ReactionRuleDatabase.GetMvpRules(), _trayReagents);
-        _infoColumn.AddChild(_legendPanel);
-
-        // Live violation list
-        _violationPanel = new ViolationListPanel();
-        _violationPanel.Initialize(_metaGrid, ReactionRuleDatabase.GetMvpRules());
-        _infoColumn.AddChild(_violationPanel);
+        _infoColumnManager = new InfoColumnManager();
+        _infoColumnManager.Initialize(
+            _puzzleType,
+            _metaGrid,
+            ReactionRuleDatabase.GetMvpRules(),
+            _trayReagents);
+        parent.AddChild(_infoColumnManager);
     }
 
     private void BuildTrayStrip(VBoxContainer parent)
@@ -335,9 +317,6 @@ public partial class WebDemoScreen : Control
         _aspectTooltip = new FloatingAspectTooltip();
         _aspectTooltip.SetReactionRules(ReactionRuleDatabase.GetMvpRules());
         _tooltipLayer.AddChild(_aspectTooltip);
-
-        _profilePanel = new ReagentProfilePanel();
-        _tooltipLayer.AddChild(_profilePanel);
     }
 
     private void BuildViolationBadge()
@@ -377,34 +356,34 @@ public partial class WebDemoScreen : Control
         if (width >= 1280)
         {
             // Standard layout: info column at full width
-            _infoColumn.Visible = true;
+            _infoColumnManager.Visible = true;
             _infoSpacer.Visible = true;
-            _infoColumn.CustomMinimumSize = new Vector2(160, 0);
-            _legendPanel.SetCompactMode(false);
+            _infoColumnManager.CustomMinimumSize = new Vector2(160, 0);
+            _infoColumnManager.LegendPanel.SetCompactMode(false);
             _violationBadge.Visible = false;
         }
         else if (width >= 800)
         {
             // Narrower: info column shrinks, legend goes compact
-            _infoColumn.Visible = true;
+            _infoColumnManager.Visible = true;
             _infoSpacer.Visible = true;
-            _infoColumn.CustomMinimumSize = new Vector2(140, 0);
-            _legendPanel.SetCompactMode(true);
+            _infoColumnManager.CustomMinimumSize = new Vector2(140, 0);
+            _infoColumnManager.LegendPanel.SetCompactMode(true);
             _violationBadge.Visible = false;
         }
         else
         {
             // Narrow: info column hidden, violation badge on grid corner
-            _infoColumn.Visible = false;
+            _infoColumnManager.Visible = false;
             _infoSpacer.Visible = false;
-            _legendPanel.SetCompactMode(true);
+            _infoColumnManager.LegendPanel.SetCompactMode(true);
             UpdateViolationBadge();
         }
     }
 
     private void UpdateViolationBadge()
     {
-        var violations = _violationPanel.CurrentViolations;
+        var violations = _infoColumnManager.ViolationPanel.CurrentViolations;
         int count = violations.Count;
         if (count > 0)
         {
@@ -436,8 +415,9 @@ public partial class WebDemoScreen : Control
         _gridView.HoveredReagentChanged += OnGridHoveredReagentChanged;
         _gridView.RejectionFlash += OnRejectionFlash;
         _gridView.PlacedReagentClicked += OnPlacedReagentClicked;
-        _legendPanel.AspectSelected += OnLegendAspectSelected;
-        _violationPanel.ViolationClicked += OnViolationClicked;
+        _infoColumnManager.LegendPanel.AspectSelected += OnLegendAspectSelected;
+        _infoColumnManager.ViolationPanel.ViolationClicked += OnViolationClicked;
+        _infoColumnManager.BackPressed += OnInfoColumnBack;
     }
 
     private void OnReagentSelected(int index)
@@ -450,10 +430,8 @@ public partial class WebDemoScreen : Control
         _reagentTray.HighlightIndex(index);
         _detailTooltip.ForceHide();
 
-        // Show profile panel near the tray item
-        var trayRect = _reagentTray.GetGlobalRect();
-        var anchorPos = new Vector2(trayRect.Position.X + index * 90, trayRect.Position.Y - 10);
-        _profilePanel.ShowForReagent(_selectedReagent, anchorPos);
+        // Show reagent detail in the info column
+        _infoColumnManager.ShowReagentDetail(_selectedReagent);
 
         UpdateStatus($"Placing: {_selectedReagent.Definition.Name}  |  R = rotate  |  Click = place  |  Esc = cancel");
     }
@@ -507,12 +485,12 @@ public partial class WebDemoScreen : Control
             foreach (var pos in reagent.GetLocalCellPositions())
                 foreach (var aspect in reagent.GetAspectsAtLocalPosition(pos).Aspects)
                     aspectIds.Add(aspect.Id);
-            _legendPanel.HighlightAspects(aspectIds);
+            _infoColumnManager.LegendPanel.HighlightAspects(aspectIds);
         }
         else
         {
             _detailTooltip.ShowForReagent(null, Vector2.Zero);
-            _legendPanel.ClearHighlight();
+            _infoColumnManager.LegendPanel.ClearHighlight();
         }
     }
 
@@ -521,12 +499,7 @@ public partial class WebDemoScreen : Control
         var reagent = _gridView.HoveredPlacedReagent;
         if (reagent == null || !reagent.PlacedPosition.HasValue) return;
 
-        var pixelPos = GridCoordinates.GridToPixel(reagent.PlacedPosition.Value);
-        var gridGlobalPos = _gridView.GlobalPosition;
-        var shape = reagent.GetRotatedShape();
-        var anchorX = gridGlobalPos.X + pixelPos.X + shape.GetLength(1) * GridConstants.CellSize + 8;
-        var anchorY = gridGlobalPos.Y + pixelPos.Y;
-        _profilePanel.ShowForReagent(reagent, new Vector2(anchorX, anchorY));
+        _infoColumnManager.ShowReagentDetail(reagent);
     }
 
     private void OnLegendAspectSelected(string aspectId)
@@ -547,10 +520,26 @@ public partial class WebDemoScreen : Control
             var highlights = HighlightEngine.ComputeLegendHighlights(_metaGrid, aspectId);
             _gridView.SetHighlights(highlights);
 
-            // Show aspect tooltip near the legend panel
-            var legendPos = _legendPanel.GlobalPosition;
-            _aspectTooltip.ShowForAspect(aspectId, new Vector2(legendPos.X - 230, legendPos.Y));
+            // Show aspect detail in the info column
+            _infoColumnManager.ShowAspectDetail(aspectId);
         }
+    }
+
+    private void OnInfoColumnBack()
+    {
+        ClearLegendAndViolationState();
+    }
+
+    private void ClearLegendAndViolationState()
+    {
+        if (_legendSelectedAspect != null)
+        {
+            _legendSelectedAspect = null;
+            _gridView.SetHighlights(new HighlightSet());
+            _aspectTooltip.ForceHide();
+        }
+        if (_selectedViolationIndex >= 0)
+            ClearViolationHighlight();
     }
 
     private void OnViolationClicked(int violationIndex)
@@ -562,7 +551,7 @@ public partial class WebDemoScreen : Control
             return;
         }
 
-        var violations = _violationPanel.CurrentViolations;
+        var violations = _infoColumnManager.ViolationPanel.CurrentViolations;
         if (violationIndex < 0 || violationIndex >= violations.Count)
             return;
 
@@ -605,7 +594,7 @@ public partial class WebDemoScreen : Control
 
     private void OnRejectionFlash(string aspectId)
     {
-        _legendPanel.FlashAspect(aspectId);
+        _infoColumnManager.LegendPanel.FlashAspect(aspectId);
     }
 
     // --- Actions ---
@@ -616,7 +605,6 @@ public partial class WebDemoScreen : Control
         _selectedIndex = -1;
         _gridView.SetSelectedReagent(null);
         _reagentTray.ClearSelection();
-        _profilePanel.HideProfile();
     }
 
     private void OnConfirmPressed()
@@ -719,9 +707,10 @@ public partial class WebDemoScreen : Control
     {
         if (@event is InputEventKey { Pressed: true, Keycode: Key.Escape })
         {
-            if (_profilePanel.IsShowing)
+            if (!_infoColumnManager.IsShowingOverview)
             {
-                _profilePanel.HideProfile();
+                _infoColumnManager.ShowDefault();
+                ClearLegendAndViolationState();
                 GetViewport().SetInputAsHandled();
             }
             else if (_selectedViolationIndex >= 0)
@@ -748,8 +737,8 @@ public partial class WebDemoScreen : Control
         _reagentTray.RefreshDisplay();
         UpdateUndoRedoButtons();
         UpdateStatusThresholds();
-        _violationPanel.Refresh();
-        if (!_infoColumn.Visible)
+        _infoColumnManager.ViolationPanel.Refresh();
+        if (!_infoColumnManager.Visible)
             UpdateViolationBadge();
     }
 

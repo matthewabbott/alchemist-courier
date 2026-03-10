@@ -2346,22 +2346,17 @@ public partial class TestHarness : Control
 
         await CaptureScreenshot("46_web_demo_layout.png");
 
-        // Profile panel: trigger reagent selection and verify
+        // Info column contextual view: trigger reagent selection and verify
         if (demo.TrayReagents.Count > 0)
         {
             demo.ReagentTray.EmitSignal(ReagentTray.SignalName.ReagentSelected, 0);
             await WaitFrames(3);
 
-            Check(demo.ProfilePanel.IsShowing, "ProfilePanel not showing after reagent selection");
-            if (demo.ProfilePanel.IsShowing)
-            {
-                Check(LayoutTestHelper.CheckMinSize(demo.ProfilePanel, 240, 100, out var rProfile), rProfile);
-            }
+            Check(!demo.InfoColumn.IsShowingOverview, "InfoColumn should show reagent detail after selection");
 
-            Log($"[STATE] profile_showing={demo.ProfilePanel.IsShowing} " +
-                $"profile_size={demo.ProfilePanel.GetRect().Size}");
+            Log($"[STATE] info_showing_overview={demo.InfoColumn.IsShowingOverview}");
 
-            await CaptureScreenshot("46b_web_demo_profile.png");
+            await CaptureScreenshot("46b_web_demo_reagent_detail.png");
         }
 
         // Clean up
