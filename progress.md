@@ -1103,3 +1103,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - New test: Test_GravityFallPlacement — verifies GJ.1 gravity soft constraint + PlaceReagentWithFall auto-drop + stacking
 - Coverage gaps: GJ.5-GJ.8, SI.1 (art pipeline) not feasible to test (gitignored assets). GJ.3 InfoColumnManager has partial coverage (view switching but not full nav flow). GO.3-GO.5 Core-only awaiting UI wiring.
 - Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.
+
+## SI.2 — Component Inspector Scene — isolated UI element preview
+- Date: 2026-03-09
+- Commit: f96277e
+- Notes: Created ComponentInspector tool (src/Game/Tools/ComponentInspector.cs + scenes/component_inspector.tscn) for isolated UI element preview. Features: OptionButton dropdown with 9 component types (HeaderPanel, Button, InfoPanel, AspectEntry, StatusBar, DecorationCorner, DecorationSeparator, DecorationSigil, BagFrame), CheckButton sprite/procedural toggle, centered rendering with generous margins. On launch, auto-cycles through all components taking screenshots via ScreenshotHelper to test_output/component_{name}.png. Structured stdout: [COMPONENT] name, [SPRITE_LOADED] true|false, [SCREENSHOT] path, [INSPECTOR_DONE]. Follows AssetPreview pattern with neutral background, toolbar, and scrollable content area. Renders panels via UIThemeLoader, buttons with state variants, aspect tiles at 48px, decorations at 128px, bag frames as NinePatchRect. All 811 tests pass.

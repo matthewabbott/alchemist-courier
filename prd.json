@@ -1900,7 +1900,7 @@
         "SI.1"
       ],
       "verification": "dotnet build. Run component_inspector scene — produces screenshots in test_output/ for each component type.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.3",
