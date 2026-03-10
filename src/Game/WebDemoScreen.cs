@@ -294,6 +294,16 @@ public partial class WebDemoScreen : Control
         _reagentTray.Initialize(_trayReagents);
         _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         trayScroll.AddChild(_reagentTray);
+
+        // Style the horizontal scrollbar to match Kit 01 aesthetic
+        var hBar = trayScroll.GetHScrollBar();
+        if (hBar != null)
+        {
+            hBar.AddThemeStyleboxOverride("scroll", UIThemeLoader.GetScrollbarTrackStyleBox());
+            hBar.AddThemeStyleboxOverride("grabber", UIThemeLoader.GetScrollbarGrabberStyleBox("normal"));
+            hBar.AddThemeStyleboxOverride("grabber_highlight", UIThemeLoader.GetScrollbarGrabberStyleBox("highlight"));
+            hBar.AddThemeStyleboxOverride("grabber_pressed", UIThemeLoader.GetScrollbarGrabberStyleBox("pressed"));
+        }
     }
 
     private void BuildButtonBar(VBoxContainer parent)
@@ -313,7 +323,7 @@ public partial class WebDemoScreen : Control
         _redoButton.Disabled = true;
         buttonBar.AddChild(_redoButton);
 
-        _confirmButton = CreateStyledButton("Confirm", new Color(0.25f, 0.5f, 0.3f));
+        _confirmButton = CreateStyledButton("Confirm", new Color(0.25f, 0.5f, 0.3f), alt: true);
         _confirmButton.Pressed += OnConfirmPressed;
         buttonBar.AddChild(_confirmButton);
 
@@ -873,28 +883,38 @@ public partial class WebDemoScreen : Control
 
     // --- Styled button (matches PuzzleScreen pattern) ---
 
-    private static Button CreateStyledButton(string text, Color bgColor)
+    private static Button CreateStyledButton(string text, Color bgColor, bool alt = false)
     {
         var button = new Button { Text = text };
         button.CustomMinimumSize = new Vector2(100, 44);
 
-        foreach (var (overrideName, color) in new[]
+        string prefix = alt ? "alt_" : "";
+        var normalStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}normal");
+        var hoverStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}hover");
+        var pressedStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}pressed");
+
+        button.AddThemeStyleboxOverride("normal", normalStyle);
+        button.AddThemeStyleboxOverride("hover", hoverStyle);
+        button.AddThemeStyleboxOverride("pressed", pressedStyle);
+
+        // Disabled: duplicate normal texture and desaturate, or fall back to flat
+        if (normalStyle is StyleBoxTexture normalTex)
         {
-            ("normal", bgColor),
-            ("hover", bgColor.Lightened(0.15f)),
-            ("pressed", bgColor.Darkened(0.15f)),
-            ("disabled", bgColor.Darkened(0.4f)),
-        })
+            var disabledStyle = (StyleBoxTexture)normalTex.Duplicate();
+            disabledStyle.ModulateColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
+            button.AddThemeStyleboxOverride("disabled", disabledStyle);
+        }
+        else
         {
-            var style = new StyleBoxFlat
+            var disabledStyle = new StyleBoxFlat
             {
-                BgColor = color,
+                BgColor = bgColor.Darkened(0.4f),
                 ContentMarginLeft = 12, ContentMarginRight = 12,
                 ContentMarginTop = 4, ContentMarginBottom = 4,
                 CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
                 CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
             };
-            button.AddThemeStyleboxOverride(overrideName, style);
+            button.AddThemeStyleboxOverride("disabled", disabledStyle);
         }
         button.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.45f, 0.45f));
         return button;

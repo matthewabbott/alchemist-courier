@@ -21,6 +21,8 @@ public static class UIThemeLoader
 
     private const int PanelMargin = 16;
     private const int ButtonMargin = 4;
+    private const int ButtonContentMarginH = 12;
+    private const int ButtonContentMarginV = 4;
 
     private static readonly Dictionary<string, StyleBox> _styleBoxCache = new();
     private static readonly Dictionary<string, Texture2D?> _textureCache = new();
@@ -97,6 +99,10 @@ public static class UIThemeLoader
                 styleBox.TextureMarginTop = ButtonMargin;
                 styleBox.TextureMarginRight = ButtonMargin;
                 styleBox.TextureMarginBottom = ButtonMargin;
+                styleBox.ContentMarginLeft = ButtonContentMarginH;
+                styleBox.ContentMarginRight = ButtonContentMarginH;
+                styleBox.ContentMarginTop = ButtonContentMarginV;
+                styleBox.ContentMarginBottom = ButtonContentMarginV;
                 _styleBoxCache[cacheKey] = styleBox;
                 return styleBox;
             }
@@ -142,6 +148,56 @@ public static class UIThemeLoader
         GD.PushWarning($"UIThemeLoader: {category} texture not found: {path}");
         _textureCache[cacheKey] = null;
         return null;
+    }
+
+    /// <summary>
+    /// Returns a StyleBox for the scrollbar grabber (thumb) matching the Kit 01 palette.
+    /// Uses a warm brown tone consistent with button textures.
+    /// </summary>
+    public static StyleBox GetScrollbarGrabberStyleBox(string state = "normal")
+    {
+        string cacheKey = $"scrollbar_grabber:{state}";
+        if (_styleBoxCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        var color = state switch
+        {
+            "highlight" => new Color(0.5f, 0.4f, 0.3f),
+            "pressed" => new Color(0.35f, 0.28f, 0.2f),
+            _ => new Color(0.42f, 0.34f, 0.25f),
+        };
+
+        var style = new StyleBoxFlat
+        {
+            BgColor = color,
+            CornerRadiusTopLeft = 2,
+            CornerRadiusTopRight = 2,
+            CornerRadiusBottomLeft = 2,
+            CornerRadiusBottomRight = 2,
+        };
+        _styleBoxCache[cacheKey] = style;
+        return style;
+    }
+
+    /// <summary>
+    /// Returns a StyleBox for the scrollbar track background.
+    /// </summary>
+    public static StyleBox GetScrollbarTrackStyleBox()
+    {
+        string cacheKey = "scrollbar_track";
+        if (_styleBoxCache.TryGetValue(cacheKey, out var cached))
+            return cached;
+
+        var style = new StyleBoxFlat
+        {
+            BgColor = new Color(0.15f, 0.12f, 0.1f, 0.6f),
+            CornerRadiusTopLeft = 2,
+            CornerRadiusTopRight = 2,
+            CornerRadiusBottomLeft = 2,
+            CornerRadiusBottomRight = 2,
+        };
+        _styleBoxCache[cacheKey] = style;
+        return style;
     }
 
     /// <summary>
