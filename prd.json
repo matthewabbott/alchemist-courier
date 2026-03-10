@@ -1991,7 +1991,7 @@
         "SI.5"
       ],
       "verification": "Web demo renders with all available textures. Fallback to procedural works cleanly (no errors). Component Inspector screenshots all clean.",
-      "status": "pending"
+      "status": "done"
     }
   ]
 }
