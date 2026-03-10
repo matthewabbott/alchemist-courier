@@ -1913,7 +1913,7 @@
         "SI.2"
       ],
       "verification": "dotnet build. Run component_inspector — panels show parchment/leather textures. Run web demo — header, info panels, and tray have textured backgrounds.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.4",

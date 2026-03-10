@@ -1113,3 +1113,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: eedb1e8..2fac7fd (SI.1, SI.2, gravity fall test, integration review)
 - Findings: 4 (P0: 0, P1: 0, P2: 1, P3: 0, P4: 3)
 - Fixed: 1 (DRY: UIThemeLoader 3 identical texture-loading methods → LoadTexture helper), Tasks created: 0
+
+## SI.3 — Panel background textures — parchment and leather
+- Date: 2026-03-09
+- Commit: 5206d04
+- Notes: Wired UIThemeLoader sprite textures as panel backgrounds across WebDemoScreen. Header uses parchment_bordered.png (ornate border frame), info column panels (ObjectivePanel, AspectLegendPanel, ViolationListPanel) use parchment_plain.png, reagent tray strip uses dark_leather.png via PanelContainer wrapper. Adjusted text colors throughout for readability on warm parchment backgrounds — headers and body text switched from light grays to dark brown/sepia tones. Dark leather tray retains existing light text. ObjectivePanel (VBoxContainer) wrapped in a PanelContainer in InfoColumnManager to receive the parchment texture. Net -20 lines (removed verbose StyleBoxFlat declarations replaced by single UIThemeLoader calls). All 811 tests pass.

@@ -37,3 +37,7 @@ Reviewed SI.1 (UIThemeLoader) and SI.2 (ComponentInspector) commits. Found one D
 ## SI.2: Component Inspector Scene — isolated UI element preview
 Created a dedicated tool scene for verifying sprite integration one component at a time. The inspector renders each UI element type (panels, buttons, aspect tiles, status bars, decorations, bag frames) in isolation against a neutral background, with a dropdown to select component type and a toggle to flip between sprite textures and procedural fallback. On launch it auto-cycles through all 9 component types, printing structured [COMPONENT]/[SPRITE_LOADED]/[SCREENSHOT] output and saving PNGs. This gives the integration pipeline a repeatable visual test — run the scene, check the screenshots, compare sprite vs procedural side-by-side.
 Commit: f96277e
+
+## SI.3: Panel background textures — parchment and leather
+First visible sprite integration into the actual game UI. Replaced inline StyleBoxFlat declarations with UIThemeLoader.GetPanelStyleBox() calls — header panel gets ornate parchment_bordered, info column panels get plain parchment, reagent tray gets dark_leather. The interesting trade-off was text contrast: the existing light-on-dark palette (white/gold text on near-black backgrounds) is unreadable against warm tan parchment, so all affected text shifted to dark brown/sepia tones. ObjectivePanel needed a PanelContainer wrapper in InfoColumnManager since it's a VBoxContainer with no native panel stylebox. Net effect: -20 lines (verbose StyleBoxFlat blocks replaced by one-liners).
+Commit: 5206d04
