@@ -2001,7 +2001,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "Web demo has warm parchment tiled background instead of solid black. Texture tiles seamlessly with no stretching.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.2",

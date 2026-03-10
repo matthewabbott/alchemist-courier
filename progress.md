@@ -1157,3 +1157,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: d5bbf0b
 - Notes: Added Test_UISpriteIntegration to TestHarness — end-to-end verification of all 24 UI sprite texture assets across 5 categories: 3 panel textures (parchment_bordered, dark_leather, parchment_plain), 8 aspect tiles (all aspects), 3 decorations (corner_flourish, separator, title_sigil), 6 button states (normal/hover/pressed + alt variants), and 4 bag themes (default, ornate, warm, brass). Test verifies asset existence via ResourceLoader.Exists, validates visual integration in WebDemoScreen (textured buttons, aspect tiles in legend, decoration TextureRects, bag NinePatchRects), and confirms fallback resilience — non-existent textures correctly return StyleBoxFlat/null, fake texture names properly fall back. Produces a diagnostic summary report. Currently all 24 textures exist on disk but lack Godot .import files (not yet imported through editor), so the test validates the full fallback path. All 811 unit tests pass, 42/42 integration tests pass.
+
+## VP.1 — Full-page tiled parchment background
+- Date: 2026-03-10
+- Commit: 51aa125
+- Notes: Replaced the solid black ColorRect background (0.1, 0.1, 0.12) in WebDemoScreen with a TextureRect tiling parchment_plain.png (64x64). Uses StretchMode.Tile with a dark warm modulate (0.4, 0.35, 0.3) so the parchment reads as a subtle warm background without competing with foreground panels. Falls back to the original solid color if the texture is missing. Added GetPanelTexture() to UIThemeLoader for raw panel texture access (vs the existing GetPanelStyleBox which wraps in a 9-patch StyleBox). All 811 unit tests pass.
