@@ -1093,3 +1093,13 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-09
 - Commit: eedb1e8
 - Notes: Created static UIThemeLoader (src/Game/Visual/UIThemeLoader.cs) providing five methods for loading UI textures from art/sprites/ui/ subdirectories: GetPanelStyleBox (panels/), GetAspectTileTexture (tiles/), GetDecorationTexture (decorations/), GetButtonStyleBox (sliced/button_*), GetBagThemeTexture (sliced/bag_*). All methods cache results in static dictionaries. Panel and button methods return StyleBoxTexture with 9-patch margins when textures exist, or StyleBoxFlat fallback with appropriate dark colors. Missing files trigger GD.PushWarning. Follows SpriteSwapper pattern for ResourceLoader.Exists/GD.Load chain. Respects density conventions: sliced Kit 01 elements at 1x, tileable panels and decorations at 2x. All 811 tests pass.
+
+## Integration Review — 2026-03-10
+- Reviewed commits: ef135c4..88dd632 (LO.10, GJ.1-GJ.8, SI.1, code reviews)
+- Build: PASS (811/811 unit tests)
+- Harness: 41/41 tests pass, 0 failures (after adding 1 new test)
+- Visual: 49+ screenshots verified, no regressions
+- Issues: 0
+- New test: Test_GravityFallPlacement — verifies GJ.1 gravity soft constraint + PlaceReagentWithFall auto-drop + stacking
+- Coverage gaps: GJ.5-GJ.8, SI.1 (art pipeline) not feasible to test (gitignored assets). GJ.3 InfoColumnManager has partial coverage (view switching but not full nav flow). GO.3-GO.5 Core-only awaiting UI wiring.
+- Pre-existing cosmetic issues unchanged: Heat label left-edge clipping, base thresholds in status bar.

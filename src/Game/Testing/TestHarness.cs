@@ -94,6 +94,7 @@ public partial class TestHarness : Control
         await Test_VolatileExplosionOverlay();
         await Test_BagStateOverlay();
         await Test_BagMovement();
+        await Test_GravityFallPlacement();
         await Test_WebDemoLayout();
         await Test_WebDemoResponsive();
         await Test_ViolationListPanel();
@@ -2267,6 +2268,90 @@ public partial class TestHarness : Control
             && rotated && stillPlaced;
         EndTest("bag_movement", pass, pass ? null
             : $"placed={placed} moved={moved} reagentMoved={reagentMoved} invalidMove={invalidMove} rotated={rotated} stillPlaced={stillPlaced}");
+
+        // Restore DemoPuzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+    }
+
+    private async Task Test_GravityFallPlacement()
+    {
+        BeginTest("gravity_fall_placement");
+
+        // Create a puzzle with a tall gravity bag (5 rows) and a monomino reagent
+        var state = new PuzzleState
+        {
+            Seed = 710,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 1, row: 1, properties: new List<string> { "Gravity" }),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "cold" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 5, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 2, PositionRow = 5, Rotation = 0 },
+            },
+        };
+
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
+
+        // GJ.1: Placement in gravity bag should succeed (soft constraint, no hard rejection)
+        _puzzleScreen.SelectReagent(0);
+        bool placedAtTop = _puzzleScreen.PlaceSelectedAt(1, 1);
+        Log($"[STATE] placed_at_top={placedAtTop} (expected=true, gravity is advisory)");
+
+        // Verify placement was accepted even at top of gravity bag
+        var reagent0 = _puzzleScreen.TrayReagents[0];
+        var pos0 = reagent0.PlacedPosition;
+        Log($"[STATE] reagent0_pos=({pos0?.Col},{pos0?.Row}) (expected: 1,1 — no auto-fall via PlaceSelectedAt)");
+
+        // Now remove and use PlaceReagentWithFall for auto-fall behavior
+        _puzzleScreen.RemoveReagentAt(1, 1);
+        await WaitFrames(1);
+        bool fallPlaced = _puzzleScreen.Grid.PlaceReagentWithFall(reagent0, new CoreVec(1, 1));
+        var fallPos = reagent0.PlacedPosition;
+        Log($"[STATE] fall_placed={fallPlaced} fall_pos=({fallPos?.Col},{fallPos?.Row}) (expected: 1,5 — fell to bottom)");
+
+        // Place second reagent with fall — should stack on top of first
+        var reagent1 = _puzzleScreen.TrayReagents[1];
+        bool fallPlaced2 = _puzzleScreen.Grid.PlaceReagentWithFall(reagent1, new CoreVec(1, 1));
+        var fallPos2 = reagent1.PlacedPosition;
+        Log($"[STATE] fall_placed2={fallPlaced2} fall_pos2=({fallPos2?.Col},{fallPos2?.Row}) (expected: 1,4 — stacked above)");
+
+        _puzzleScreen.GridView.RefreshDisplay();
+        await WaitFrames(3);
+        await CaptureScreenshot("49_gravity_fall_placement.png");
+
+        bool pass = placedAtTop
+            && pos0?.Col == 1 && pos0?.Row == 1
+            && fallPlaced && fallPos?.Col == 1 && fallPos?.Row == 5
+            && fallPlaced2 && fallPos2?.Col == 1 && fallPos2?.Row == 4;
+        EndTest("gravity_fall_placement", pass, pass ? null
+            : $"placedAtTop={placedAtTop} pos0=({pos0?.Col},{pos0?.Row}) fallPlaced={fallPlaced} fallPos=({fallPos?.Col},{fallPos?.Row}) fallPlaced2={fallPlaced2} fallPos2=({fallPos2?.Col},{fallPos2?.Row})");
 
         // Restore DemoPuzzle
         _puzzleScreen.QueueFree();
