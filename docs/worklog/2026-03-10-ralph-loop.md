@@ -11,3 +11,7 @@ Commit: 0402157
 ## Code Review (Deslop)
 Reviewed GJ.6 and GJ.7 commits (2caf2f0..19cd8e0). CellMountOverlay is clean — follows established overlay patterns, proper Core/Game separation, no unnecessary abstractions. One P4 cosmetic fix: removed redundant `is Node` type cast in `Clear()` method (the `_visuals` list is already `List<Node>`). All 811 unit tests pass. No tasks created.
 Commit: 02ee795
+
+## GJ.8: Bag border tileable edges
+Bags finally have character. Generated a 96x96 celtic stone frame via RetroDiffusion kells-alchemy style — the result is a beautiful knotwork border with a weathered stone center, perfect for 9-patch scaling. Rather than individual edge/corner tiles (which would require complex tiling logic for L-shapes and irregular bags), used a single NinePatchRect per bag bounding box with 24px patch margins. The frame tiles automatically via Godot's AxisStretchMode.Tile, so larger bags get repeated knotwork along their edges. Falls back gracefully to the original ColorRect edge borders when textures aren't present (art assets are gitignored). Also generated corner and horizontal edge variants for potential future use.
+Commit: 74bb9b2

@@ -1878,7 +1878,7 @@
         "GJ.5"
       ],
       "verification": "dotnet build. Bags render with textured borders.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.1",

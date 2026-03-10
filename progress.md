@@ -1083,3 +1083,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: 2caf2f0..19cd8e0 (GJ.6, GJ.7, chore)
 - Findings: 1 (P0: 0, P1: 0, P2: 0, P3: 0, P4: 1)
 - Fixed: 1 (redundant type cast in CellMountOverlay.Clear()), Tasks created: 0
+
+## GJ.8 — Bag border tileable edges
+- Date: 2026-03-10
+- Commit: 74bb9b2
+- Notes: Generated celtic stone frame border (96x96) via RetroDiffusion kells-alchemy style, plus corner and horizontal edge variants for reference. Implemented NinePatchRect-based bag border rendering in MetaGridView: when border_default.png exists in art/sprites/custom/bags/, bags render with a 9-patch celtic frame (24px patch margins, 4px padding, tiled stretching). Falls back to the original ColorRect edge borders when texture is absent. Added SpriteSwapper.LoadBagBorderTexture() with custom/bags → ui/sliced fallback chain. Art assets gitignored. Balance: ~$49 remaining. All 811 tests pass.
