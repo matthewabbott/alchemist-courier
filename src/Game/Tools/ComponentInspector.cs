@@ -387,23 +387,7 @@ public partial class ComponentInspector : Control
 
             if (_useSprites)
             {
-                var tex = UIThemeLoader.GetAspectTileTexture(aspect);
-                if (tex != null)
-                {
-                    var rect = new TextureRect
-                    {
-                        Texture = tex,
-                        CustomMinimumSize = new Vector2(48, 48),
-                        ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                        StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                        TextureFilter = CanvasItem.TextureFilterEnum.Nearest
-                    };
-                    entry.AddChild(rect);
-                }
-                else
-                {
-                    entry.AddChild(MakeColorSwatch(48, aspectColor));
-                }
+                entry.AddChild(UIThemeLoader.CreateAspectIcon(aspect, 48));
             }
             else
             {

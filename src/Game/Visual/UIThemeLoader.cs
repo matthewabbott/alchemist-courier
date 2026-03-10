@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using AlchemistCourier.Game.Inventory;
 
 namespace AlchemistCourier.Game.Visual;
 
@@ -207,6 +208,30 @@ public static class UIThemeLoader
         };
         _styleBoxCache[cacheKey] = style;
         return style;
+    }
+
+    /// <summary>
+    /// Creates an aspect tile icon: TextureRect if sprite found, ColorRect fallback.
+    /// </summary>
+    public static Control CreateAspectIcon(string aspectId, float size)
+    {
+        var tileTex = GetAspectTileTexture(aspectId);
+        if (tileTex != null)
+        {
+            return new TextureRect
+            {
+                Texture = tileTex,
+                CustomMinimumSize = new Vector2(size, size),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            };
+        }
+        return new ColorRect
+        {
+            CustomMinimumSize = new Vector2(size, size),
+            Color = GridConstants.GetAspectColor(aspectId),
+        };
     }
 
     /// <summary>

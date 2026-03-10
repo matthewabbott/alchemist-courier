@@ -138,11 +138,11 @@ public partial class FloatingAspectTooltip : FloatingTooltip
             {
                 var ruleLabel = new Label
                 {
-                    Text = $"  {FormatRule(rule)}",
+                    Text = $"  {AspectFormatHelpers.FormatRule(rule)}",
                     AutowrapMode = TextServer.AutowrapMode.WordSmart,
                     CustomMinimumSize = new Vector2(200, 0),
                 };
-                ruleLabel.AddThemeColorOverride("font_color", GetRuleColor(rule.ResultType));
+                ruleLabel.AddThemeColorOverride("font_color", AspectFormatHelpers.GetRuleColor(rule.ResultType));
                 ruleLabel.AddThemeFontSizeOverride("font_size", 11);
                 Content.AddChild(ruleLabel);
             }
@@ -160,34 +160,4 @@ public partial class FloatingAspectTooltip : FloatingTooltip
         return result;
     }
 
-    private static string FormatRule(ReactionRule rule)
-    {
-        var aspects = rule.TriggerAspects.Count == 1
-            ? Capitalize(rule.TriggerAspects[0])
-            : $"{Capitalize(rule.TriggerAspects[0])} + {Capitalize(rule.TriggerAspects[1])}";
-        var sensitivity = rule.Sensitivity switch
-        {
-            SensitivityTier.Adjacent => "adjacent",
-            SensitivityTier.SameBag => "same bag",
-            SensitivityTier.WholeInventory => "cumulative",
-            _ => rule.Sensitivity.ToString(),
-        };
-        var threshold = rule.Threshold > 0 ? $" >{rule.Threshold}" : "";
-        return $"{aspects} ({sensitivity}{threshold}) = {rule.Name}";
-    }
-
-    private static string Capitalize(string s) =>
-        string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
-
-    private static Color GetRuleColor(ReactionResultType type) => type switch
-    {
-        ReactionResultType.Explosion => new Color(1.0f, 0.4f, 0.3f),
-        ReactionResultType.Breakage => new Color(0.9f, 0.6f, 0.3f),
-        ReactionResultType.ToxicCloud => new Color(0.5f, 0.85f, 0.4f),
-        ReactionResultType.Neutralization => new Color(0.5f, 0.7f, 1.0f),
-        ReactionResultType.Overheating => new Color(1.0f, 0.5f, 0.3f),
-        ReactionResultType.Hypothermia => new Color(0.4f, 0.7f, 1.0f),
-        ReactionResultType.Poisoning => new Color(0.6f, 0.9f, 0.4f),
-        _ => new Color(0.75f, 0.75f, 0.7f),
-    };
 }

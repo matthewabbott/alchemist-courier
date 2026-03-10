@@ -321,27 +321,7 @@ public partial class InfoColumnManager : VBoxContainer
             var headerRow = new HBoxContainer();
             headerRow.AddThemeConstantOverride("separation", 6);
 
-            Control icon;
-            var rdTileTex = UIThemeLoader.GetAspectTileTexture(id);
-            if (rdTileTex != null)
-            {
-                icon = new TextureRect
-                {
-                    Texture = rdTileTex,
-                    CustomMinimumSize = new Vector2(32, 32),
-                    ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                    StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                    TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-                };
-            }
-            else
-            {
-                icon = new ColorRect
-                {
-                    CustomMinimumSize = new Vector2(32, 32),
-                    Color = GridConstants.GetAspectColor(id),
-                };
-            }
+            var icon = UIThemeLoader.CreateAspectIcon(id, 32);
             var iconCenter = new CenterContainer { CustomMinimumSize = new Vector2(32, 32) };
             iconCenter.AddChild(icon);
             headerRow.AddChild(iconCenter);
@@ -389,7 +369,7 @@ public partial class InfoColumnManager : VBoxContainer
         var metadata = AspectMetadataDatabase.Get(aspectId);
         if (metadata == null)
         {
-            _adNameLabel.Text = Capitalize(aspectId);
+            _adNameLabel.Text = AspectFormatHelpers.Capitalize(aspectId);
             RebuildAspectIcon(aspectId);
             _adDescriptionLabel.Text = "";
             _adConstraintLabel.Visible = false;
@@ -427,11 +407,11 @@ public partial class InfoColumnManager : VBoxContainer
             {
                 var ruleLabel = new Label
                 {
-                    Text = $"  {FormatRule(rule)}",
+                    Text = $"  {AspectFormatHelpers.FormatRule(rule)}",
                     AutowrapMode = TextServer.AutowrapMode.WordSmart,
                     CustomMinimumSize = new Vector2(130, 0),
                 };
-                ruleLabel.AddThemeColorOverride("font_color", GetRuleColor(rule.ResultType));
+                ruleLabel.AddThemeColorOverride("font_color", AspectFormatHelpers.GetRuleColor(rule.ResultType));
                 ruleLabel.AddThemeFontSizeOverride("font_size", 11);
                 _adRulesList.AddChild(ruleLabel);
             }
@@ -486,26 +466,7 @@ public partial class InfoColumnManager : VBoxContainer
     private void RebuildAspectIcon(string aspectId)
     {
         _adIcon.QueueFree();
-        var tileTex = UIThemeLoader.GetAspectTileTexture(aspectId);
-        if (tileTex != null)
-        {
-            _adIcon = new TextureRect
-            {
-                Texture = tileTex,
-                CustomMinimumSize = new Vector2(32, 32),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            };
-        }
-        else
-        {
-            _adIcon = new ColorRect
-            {
-                CustomMinimumSize = new Vector2(32, 32),
-                Color = GridConstants.GetAspectColor(aspectId),
-            };
-        }
+        _adIcon = UIThemeLoader.CreateAspectIcon(aspectId, 32);
         _adIconCenter.AddChild(_adIcon);
     }
 
@@ -516,36 +477,4 @@ public partial class InfoColumnManager : VBoxContainer
         foreach (var child in container.GetChildren())
             child.QueueFree();
     }
-
-    private static string Capitalize(string s) =>
-        string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
-
-    private static string FormatRule(ReactionRule rule)
-    {
-        var aspects = rule.TriggerAspects.Count == 1
-            ? Capitalize(rule.TriggerAspects[0])
-            : $"{Capitalize(rule.TriggerAspects[0])} + {Capitalize(rule.TriggerAspects[1])}";
-
-        var sensitivity = rule.Sensitivity switch
-        {
-            SensitivityTier.Adjacent => "adjacent",
-            SensitivityTier.SameBag => "same bag",
-            SensitivityTier.WholeInventory => "cumulative",
-            _ => rule.Sensitivity.ToString(),
-        };
-        var threshold = rule.Threshold > 0 ? $" >{rule.Threshold}" : "";
-        return $"{aspects} ({sensitivity}{threshold}) = {rule.Name}";
-    }
-
-    private static Color GetRuleColor(ReactionResultType type) => type switch
-    {
-        ReactionResultType.Explosion => new Color(1.0f, 0.4f, 0.3f),
-        ReactionResultType.Breakage => new Color(0.9f, 0.6f, 0.3f),
-        ReactionResultType.ToxicCloud => new Color(0.5f, 0.85f, 0.4f),
-        ReactionResultType.Neutralization => new Color(0.5f, 0.7f, 1.0f),
-        ReactionResultType.Overheating => new Color(1.0f, 0.5f, 0.3f),
-        ReactionResultType.Hypothermia => new Color(0.4f, 0.7f, 1.0f),
-        ReactionResultType.Poisoning => new Color(0.6f, 0.9f, 0.4f),
-        _ => new Color(0.75f, 0.75f, 0.7f),
-    };
 }

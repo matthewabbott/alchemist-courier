@@ -198,26 +198,7 @@ public partial class AspectLegendEntry : VBoxContainer
 
         // Aspect tile sprite (fallback to colored square) — 32x32 native size
         var iconContainer = new CenterContainer { CustomMinimumSize = new Vector2(32, 32) };
-        var tileTex = UIThemeLoader.GetAspectTileTexture(_metadata.Id);
-        if (tileTex != null)
-        {
-            _icon = new TextureRect
-            {
-                Texture = tileTex,
-                CustomMinimumSize = new Vector2(32, 32),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            };
-        }
-        else
-        {
-            _icon = new ColorRect
-            {
-                CustomMinimumSize = new Vector2(32, 32),
-                Color = GridConstants.GetAspectColor(_metadata.Id),
-            };
-        }
+        _icon = UIThemeLoader.CreateAspectIcon(_metadata.Id, 32);
         iconContainer.AddChild(_icon);
         _header.AddChild(iconContainer);
 
@@ -288,11 +269,11 @@ public partial class AspectLegendEntry : VBoxContainer
             {
                 var ruleLabel = new Label
                 {
-                    Text = $"  {FormatRule(rule)}",
+                    Text = $"  {AspectFormatHelpers.FormatRule(rule)}",
                     AutowrapMode = TextServer.AutowrapMode.WordSmart,
                     CustomMinimumSize = new Vector2(180, 0),
                 };
-                ruleLabel.AddThemeColorOverride("font_color", GetRuleColor(rule.ResultType));
+                ruleLabel.AddThemeColorOverride("font_color", AspectFormatHelpers.GetRuleColor(rule.ResultType));
                 ruleLabel.AddThemeFontSizeOverride("font_size", 11);
                 detailVBox.AddChild(ruleLabel);
             }
@@ -413,41 +394,4 @@ public partial class AspectLegendEntry : VBoxContainer
         }
     }
 
-    private static string FormatRule(ReactionRule rule)
-    {
-        var aspects = FormatAspects(rule.TriggerAspects);
-        var sensitivity = FormatSensitivity(rule.Sensitivity);
-        var threshold = rule.Threshold > 0 ? $" >{rule.Threshold}" : "";
-        return $"{aspects} ({sensitivity}{threshold}) = {rule.Name}";
-    }
-
-    private static string FormatAspects(List<string> aspects)
-    {
-        if (aspects.Count == 1)
-            return Capitalize(aspects[0]);
-        return $"{Capitalize(aspects[0])} + {Capitalize(aspects[1])}";
-    }
-
-    private static string FormatSensitivity(SensitivityTier tier) => tier switch
-    {
-        SensitivityTier.Adjacent => "adjacent",
-        SensitivityTier.SameBag => "same bag",
-        SensitivityTier.WholeInventory => "cumulative",
-        _ => tier.ToString(),
-    };
-
-    private static string Capitalize(string s) =>
-        string.IsNullOrEmpty(s) ? s : char.ToUpper(s[0]) + s[1..];
-
-    private static Color GetRuleColor(ReactionResultType type) => type switch
-    {
-        ReactionResultType.Explosion => new Color(1.0f, 0.4f, 0.3f),
-        ReactionResultType.Breakage => new Color(0.9f, 0.6f, 0.3f),
-        ReactionResultType.ToxicCloud => new Color(0.5f, 0.85f, 0.4f),
-        ReactionResultType.Neutralization => new Color(0.5f, 0.7f, 1.0f),
-        ReactionResultType.Overheating => new Color(1.0f, 0.5f, 0.3f),
-        ReactionResultType.Hypothermia => new Color(0.4f, 0.7f, 1.0f),
-        ReactionResultType.Poisoning => new Color(0.6f, 0.9f, 0.4f),
-        _ => new Color(0.75f, 0.75f, 0.7f),
-    };
 }

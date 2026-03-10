@@ -138,27 +138,7 @@ public partial class AspectBar : HBoxContainer
         AddThemeConstantOverride("separation", 6);
 
         // Aspect tile sprite (fallback to colored square)
-        Control tileIcon;
-        var tileTex = UIThemeLoader.GetAspectTileTexture(aspectId);
-        if (tileTex != null)
-        {
-            tileIcon = new TextureRect
-            {
-                Texture = tileTex,
-                CustomMinimumSize = new Vector2(BarHeight, BarHeight),
-                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
-                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
-                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
-            };
-        }
-        else
-        {
-            tileIcon = new ColorRect
-            {
-                CustomMinimumSize = new Vector2(BarHeight, BarHeight),
-                Color = GridConstants.GetAspectColor(aspectId),
-            };
-        }
+        var tileIcon = UIThemeLoader.CreateAspectIcon(aspectId, BarHeight);
         tileIcon.SizeFlagsVertical = SizeFlags.ShrinkCenter;
         AddChild(tileIcon);
 
