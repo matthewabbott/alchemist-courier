@@ -100,6 +100,8 @@ public partial class TestHarness : Control
         await Test_WebDemoResponsive();
         await Test_ViolationListPanel();
         await Test_UISpriteIntegration();
+        await Test_AspectTilesOnGrid();
+        await Test_CellMountOverlay();
         await Test_RenderFinal();
 
         Log($"[HARNESS_DONE] passed={_passed} failed={_failed}");
@@ -2607,6 +2609,158 @@ public partial class TestHarness : Control
             && violationsCleared == 0;
         EndTest("violation_list_panel", pass, pass ? null
             : $"before={violationsBefore} p1={p1} p2={p2} after={violationsAfter} cleared={violationsCleared}");
+    }
+
+    private async Task Test_AspectTilesOnGrid()
+    {
+        BeginTest("aspect_tiles_on_grid");
+
+        // Create a controlled puzzle with known aspects to test per-cell tile rendering (VP.4)
+        var state = new PuzzleState
+        {
+            Seed = 900,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true, true } },
+                    aspectsPerCell: new List<List<string>> { new() { "cold" }, new() { "cold" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 1, PositionRow = 2, Rotation = 0 },
+            },
+        };
+
+        // Replace puzzle screen with custom puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(5);
+
+        // (1) No tiles before placement
+        int tilesBefore = _puzzleScreen.GridView.AspectTileCount;
+        Log($"[STATE] aspect_tiles_before={tilesBefore} (expected=0)");
+
+        // (2) Place monomino (hot) — 1 cell = 1 aspect tile
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 1, 1);
+        await WaitFrames(3);
+        int tilesAfterFirst = _puzzleScreen.GridView.AspectTileCount;
+        Log($"[STATE] aspect_tiles_after_monomino={tilesAfterFirst} (expected=1)");
+
+        // (3) Place domino (cold, cold) — 2 cells = 2 more aspect tiles
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 2);
+        await WaitFrames(3);
+        int tilesAfterSecond = _puzzleScreen.GridView.AspectTileCount;
+        Log($"[STATE] aspect_tiles_after_domino={tilesAfterSecond} (expected=3)");
+
+        await CaptureScreenshot("50_aspect_tiles_on_grid.png");
+
+        // (4) Remove monomino — back to 2 tiles
+        TestActions.RemoveAt(_puzzleScreen, 1, 1);
+        await WaitFrames(3);
+        int tilesAfterRemove = _puzzleScreen.GridView.AspectTileCount;
+        Log($"[STATE] aspect_tiles_after_remove={tilesAfterRemove} (expected=2)");
+
+        bool pass = tilesBefore == 0
+            && tilesAfterFirst == 1
+            && tilesAfterSecond == 3
+            && tilesAfterRemove == 2;
+        EndTest("aspect_tiles_on_grid", pass, pass ? null
+            : $"before={tilesBefore} afterMono={tilesAfterFirst} afterDom={tilesAfterSecond} afterRm={tilesAfterRemove}");
+    }
+
+    private async Task Test_CellMountOverlay()
+    {
+        BeginTest("cell_mount_overlay");
+
+        // Create a controlled puzzle (GJ.7 — CellMountOverlay rendering)
+        var state = new PuzzleState
+        {
+            Seed = 901,
+            Difficulty = DifficultyLevel.Easy,
+            PuzzleType = PuzzleType.FitAllSafely,
+            MaxHints = 0,
+            Bags = new List<PuzzleBag>
+            {
+                PuzzleBag.FromMatrix(new bool[,]
+                {
+                    { true, true, true },
+                    { true, true, true },
+                }, col: 1, row: 1),
+            },
+            Reagents = new List<PuzzleReagent>
+            {
+                PuzzleReagent.FromMatrix(new bool[,] { { true } },
+                    aspectsPerCell: new List<List<string>> { new() { "hot" } }),
+                PuzzleReagent.FromMatrix(new bool[,] { { true, true } },
+                    aspectsPerCell: new List<List<string>> { new() { "cold" }, new() { "cold" } }),
+            },
+            Solution = new List<Placement>
+            {
+                new Placement { ReagentIndex = 0, PositionCol = 1, PositionRow = 1, Rotation = 0 },
+                new Placement { ReagentIndex = 1, PositionCol = 1, PositionRow = 2, Rotation = 0 },
+            },
+        };
+
+        // Replace puzzle screen with custom puzzle
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen { PuzzleData = state };
+        AddChild(_puzzleScreen);
+        await WaitFrames(5);
+
+        // (1) No mounts before placement
+        int mountsBefore = _puzzleScreen.GridView.CellMountCount;
+        Log($"[STATE] cell_mounts_before={mountsBefore} (expected=0)");
+
+        // (2) Place monomino — mount overlay should render (texture or edge rects)
+        TestActions.SelectAndPlace(_puzzleScreen, 0, 1, 1);
+        await WaitFrames(3);
+        int mountsAfterMono = _puzzleScreen.GridView.CellMountCount;
+        Log($"[STATE] cell_mounts_after_monomino={mountsAfterMono} (expected>0)");
+
+        // (3) Place domino — more mount elements
+        TestActions.SelectAndPlace(_puzzleScreen, 1, 1, 2);
+        await WaitFrames(3);
+        int mountsAfterBoth = _puzzleScreen.GridView.CellMountCount;
+        Log($"[STATE] cell_mounts_after_both={mountsAfterBoth} (expected>{mountsAfterMono})");
+
+        await CaptureScreenshot("51_cell_mount_overlay.png");
+
+        // (4) Remove all — mounts should clear
+        TestActions.RemoveAt(_puzzleScreen, 1, 1);
+        TestActions.RemoveAt(_puzzleScreen, 1, 2);
+        await WaitFrames(3);
+        int mountsAfterClear = _puzzleScreen.GridView.CellMountCount;
+        Log($"[STATE] cell_mounts_after_clear={mountsAfterClear} (expected=0)");
+
+        bool pass = mountsBefore == 0
+            && mountsAfterMono > 0
+            && mountsAfterBoth > mountsAfterMono
+            && mountsAfterClear == 0;
+        EndTest("cell_mount_overlay", pass, pass ? null
+            : $"before={mountsBefore} afterMono={mountsAfterMono} afterBoth={mountsAfterBoth} afterClear={mountsAfterClear}");
+
+        // Restore default puzzle screen for remaining tests
+        _puzzleScreen.QueueFree();
+        await WaitFrames(2);
+        _puzzleScreen = new PuzzleScreen();
+        AddChild(_puzzleScreen);
+        await WaitFrames(3);
     }
 
     private async Task Test_RenderFinal()

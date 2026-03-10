@@ -541,6 +541,9 @@ public partial class MetaGridView : Control
     /// <summary>Number of cell mount frame elements currently rendered, for testing.</summary>
     public int CellMountCount => _cellMountOverlay.RenderedCount;
 
+    /// <summary>Number of per-cell aspect tile TextureRects currently rendered, for testing.</summary>
+    public int AspectTileCount => _aspectTiles.Count;
+
     /// <summary>Number of bags with active thermal tint, for testing.</summary>
     public int BagStateActiveGroupCount => _bagStateOverlay.ActiveGroupCount;
 

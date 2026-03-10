@@ -1187,3 +1187,14 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Date: 2026-03-10
 - Commit: 0b0134b
 - Notes: Added UpdateAspectTiles() to MetaGridView — renders a 32x32 TextureRect per occupied cell using UIThemeLoader.GetAspectTileTexture(aspectId) with Nearest filtering, falling back to existing ColorRect when no tile sprite exists. Multi-cell polyominoes show N separate tiles (not one stretched sprite). Added SingleAspectOnly property to DifficultyParams (default true) and wired it into PuzzleGenerator.AssignAspects() to force all cells of each reagent to share one uniform aspect. BalanceHotCold post-processing may still clear some cells, but all populated cells remain homogeneous. 1 new test. All 812 tests pass (811 existing + 1 new).
+
+## Integration Review — 2026-03-10b
+- Reviewed commits: 88dd632..HEAD (SI.9, VP.1–VP.4, R1, code reviews)
+- Build: PASS (812/812 unit tests)
+- Harness: 44/44 tests pass, 0 failures
+- Visual: 49 screenshots verified, no regressions
+- Issues: 0 (P0: 0, P1: 0, P2: 0)
+- Added: `aspect_tiles_on_grid` test (VP.4 — per-cell tile rendering lifecycle), `cell_mount_overlay` test (GJ.7 — mount frame rendering lifecycle)
+- Added: `MetaGridView.AspectTileCount` public accessor for test observability
+- Coverage: VP.1–VP.4 all verified (direct + indirect). GJ.7–GJ.8 now have integration coverage. R1 pure refactor confirmed by all existing tests passing.
+- Pre-existing cosmetic issues unchanged: left-edge label clipping, tutorial vertical text, base thresholds in status bar.
