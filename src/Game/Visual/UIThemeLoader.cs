@@ -178,6 +178,13 @@ public static class UIThemeLoader
     }
 
     /// <summary>
+    /// Returns Texture2D from sliced/btn_{buttonName}.png or null if not found.
+    /// Button sprites are 192x96 pre-rendered with burned-in text labels.
+    /// </summary>
+    public static Texture2D? GetButtonSpriteTexture(string buttonName)
+        => LoadTexture("btn", SlicedPath, $"btn_{buttonName}");
+
+    /// <summary>
     /// Returns Texture2D from sliced/bag_{bagType}.png or null if not found.
     /// Bag textures are 1x density, intended for NinePatchRect rendering.
     /// </summary>

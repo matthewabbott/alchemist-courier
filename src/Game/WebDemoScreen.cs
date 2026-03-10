@@ -31,11 +31,11 @@ public partial class WebDemoScreen : Control
     private StatusBarPanel _statusBar = null!;
     private InfoColumnManager _infoColumnManager = null!;
     private Label _statusLabel = null!;
-    private Button _confirmButton = null!;
-    private Button _resetButton = null!;
-    private Button _undoButton = null!;
-    private Button _redoButton = null!;
-    private Button _hintButton = null!;
+    private BaseButton _confirmButton = null!;
+    private BaseButton _resetButton = null!;
+    private BaseButton _undoButton = null!;
+    private BaseButton _redoButton = null!;
+    private BaseButton _hintButton = null!;
     private Label _hintCountLabel = null!;
     private ResultOverlayPanel _resultOverlay = null!;
     private ReactionAnimator _reactionAnimator = null!;
@@ -331,12 +331,12 @@ public partial class WebDemoScreen : Control
 
         _undoButton = CreateStyledButton("Undo", new Color(0.3f, 0.3f, 0.35f));
         _undoButton.Pressed += Undo;
-        _undoButton.Disabled = true;
+        SetButtonDisabled(_undoButton, true);
         buttonBar.AddChild(_undoButton);
 
         _redoButton = CreateStyledButton("Redo", new Color(0.3f, 0.3f, 0.35f));
         _redoButton.Pressed += Redo;
-        _redoButton.Disabled = true;
+        SetButtonDisabled(_redoButton, true);
         buttonBar.AddChild(_redoButton);
 
         _confirmButton = CreateStyledButton("Confirm", new Color(0.25f, 0.5f, 0.3f), alt: true);
@@ -883,8 +883,8 @@ public partial class WebDemoScreen : Control
 
     private void UpdateUndoRedoButtons()
     {
-        _undoButton.Disabled = !_actionHistory.CanUndo;
-        _redoButton.Disabled = !_actionHistory.CanRedo;
+        SetButtonDisabled(_undoButton, !_actionHistory.CanUndo);
+        SetButtonDisabled(_redoButton, !_actionHistory.CanRedo);
     }
 
     private void UpdateStatusThresholds()
@@ -897,42 +897,90 @@ public partial class WebDemoScreen : Control
         _statusLabel.Text = text;
     }
 
-    // --- Styled button (matches PuzzleScreen pattern) ---
+    // --- Styled button ---
 
-    private static Button CreateStyledButton(string text, Color bgColor, bool alt = false)
+    private static BaseButton CreateStyledButton(string text, Color bgColor, bool alt = false)
     {
+        // Try loading a pre-rendered button sprite (192x96 with burned-in text)
+        var spriteTex = UIThemeLoader.GetButtonSpriteTexture(text.ToLower());
+        if (spriteTex != null)
+        {
+            var tb = new TextureButton();
+            tb.TextureNormal = spriteTex;
+            tb.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
+            tb.IgnoreTextureSize = true;
+            tb.StretchMode = TextureButton.StretchModeEnum.KeepAspectCentered;
+            // Display at 0.5x native (192x96 → 96x48) for clean pixel scaling
+            tb.CustomMinimumSize = new Vector2(96, 48);
+
+            // Hover/pressed visual feedback via SelfModulate
+            tb.MouseEntered += () => { if (!tb.Disabled) tb.SelfModulate = new Color(1.2f, 1.2f, 1.2f); };
+            tb.MouseExited += () => { if (!tb.Disabled) tb.SelfModulate = Colors.White; };
+            tb.ButtonDown += () => tb.SelfModulate = new Color(0.8f, 0.8f, 0.8f);
+            tb.ButtonUp += () => tb.SelfModulate = Colors.White;
+
+            return tb;
+        }
+
+        // Fallback: StyleBoxFlat with warm brown fill + gold border + Godot Label
         var button = new Button { Text = text };
-        button.CustomMinimumSize = new Vector2(100, 44);
+        button.CustomMinimumSize = new Vector2(96, 48);
 
-        string prefix = alt ? "alt_" : "";
-        var normalStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}normal");
-        var hoverStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}hover");
-        var pressedStyle = UIThemeLoader.GetButtonStyleBox($"{prefix}pressed");
-
+        var normalStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.28f, 0.24f, 0.18f),
+            BorderColor = new Color(0.7f, 0.55f, 0.3f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            ContentMarginLeft = 12, ContentMarginRight = 12,
+            ContentMarginTop = 4, ContentMarginBottom = 4,
+        };
         button.AddThemeStyleboxOverride("normal", normalStyle);
+
+        var hoverStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.35f, 0.3f, 0.25f),
+            BorderColor = new Color(0.8f, 0.65f, 0.35f),
+            BorderWidthLeft = 3, BorderWidthTop = 3,
+            BorderWidthRight = 3, BorderWidthBottom = 3,
+            ContentMarginLeft = 12, ContentMarginRight = 12,
+            ContentMarginTop = 4, ContentMarginBottom = 4,
+        };
         button.AddThemeStyleboxOverride("hover", hoverStyle);
+
+        var pressedStyle = new StyleBoxFlat
+        {
+            BgColor = new Color(0.2f, 0.17f, 0.12f),
+            BorderColor = new Color(0.7f, 0.55f, 0.3f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            ContentMarginLeft = 12, ContentMarginRight = 12,
+            ContentMarginTop = 4, ContentMarginBottom = 4,
+        };
         button.AddThemeStyleboxOverride("pressed", pressedStyle);
 
-        // Disabled: duplicate normal texture and desaturate, or fall back to flat
-        if (normalStyle is StyleBoxTexture normalTex)
+        var disabledStyle = new StyleBoxFlat
         {
-            var disabledStyle = (StyleBoxTexture)normalTex.Duplicate();
-            disabledStyle.ModulateColor = new Color(0.5f, 0.5f, 0.5f, 0.6f);
-            button.AddThemeStyleboxOverride("disabled", disabledStyle);
-        }
-        else
-        {
-            var disabledStyle = new StyleBoxFlat
-            {
-                BgColor = bgColor.Darkened(0.4f),
-                ContentMarginLeft = 12, ContentMarginRight = 12,
-                ContentMarginTop = 4, ContentMarginBottom = 4,
-                CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            };
-            button.AddThemeStyleboxOverride("disabled", disabledStyle);
-        }
+            BgColor = bgColor.Darkened(0.4f),
+            BorderColor = new Color(0.5f, 0.4f, 0.25f, 0.5f),
+            BorderWidthLeft = 2, BorderWidthTop = 2,
+            BorderWidthRight = 2, BorderWidthBottom = 2,
+            ContentMarginLeft = 12, ContentMarginRight = 12,
+            ContentMarginTop = 4, ContentMarginBottom = 4,
+        };
+        button.AddThemeStyleboxOverride("disabled", disabledStyle);
         button.AddThemeColorOverride("font_disabled_color", new Color(0.45f, 0.45f, 0.45f));
+
         return button;
+    }
+
+    /// <summary>
+    /// Sets Disabled on a button and adjusts SelfModulate for TextureButton disabled appearance.
+    /// </summary>
+    private static void SetButtonDisabled(BaseButton btn, bool disabled)
+    {
+        btn.Disabled = disabled;
+        if (btn is TextureButton)
+            btn.SelfModulate = disabled ? new Color(0.5f, 0.5f, 0.5f, 0.6f) : Colors.White;
     }
 }

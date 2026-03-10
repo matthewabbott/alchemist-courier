@@ -2085,7 +2085,7 @@
       "phase": "visual-polish",
       "depends_on": [],
       "verification": "All 5 action buttons show their celtic wood typography sprites. No 9-patch stretching artifacts. Buttons are proportionally sized with readable labels. Fallback works when sprites missing.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "VP.10",
