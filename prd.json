@@ -1992,6 +1992,106 @@
       ],
       "verification": "Web demo renders with all available textures. Fallback to procedural works cleanly (no errors). Component Inspector screenshots all clean.",
       "status": "done"
+    },
+    {
+      "id": "VP.1",
+      "title": "Full-page tiled parchment background",
+      "description": "Replace the black ColorRect background in WebDemoScreen.cs (color 0.1, 0.1, 0.12) with a TextureRect tiling parchment_plain.png (64x64) across the entire viewport. Use StretchMode = Tile so the 64x64 texture repeats seamlessly. Apply a slight dark modulate (e.g. Color(0.4, 0.35, 0.3)) so it reads as warm parchment background without competing with foreground panels. The TextureRect should be the first child (behind everything else) and fill the full viewport. Key files: src/Game/WebDemoScreen.cs.",
+      "priority": 158,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Web demo has warm parchment tiled background instead of solid black. Texture tiles seamlessly with no stretching.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.2",
+      "title": "Fix tray texture tiling (not stretching)",
+      "description": "The dark_leather.png texture on the reagent tray PanelContainer is being stretched (StyleBoxTexture default). Change to tile mode. In UIThemeLoader.GetPanelStyleBox() or wherever the tray panel StyleBoxTexture is created, set AxisStretchHorizontal = AxisStretchMode.Tile and AxisStretchVertical = AxisStretchMode.Tile for the panel center region. The 9-patch margins should still stretch normally for edges. Key files: src/Game/Visual/UIThemeLoader.cs.",
+      "priority": 159,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Tray background shows tiled dark_leather.png pattern, not a single stretched copy.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.3",
+      "title": "Scale up aspect tiles everywhere to 32x32",
+      "description": "All aspect tile icons are displayed too small. Scale up to use their native 32x32 resolution: (1) AspectLegendPanel: increase icon size from 16x16 to 32x32 (1x native). Adjust CenterContainer min size and entry layout spacing to accommodate. (2) StatusBarPanel: increase BarHeight from 14 to 32 (or 24 minimum). Adjust bar layout proportions. (3) InfoColumnManager aspect detail: scale aspect icon in header to 32x32. All tiles MUST use TextureFilter = Nearest for crisp pixel art. Avoid non-integer scale factors — display at 32x32 (1x) or 16x16 (0.5x) but never 28x28 or other non-power-of-2 sizes. Key files: src/Game/Inventory/AspectLegendPanel.cs, src/Game/Inventory/StatusBarPanel.cs, src/Game/Inventory/InfoColumnManager.cs.",
+      "priority": 160,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Aspect tiles display at 32x32 in legend, status bar, and detail views. No blurry scaling. TextureFilter = Nearest on all tile TextureRects.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.4",
+      "title": "Per-cell aspect tile rendering on grid + single-aspect reagents",
+      "description": "STRUCTURAL CHANGE: Currently SpriteStateRenderer renders one texture scaled to the reagent's full bounding box. Each occupied cell should show its own aspect tile sprite independently. Changes needed: (1) In MetaGridView, for each occupied cell of a placed reagent, render a TextureRect showing the aspect tile (UIThemeLoader.GetAspectTileTexture(aspectName)) instead of a plain ColorRect. Each cell is 32x32 — the tile sprite fills exactly one cell. Multi-cell polyominoes show N separate tile sprites (one per occupied cell), not one stretched sprite. (2) Per-cell aspects already exist in the data model (indexed by flattened row-major order through true cells in the shape). Use this data to pick the correct aspect tile per cell. (3) Fallback: if no tile texture, keep the colored rectangle. (4) ADDITIONALLY: For the demo, constrain puzzle generation to produce SINGLE-ASPECT reagents only (all cells share the same aspect). Check PuzzleGenerator / DifficultyParams for where multi-aspect reagents get created, and add a flag or constraint to force single-aspect. The per-cell rendering infrastructure should still work with per-cell aspect data for future multi-aspect support. Key files: src/Game/Inventory/MetaGridView.cs, src/Game/Visual/UIThemeLoader.cs, src/Core/Puzzle/PuzzleGenerator.cs (or equivalent).",
+      "priority": 161,
+      "phase": "visual-polish",
+      "depends_on": ["VP.3"],
+      "verification": "Each cell of a placed reagent shows its own 32x32 aspect tile. Multi-cell reagents show N tiles, not one stretched sprite. Puzzle generation only produces single-aspect reagents. All tiles use TextureFilter = Nearest.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.5",
+      "title": "Fix bag sprite gaps between adjacent bags",
+      "description": "Bag NinePatchRect panels have visible gaps between adjacent bags. The issue is likely the padding (4px) or patch_margin (24px) values not accounting for the actual bag boundary positions. Fix: Ensure the NinePatchRect for each bag extends exactly to the bag's cell boundaries with no gaps. Check that PatchMarginLeft/Right/Top/Bottom values match the actual corner tile sizes in the 80x80 panel sprites (the 3x3 grid has ~24px corners and ~32px center). Consider removing or reducing the 4px padding so bags sit flush against each other. Key files: src/Game/Inventory/MetaGridView.cs.",
+      "priority": 162,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Adjacent bags have no visible gaps between them. Bag NinePatchRect borders connect seamlessly.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.6",
+      "title": "Wire aspect tiles into ALL remaining colored-square locations",
+      "description": "After VP.4 (per-cell rendering on grid), ensure aspect tiles are also used in all other locations that currently show colored rectangles: (1) Tray item shape previews (currently 8px colored rectangles in ReagentTrayItem.cs) — render aspect tiles at 8x8 scaled down with TextureFilter = Nearest. (2) Detail panel shape preview (16px cells in ReagentProfilePanel.cs) — render aspect tiles at 16x16. (3) Profile popup shape preview (24px cells in ReagentProfilePanel.cs) — render aspect tiles at 16x16 or 24x24. (4) Ghost/preview overlay when dragging reagents in MetaGridView.cs. All MUST use TextureFilter = Nearest for crisp pixel art scaling. Key files: src/Game/Inventory/ReagentTrayItem.cs, src/Game/Inventory/ReagentProfilePanel.cs, src/Game/Inventory/MetaGridView.cs.",
+      "priority": 163,
+      "phase": "visual-polish",
+      "depends_on": ["VP.4"],
+      "verification": "No colored rectangles remain for aspect display anywhere. All previews (tray, detail, profile, ghost) show aspect tile sprites.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.7",
+      "title": "Constrain info column panel heights",
+      "description": "The objective/issues/aspects panels extend too far down the sidebar. Fix options: (1) Give the info column VBoxContainer a maximum height or use SizeFlagsVertical = ShrinkBegin. (2) Put the overview panels inside a ScrollContainer if content overflows. (3) Reduce font sizes and padding in sidebar panels to be more compact. (4) Ensure the aspect legend panel collapses properly in compact mode. (5) The reagent/aspect detail view (clicked preview) should be proportional. The goal is that the info column fits within the visible screen area without overflowing. Key files: src/Game/Inventory/InfoColumnManager.cs, src/Game/Inventory/ObjectivePanel.cs, src/Game/Inventory/AspectLegendPanel.cs, src/Game/Inventory/ViolationListPanel.cs.",
+      "priority": 164,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Info column panels fit within the visible viewport. No overflow past the bottom of the screen. Scrolling or compaction keeps content accessible.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.8",
+      "title": "Panel border style overhaul — hand-drawn not beveled",
+      "description": "Panel borders currently look beveled/3D from the 9-patch StyleBoxTexture margins. They should look hand-drawn — thin lines, not raised edges, like an illuminated manuscript border. Recommended approach: (1) For panels with nice textures, scale up the textures 2-3x so border details become bigger chunkier pixels (matches the low-res filigree aesthetic). (2) For simpler panels, replace StyleBoxTexture with StyleBoxFlat using a 1-2px border in a warm brown/gold color (e.g. Color(0.55, 0.42, 0.25)) giving a hand-drawn line feel. (3) Reduce 9-patch margins from 16px to 8px or less where StyleBoxTexture is still used, making borders thinner and less prominent. The key is: borders should be a few fat pixels wide, not intricate beveled detail. Key files: src/Game/Visual/UIThemeLoader.cs, src/Game/WebDemoScreen.cs.",
+      "priority": 165,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "Panel borders look like thin hand-drawn lines, not beveled 3D edges. Borders are 1-3 fat pixels wide in warm brown/gold tones.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.9",
+      "title": "Button overhaul — use generated typography sprites",
+      "description": "Current button sprites are 32x16 being 9-patched to 100x44 — causing massive stretching. Pre-generated button sprites exist at art/sprites/ui/sliced/ as btn_undo.png, btn_confirm.png, btn_redo.png, btn_reset.png, btn_hint.png (all 192x96, rd_pro__typography celtic wood style with burned-in text labels). Implementation: (1) Load the button sprites from art/sprites/ui/sliced/btn_*.png in UIThemeLoader. (2) Display buttons as TextureRect (NOT 9-patch — these are complete button images) with TextureFilter = Nearest. (3) Scale to display size — 192x96 native could show at 96x48 (0.5x) or 128x64 (0.67x). Prefer integer or clean fraction scaling. (4) Reduce button container size from 100x44 to match the display size. (5) Map button names: Undo, Redo, Confirm, Reset, Hint to their respective sprite files. (6) Fallback: if sprite missing, use StyleBoxFlat with warm brown fill (0.28, 0.24, 0.18) + 2-3px gold border (0.7, 0.55, 0.3) + Godot Label. Key files: src/Game/WebDemoScreen.cs, src/Game/Visual/UIThemeLoader.cs.",
+      "priority": 166,
+      "phase": "visual-polish",
+      "depends_on": [],
+      "verification": "All 5 action buttons show their celtic wood typography sprites. No 9-patch stretching artifacts. Buttons are proportionally sized with readable labels. Fallback works when sprites missing.",
+      "status": "pending"
+    },
+    {
+      "id": "VP.10",
+      "title": "Visual integration verification — full polish pass",
+      "description": "Run the full web demo scene and verify all visual polish changes work together. Check: (1) Full-page parchment background visible (not black). (2) Tray texture tiles properly (not stretched). (3) Aspect tiles 32x32 and visible in legend, status bar, detail views. (4) Per-cell tile rendering on grid — each cell shows its own aspect tile sprite. (5) Bag borders flush with no gaps between adjacent bags. (6) Panels have hand-drawn thin borders, not beveled 3D. (7) Buttons show celtic wood typography sprites at proper size. (8) Info column fits within visible screen (no overflow). (9) All previews (tray, detail, profile, ghost) use tile sprites instead of colored rectangles. (10) Overall aesthetic: big, pixelated, low-res, warm alchemy feel. Run Component Inspector to verify individual elements. Report any remaining issues. Key files: scenes/web_demo.tscn, scenes/component_inspector.tscn.",
+      "priority": 167,
+      "phase": "visual-polish",
+      "depends_on": ["VP.1", "VP.2", "VP.3", "VP.4", "VP.5", "VP.6", "VP.7", "VP.8", "VP.9"],
+      "verification": "All visual polish items verified via screenshot. No colored rectangles, no stretching, no gaps, no beveled borders, no overflow. Warm alchemy aesthetic throughout.",
+      "status": "pending"
     }
   ]
 }
