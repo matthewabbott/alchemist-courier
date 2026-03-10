@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -25,25 +26,8 @@ public partial class AspectLegendPanel : PanelContainer
         ClipContents = true;
         CustomMinimumSize = new Vector2(0, 120);
 
-        // Semi-transparent dark background
-        var style = new StyleBoxFlat
-        {
-            BgColor = new Color(0.08f, 0.08f, 0.1f, 0.95f),
-            BorderColor = new Color(0.5f, 0.45f, 0.35f, 0.6f),
-            BorderWidthBottom = 1,
-            BorderWidthTop = 1,
-            BorderWidthLeft = 1,
-            BorderWidthRight = 1,
-            ContentMarginLeft = 10,
-            ContentMarginRight = 10,
-            ContentMarginTop = 8,
-            ContentMarginBottom = 8,
-            CornerRadiusBottomLeft = 4,
-            CornerRadiusBottomRight = 4,
-            CornerRadiusTopLeft = 4,
-            CornerRadiusTopRight = 4,
-        };
-        AddThemeStyleboxOverride("panel", style);
+        // Parchment texture with fallback to dark background
+        AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
 
         _content = new VBoxContainer();
         _content.AddThemeConstantOverride("separation", 2);
@@ -51,7 +35,7 @@ public partial class AspectLegendPanel : PanelContainer
 
         // Header
         var header = new Label { Text = "ASPECTS" };
-        header.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
+        header.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.1f));
         header.AddThemeFontSizeOverride("font_size", 14);
         _content.AddChild(header);
 
@@ -224,7 +208,7 @@ public partial class AspectLegendEntry : VBoxContainer
 
         // Aspect name
         _nameLabel = new Label { Text = _metadata.Name };
-        _nameLabel.AddThemeColorOverride("font_color", new Color(0.85f, 0.85f, 0.8f));
+        _nameLabel.AddThemeColorOverride("font_color", new Color(0.2f, 0.15f, 0.08f));
         _nameLabel.AddThemeFontSizeOverride("font_size", 12);
         _header.AddChild(_nameLabel);
 
@@ -259,7 +243,7 @@ public partial class AspectLegendEntry : VBoxContainer
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
             CustomMinimumSize = new Vector2(180, 0),
         };
-        descLabel.AddThemeColorOverride("font_color", new Color(0.65f, 0.65f, 0.6f));
+        descLabel.AddThemeColorOverride("font_color", new Color(0.3f, 0.25f, 0.15f));
         descLabel.AddThemeFontSizeOverride("font_size", 11);
         detailVBox.AddChild(descLabel);
 
@@ -272,7 +256,7 @@ public partial class AspectLegendEntry : VBoxContainer
                 AutowrapMode = TextServer.AutowrapMode.WordSmart,
                 CustomMinimumSize = new Vector2(180, 0),
             };
-            constraintLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.65f, 0.3f));
+            constraintLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.35f, 0.1f));
             constraintLabel.AddThemeFontSizeOverride("font_size", 11);
             detailVBox.AddChild(constraintLabel);
         }
@@ -281,7 +265,7 @@ public partial class AspectLegendEntry : VBoxContainer
         if (_rules.Count > 0)
         {
             var rulesHeader = new Label { Text = "Reactions:" };
-            rulesHeader.AddThemeColorOverride("font_color", new Color(0.7f, 0.7f, 0.65f));
+            rulesHeader.AddThemeColorOverride("font_color", new Color(0.35f, 0.3f, 0.2f));
             rulesHeader.AddThemeFontSizeOverride("font_size", 11);
             detailVBox.AddChild(rulesHeader);
 

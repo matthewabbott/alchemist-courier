@@ -3,6 +3,7 @@ using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Highlight;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -37,17 +38,8 @@ public partial class ViolationListPanel : PanelContainer
     {
         CustomMinimumSize = new Vector2(0, 80);
 
-        var style = new StyleBoxFlat
-        {
-            BgColor = new Color(0.1f, 0.1f, 0.13f, 0.9f),
-            ContentMarginLeft = 8, ContentMarginRight = 8,
-            ContentMarginTop = 6, ContentMarginBottom = 6,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            BorderColor = new Color(0.25f, 0.25f, 0.3f),
-            BorderWidthBottom = 1,
-        };
-        AddThemeStyleboxOverride("panel", style);
+        // Parchment texture with fallback to dark background
+        AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
 
         _content = new VBoxContainer();
         _content.AddThemeConstantOverride("separation", 4);
@@ -76,16 +68,16 @@ public partial class ViolationListPanel : PanelContainer
         if (_currentViolations.Count == 0)
         {
             _headerLabel.Text = "Issues";
-            _headerLabel.AddThemeColorOverride("font_color", new Color(0.4f, 0.7f, 0.4f));
+            _headerLabel.AddThemeColorOverride("font_color", new Color(0.15f, 0.45f, 0.15f));
             var noIssues = new Label { Text = "No issues" };
-            noIssues.AddThemeColorOverride("font_color", new Color(0.4f, 0.7f, 0.4f));
+            noIssues.AddThemeColorOverride("font_color", new Color(0.15f, 0.45f, 0.15f));
             noIssues.AddThemeFontSizeOverride("font_size", 12);
             _content.AddChild(noIssues);
         }
         else
         {
             _headerLabel.Text = $"Issues ({_currentViolations.Count})";
-            _headerLabel.AddThemeColorOverride("font_color", new Color(0.9f, 0.7f, 0.3f));
+            _headerLabel.AddThemeColorOverride("font_color", new Color(0.6f, 0.35f, 0.1f));
 
             for (int i = 0; i < _currentViolations.Count; i++)
             {
@@ -106,9 +98,9 @@ public partial class ViolationListPanel : PanelContainer
 
         var textColor = entry.Severity switch
         {
-            HighlightSeverity.Danger => new Color(0.95f, 0.3f, 0.25f),
-            HighlightSeverity.Warning => new Color(0.95f, 0.8f, 0.25f),
-            _ => new Color(0.7f, 0.7f, 0.7f),
+            HighlightSeverity.Danger => new Color(0.75f, 0.15f, 0.1f),
+            HighlightSeverity.Warning => new Color(0.7f, 0.5f, 0.05f),
+            _ => new Color(0.35f, 0.3f, 0.2f),
         };
 
         // Use flat transparent buttons for clickable entries

@@ -8,6 +8,7 @@ using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Game.Animation;
 using AlchemistCourier.Game.Inventory;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game;
 
@@ -170,24 +171,14 @@ public partial class WebDemoScreen : Control
     private void BuildHeader(VBoxContainer parent)
     {
         var headerPanel = new PanelContainer();
-        var style = new StyleBoxFlat
-        {
-            BgColor = new Color(0.12f, 0.12f, 0.15f),
-            ContentMarginLeft = 12, ContentMarginRight = 12,
-            ContentMarginTop = 6, ContentMarginBottom = 6,
-            CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
-            CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
-            BorderColor = new Color(0.25f, 0.25f, 0.3f),
-            BorderWidthBottom = 1,
-        };
-        headerPanel.AddThemeStyleboxOverride("panel", style);
+        headerPanel.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_bordered"));
         parent.AddChild(headerPanel);
 
         var hbox = new HBoxContainer();
         headerPanel.AddChild(hbox);
 
         var title = new Label { Text = "Alchemist Courier" };
-        title.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
+        title.AddThemeColorOverride("font_color", new Color(0.3f, 0.2f, 0.1f));
         title.AddThemeFontSizeOverride("font_size", 18);
         hbox.AddChild(title);
 
@@ -198,14 +189,14 @@ public partial class WebDemoScreen : Control
         tutorialBtn.CustomMinimumSize = new Vector2(30, 30);
         var btnStyle = new StyleBoxFlat
         {
-            BgColor = new Color(0.2f, 0.2f, 0.25f, 0.5f),
+            BgColor = new Color(0.45f, 0.35f, 0.2f, 0.5f),
             ContentMarginLeft = 4, ContentMarginRight = 4,
             ContentMarginTop = 2, ContentMarginBottom = 2,
             CornerRadiusTopLeft = 4, CornerRadiusTopRight = 4,
             CornerRadiusBottomLeft = 4, CornerRadiusBottomRight = 4,
         };
         tutorialBtn.AddThemeStyleboxOverride("normal", btnStyle);
-        tutorialBtn.AddThemeColorOverride("font_color", new Color(0.5f, 0.5f, 0.55f));
+        tutorialBtn.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.15f));
         tutorialBtn.AddThemeFontSizeOverride("font_size", 14);
         hbox.AddChild(tutorialBtn);
     }
@@ -243,6 +234,13 @@ public partial class WebDemoScreen : Control
 
     private void BuildTrayStrip(VBoxContainer parent)
     {
+        var trayPanel = new PanelContainer
+        {
+            SizeFlagsHorizontal = SizeFlags.ExpandFill,
+        };
+        trayPanel.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("dark_leather"));
+        parent.AddChild(trayPanel);
+
         var trayScroll = new ScrollContainer
         {
             SizeFlagsHorizontal = SizeFlags.ExpandFill,
@@ -250,13 +248,14 @@ public partial class WebDemoScreen : Control
             HorizontalScrollMode = ScrollContainer.ScrollMode.Auto,
             VerticalScrollMode = ScrollContainer.ScrollMode.Disabled,
         };
+        trayPanel.AddChild(trayScroll);
+
         _reagentTray = new ReagentTray();
         _reagentTray.SetHintState(_hintState);
         _reagentTray.SetOrientation(true);
         _reagentTray.Initialize(_trayReagents);
         _reagentTray.SizeFlagsHorizontal = SizeFlags.ExpandFill;
         trayScroll.AddChild(_reagentTray);
-        parent.AddChild(trayScroll);
     }
 
     private void BuildButtonBar(VBoxContainer parent)

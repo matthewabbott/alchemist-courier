@@ -5,6 +5,7 @@ using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Puzzle;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -167,8 +168,12 @@ public partial class InfoColumnManager : VBoxContainer
         _overviewView.AddThemeConstantOverride("separation", 10);
         AddChild(_overviewView);
 
+        var objectiveWrapper = new PanelContainer();
+        objectiveWrapper.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
+        _overviewView.AddChild(objectiveWrapper);
+
         _objectivePanel = new ObjectivePanel();
-        _overviewView.AddChild(_objectivePanel);
+        objectiveWrapper.AddChild(_objectivePanel);
 
         _legendPanel = new AspectLegendPanel();
         _overviewView.AddChild(_legendPanel);

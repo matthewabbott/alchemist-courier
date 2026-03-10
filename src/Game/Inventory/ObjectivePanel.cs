@@ -24,7 +24,7 @@ public partial class ObjectivePanel : VBoxContainer
         {
             Text = "OBJECTIVE:",
         };
-        header.AddThemeColorOverride("font_color", new Color(0.9f, 0.85f, 0.7f));
+        header.AddThemeColorOverride("font_color", new Color(0.35f, 0.25f, 0.1f));
         header.AddThemeFontSizeOverride("font_size", 14);
         AddChild(header);
 
@@ -34,7 +34,7 @@ public partial class ObjectivePanel : VBoxContainer
             AutowrapMode = TextServer.AutowrapMode.WordSmart,
             CustomMinimumSize = new Vector2(180, 0),
         };
-        _objectiveLabel.AddThemeColorOverride("font_color", new Color(0.75f, 0.75f, 0.7f));
+        _objectiveLabel.AddThemeColorOverride("font_color", new Color(0.3f, 0.25f, 0.15f));
         _objectiveLabel.AddThemeFontSizeOverride("font_size", 13);
         AddChild(_objectiveLabel);
     }
