@@ -1830,7 +1830,7 @@
       "phase": "game-jam",
       "depends_on": [],
       "verification": "dotnet build. Run asset_preview scene — shows components.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.5b",
@@ -1878,6 +1878,119 @@
         "GJ.5"
       ],
       "verification": "dotnet build. Bags render with textured borders.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.1",
+      "title": "UIThemeLoader — sprite texture loading with fallback",
+      "description": "Create src/Game/Visual/UIThemeLoader.cs — a static class that loads UI textures from art/sprites/ui/ and provides Godot StyleBox/Texture2D wrappers with graceful fallback to procedural (StyleBoxFlat/ColorRect) when files are missing. Methods: GetPanelStyleBox(string name) returns StyleBoxTexture with 9-patch margins if texture exists at art/sprites/ui/panels/{name}.png, otherwise StyleBoxFlat with dark background. GetAspectTileTexture(string aspectName) returns Texture2D from art/sprites/ui/tiles/{aspectName}.png or null. GetDecorationTexture(string name) returns Texture2D from art/sprites/ui/decorations/{name}.png or null. GetButtonStyleBox(string state) returns StyleBoxTexture from art/sprites/ui/sliced/button_{state}.png or StyleBoxFlat fallback. GetBagThemeTexture(string bagType) returns Texture2D from art/sprites/ui/sliced/bag_{bagType}.png or null. All methods log GD.PushWarning on missing files. Cache loaded textures in static Dictionary to avoid reloading. CRITICAL — Mixel avoidance: All sprite textures must render at integer multiples of their native pixel size using nearest-neighbor filtering. Sprites within the same UI layer must use the same scale factor. The sliced Kit 01 elements (buttons, header, panel) are 1x density (1px = 1 game pixel). The tileable textures and decorations are 2x density. Do NOT mix scale factors within a single panel or component. Key reference: src/Game/Visual/SpriteSwapper.cs for existing loading pattern. Sliced sprite catalog at art/sprites/ui/sliced/catalog.json.",
+      "priority": 149,
+      "phase": "ui-sprite-integration",
+      "depends_on": [],
+      "verification": "dotnet build succeeds. UIThemeLoader methods callable. Missing-file fallback returns non-null StyleBoxFlat.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.2",
+      "title": "Component Inspector Scene — isolated UI element preview",
+      "description": "Create scenes/component_inspector.tscn + src/Game/Tools/ComponentInspector.cs. Purpose: render a single UI component in isolation against a neutral background so sprites can be verified one element at a time. Features: (1) OptionButton dropdown to select component type — HeaderPanel, Button, InfoPanel, AspectEntry, StatusBar, DecorationCorner, DecorationSeparator, DecorationSigil, BagFrame. (2) CheckButton toggle: 'Use Sprites' vs 'Procedural Fallback' to compare side-by-side. (3) Each component rendered centered with generous margin. (4) Structured stdout output like test harness: [COMPONENT] name, [SPRITE_LOADED] true|false, [SCREENSHOT] path. (5) On launch, auto-cycle through all components taking screenshots to test_output/component_{name}.png. Use ScreenshotHelper from src/Game/Testing/ScreenshotHelper.cs. Load textures via UIThemeLoader (SI.1). Reference: src/Game/Tools/AssetPreview.cs for similar preview tool pattern.",
+      "priority": 150,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1"
+      ],
+      "verification": "dotnet build. Run component_inspector scene — produces screenshots in test_output/ for each component type.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.3",
+      "title": "Panel background textures — parchment and leather",
+      "description": "Wire tileable textures as panel backgrounds in WebDemoScreen using UIThemeLoader. Replacements: (1) Header panel StyleBoxFlat → StyleBoxTexture using parchment_bordered.png (set texture_margin for 9-patch behavior). (2) Info column panels — ObjectivePanel, AspectLegendPanel, ViolationListPanel backgrounds → parchment_plain.png. (3) Reagent tray scroll background → dark_leather.png. For each panel: call UIThemeLoader.GetPanelStyleBox(name), apply as theme override 'panel' styleBox. Ensure text remains readable over textures (may need slight color adjustments for contrast). Verify each panel in Component Inspector scene first, then wire into WebDemoScreen. Key files: src/Game/WebDemoScreen.cs (header, tray), src/Game/Inventory/ObjectivePanel.cs, src/Game/Inventory/AspectLegendPanel.cs, src/Game/Inventory/ViolationListPanel.cs.",
+      "priority": 151,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1",
+        "SI.2"
+      ],
+      "verification": "dotnet build. Run component_inspector — panels show parchment/leather textures. Run web demo — header, info panels, and tray have textured backgrounds.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.4",
+      "title": "Aspect tile sprites in legend and status bar",
+      "description": "Wire the 8 aspect tile sprites (32x32 PNGs at art/sprites/ui/tiles/{aspect}.png) into UI elements that display aspect icons. (1) AspectLegendPanel.cs — replace the colored square next to each aspect name with a TextureRect showing the aspect tile sprite. Map aspect name (lowercase) to filename: hot.png, cold.png, toxic.png, volatile.png, sharp.png, heavy.png, fragile.png, stable.png. (2) StatusBarPanel.cs — replace the colored bar icon/indicator with the aspect tile sprite (scaled to fit bar height). Use UIThemeLoader.GetAspectTileTexture(aspectName). Fallback to existing colored rectangle if texture is null. Verify each in Component Inspector first, then integrate. Key files: src/Game/Inventory/AspectLegendPanel.cs, src/Game/Inventory/StatusBarPanel.cs.",
+      "priority": 152,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1",
+        "SI.2"
+      ],
+      "verification": "dotnet build. Run component_inspector — AspectEntry components show tile sprites. Run web demo — aspect legend and status bar show tile sprites instead of colored squares.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.5",
+      "title": "Decorative elements — flourishes, separators, sigil",
+      "description": "Add decorative sprite elements to WebDemoScreen layout. (1) corner_flourish.png — add TextureRect nodes at header panel corners. The source image is an L-shaped celtic corner piece. Place at top-left, flip horizontally for top-right, flip vertically for bottom-left, flip both for bottom-right. Use TextureRect.FlipH and FlipV properties. (2) separator.png — replace HSeparator nodes between major UI sections with TextureRect showing the golden vine separator. Set StretchMode to KeepAspectCentered or tile horizontally. (3) title_sigil.png — add TextureRect next to game title text in header (alchemist seal medallion). All loaded via UIThemeLoader.GetDecorationTexture(name). If texture null, fall back to existing separators/no decoration. Verify each in Component Inspector, then integrate. Key file: src/Game/WebDemoScreen.cs.",
+      "priority": 153,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1",
+        "SI.2"
+      ],
+      "verification": "dotnet build. Run component_inspector — decorations render correctly. Run web demo — corner flourishes on header, vine separators between sections, sigil next to title.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.6",
+      "title": "UI kit sprite slicing — extract elements from spritesheets",
+      "description": "Slice the UI kit spritesheets (art/sprites/ui/panels/ui_kit_*.png) into individual usable elements. Done in paired human+agent session. Primary source: ui_kit_01.png for UI chrome. Extracted: header_bar.png (142x26), button_normal/hover/pressed.png (32x16 each), button_alt_normal/hover/pressed.png (32x16 each), scrollbar_track.png (18x93), icon_button_md_normal/highlight.png (30x28), icon_button_sm_01-08.png (16x16), round_button_01-04.png (18x18), tab_button_01-03.png (~23x18), ornament_01/02.png (21x22), panel_kit01.png (80x80 9-patch). Bag-type panel frames: bag_default.png (Kit 02, 80x80), bag_ornate.png (Kit 06, 80x80), bag_warm.png (Kit 07, 80x80), bag_brass.png (Kit 09, 80x80). Kit 03 gravity bag was shelved due to extraction artifacts. All output in art/sprites/ui/sliced/ with catalog.json. Extraction scripts: scripts/slice_ui_kits.py (auto-slicer) and scripts/extract_named_sprites.py (targeted extraction).",
+      "priority": 154,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.2"
+      ],
+      "verification": "All listed sprites exist in art/sprites/ui/sliced/. catalog.json present with metadata for each sprite.",
+      "status": "done"
+    },
+    {
+      "id": "SI.7",
+      "title": "Button sprite textures — styled buttons from Kit 01",
+      "description": "Wire sliced Kit 01 button textures into WebDemoScreen button styling. Replace the StyleBoxFlat states in CreateStyledButton() with StyleBoxTexture using: button_normal.png for normal state, button_hover.png for hover, button_pressed.png for pressed, button_normal.png darkened or desaturated for disabled. Use UIThemeLoader.GetButtonStyleBox(state) which loads from art/sprites/ui/sliced/button_{state}.png. Set appropriate texture_margin values for 9-patch stretching so buttons scale to text content. Also wire scrollbar_track.png and scrollbar_thumb.png into the reagent tray ScrollContainer theme overrides. Verify each button state in Component Inspector (toggle through states), then integrate into WebDemoScreen. Key files: src/Game/WebDemoScreen.cs (CreateStyledButton method, ScrollContainer setup).",
+      "priority": 155,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1",
+        "SI.6"
+      ],
+      "verification": "dotnet build. Run component_inspector — Button component shows textured states (normal/hover/pressed). Run web demo — all buttons use sprite textures, scrollbar styled.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.8",
+      "title": "Bag visual themes — distinct panel frames per bag type",
+      "description": "Wire the extracted panel frame sprites as visual themes for different bag types. Available bag panels (all 80x80 9-patch frames in art/sprites/ui/sliced/): bag_default.png (Kit 02, brown celtic knotwork) → standard bags, bag_ornate.png (Kit 06, dark subdued borders) → reinforced/special bags, bag_warm.png (Kit 07, rich golden knots) → alchemical/heated bags, bag_brass.png (Kit 09, clean golden corners) → mechanical/heavy bags. (Gravity bag panel was shelved — use procedural fallback.) Implementation: (1) Add bagTheme string field to bag definition or map bag type → theme name. (2) In MetaGridView bag border rendering, use UIThemeLoader.GetBagThemeTexture(bagType) to get the panel frame texture. (3) Render as NinePatchRect behind the bag grid cells, sized to bag bounding box. Set NinePatchRect patch margins (~24px for corners based on 80px panel with 3x3 tile structure). (4) Fallback to current procedural bag borders when texture is null. IMPORTANT: Render bag theme textures at integer scale (2x or 3x) matching the game's pixel density to avoid mixels. Key files: src/Game/Inventory/MetaGridView.cs (bag border rendering), src/Game/Visual/UIThemeLoader.cs, art/sprites/ui/sliced/catalog.json.",
+      "priority": 156,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.1",
+        "SI.6"
+      ],
+      "verification": "dotnet build. Different bag types display distinct visual frame themes. Bags without a theme texture fall back to procedural borders.",
+      "status": "pending"
+    },
+    {
+      "id": "SI.9",
+      "title": "Full UI sprite integration verification",
+      "description": "End-to-end verification that all sprite integrations work together in the web demo scene. Steps: (1) Run web demo scene and take full screenshot — verify all panels textured, aspect tiles showing, decorations placed, no layout breakage (overlaps, clipping, unreadable text). (2) Test fallback resilience: temporarily rename art/sprites/ui/ to art/sprites/ui_backup/, run web demo again — all UI should fall back gracefully to procedural rendering with no errors or crashes. Rename back when done. (3) If SI.7/SI.8 are complete, also verify buttons show textures and bag types show distinct themes. (4) Check that Component Inspector auto-cycle produces clean screenshots for all component types. Write a brief summary of any remaining visual issues to stdout or a report file. Key files: src/Game/WebDemoScreen.cs, scenes/component_inspector.tscn.",
+      "priority": 157,
+      "phase": "ui-sprite-integration",
+      "depends_on": [
+        "SI.3",
+        "SI.4",
+        "SI.5"
+      ],
+      "verification": "Web demo renders with all available textures. Fallback to procedural works cleanly (no errors). Component Inspector screenshots all clean.",
       "status": "pending"
     }
   ]

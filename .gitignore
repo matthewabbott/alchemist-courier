@@ -54,11 +54,12 @@ scorecard.png
 # Node.js
 node_modules/
 
-# AI-generated art (binary, regenerable)
+# Art assets (binary, regenerable via RetroDiffusion or slicing scripts)
 art/generated/
-
-# Art reference images (binary, sourced externally)
 art/references/
+art/manual_generated/
+art/sprites/custom/
+art/sprites/ui/
 
 # Temp commit/message files (Ralph loop leftovers)
 *-commit-msg.txt
