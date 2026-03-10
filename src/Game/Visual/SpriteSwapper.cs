@@ -1,0 +1,80 @@
+using Godot;
+
+namespace AlchemistCourier.Game.Visual;
+
+/// <summary>
+/// Loads sprites with a custom-first fallback chain.
+/// Checks art/sprites/custom/ before art/sprites/reagents/ for reagent textures,
+/// and art/sprites/custom/frames/ before art/sprites/frames/dev/ for frame textures.
+/// </summary>
+public static class SpriteSwapper
+{
+    private const string CustomReagentPath = "res://art/sprites/custom/";
+    private const string DefaultReagentPath = "res://art/sprites/reagents/";
+    private const string CustomFramePath = "res://art/sprites/custom/frames/";
+    private const string DefaultFramePath = "res://art/sprites/frames/dev/";
+
+    /// <summary>
+    /// Tries to load a reagent sprite texture, checking custom path first.
+    /// Returns null if no texture found at either location.
+    /// </summary>
+    public static Texture2D? LoadReagentTexture(string reagentId)
+    {
+        // Try custom sprite first
+        string customPath = $"{CustomReagentPath}{reagentId}.png";
+        if (ResourceLoader.Exists(customPath))
+        {
+            var tex = GD.Load<Texture2D>(customPath);
+            if (tex != null) return tex;
+        }
+
+        // Fall back to default (dev-generated) sprite
+        string defaultPath = $"{DefaultReagentPath}{reagentId}.png";
+        if (ResourceLoader.Exists(defaultPath))
+        {
+            var tex = GD.Load<Texture2D>(defaultPath);
+            if (tex != null) return tex;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Tries to load a frame texture, checking custom path first.
+    /// Returns null if no texture found at either location.
+    /// </summary>
+    public static Texture2D? LoadFrameTexture(string filename)
+    {
+        string customPath = $"{CustomFramePath}{filename}";
+        if (ResourceLoader.Exists(customPath))
+        {
+            var tex = GD.Load<Texture2D>(customPath);
+            if (tex != null) return tex;
+        }
+
+        string defaultPath = $"{DefaultFramePath}{filename}";
+        if (ResourceLoader.Exists(defaultPath))
+        {
+            var tex = GD.Load<Texture2D>(defaultPath);
+            if (tex != null) return tex;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Checks whether a custom reagent sprite exists for the given ID.
+    /// </summary>
+    public static bool HasCustomReagentSprite(string reagentId)
+    {
+        return ResourceLoader.Exists($"{CustomReagentPath}{reagentId}.png");
+    }
+
+    /// <summary>
+    /// Checks whether a custom frame texture exists for the given filename.
+    /// </summary>
+    public static bool HasCustomFrameTexture(string filename)
+    {
+        return ResourceLoader.Exists($"{CustomFramePath}{filename}");
+    }
+}

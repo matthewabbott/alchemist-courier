@@ -48,11 +48,7 @@ public class ReagentSpriteSheet
     /// </summary>
     public static ReagentSpriteSheet? TryLoad(string reagentId, SpriteSheetSpec spec)
     {
-        string path = $"{SpriteBasePath}{reagentId}.png";
-        if (!ResourceLoader.Exists(path))
-            return null;
-
-        var texture = GD.Load<Texture2D>(path);
+        var texture = SpriteSwapper.LoadReagentTexture(reagentId);
         if (texture == null) return null;
 
         return new ReagentSpriteSheet(texture, spec, reagentId);

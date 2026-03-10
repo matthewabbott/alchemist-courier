@@ -3,6 +3,7 @@ using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Highlight;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Visual;
 using CoreVec = AlchemistCourier.Core.Grid.Vector2I;
 
 namespace AlchemistCourier.Game.Inventory;
@@ -239,18 +240,14 @@ public partial class HoverFrameOverlay : Control
         if (_textureCache.TryGetValue(rotatedKey, out var cached))
             return cached;
 
-        string path = $"{FrameBasePath}{rotatedKey}.png";
-        Texture2D? texture = null;
-        if (ResourceLoader.Exists(path))
-            texture = GD.Load<Texture2D>(path);
+        // Use SpriteSwapper for custom-first fallback
+        Texture2D? texture = SpriteSwapper.LoadFrameTexture($"{rotatedKey}.png");
 
         // Backward compat: for rotation 0, also try base key without suffix
         if (texture == null && rotation == 0)
         {
             string baseKey = $"{aspectId}_{shapeName}";
-            string basePath = $"{FrameBasePath}{baseKey}.png";
-            if (ResourceLoader.Exists(basePath))
-                texture = GD.Load<Texture2D>(basePath);
+            texture = SpriteSwapper.LoadFrameTexture($"{baseKey}.png");
         }
 
         _textureCache[rotatedKey] = texture;
