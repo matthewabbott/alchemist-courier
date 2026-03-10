@@ -47,3 +47,6 @@ Commit: 0b0134b
 ## VP.5: Fix bag sprite gaps between adjacent bags
 Bag NinePatchRect panels had visible double-border artifacts between adjacent bags due to 4px padding expanding each panel beyond its cell boundaries. Set BagBorderPadding to 0 so panels sit flush at cell boundaries. Added minimum size clamping for edge case of 1-cell-wide bags where the NinePatch area would be smaller than its corner margins.
 Commit: 01195bc
+
+## Code Review (Deslop)
+Reviewed VP.4 integration tests and VP.5 bag border fix (f69a18a..609f68c). All clean — no P0-P2 issues. NinePatch clamping logic is well-written defensive code. Test duplication between aspect_tiles and cell_mount tests is acceptable under DAMP/Rule-of-Three. 812 unit tests pass, build clean.
