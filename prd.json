@@ -1854,7 +1854,7 @@
         "GJ.5"
       ],
       "verification": "At least 5 of 8 aspects have custom monomino sprites. Run asset_preview to verify.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "GJ.7",
