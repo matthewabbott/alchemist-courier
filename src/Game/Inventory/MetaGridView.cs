@@ -51,6 +51,7 @@ public partial class MetaGridView : Control
 
     // Ghost overlay nodes (hover preview)
     private readonly List<ColorRect> _ghostCells = new();
+    private readonly List<TextureRect> _ghostTiles = new();
 
     // Per-cell aspect tile overlays (one TextureRect per occupied cell with a tile sprite)
     private readonly List<TextureRect> _aspectTiles = new();
@@ -1144,8 +1145,10 @@ public partial class MetaGridView : Control
             ghostColor = GridConstants.ValidPlacement;
         }
 
-        foreach (var pos in positions)
+        var localPositions = _selectedReagent.GetLocalCellPositions();
+        for (int i = 0; i < positions.Count; i++)
         {
+            var pos = positions[i];
             var pixelPos = GridCoordinates.GridToPixel(pos);
             var ghost = new ColorRect
             {
@@ -1157,6 +1160,34 @@ public partial class MetaGridView : Control
             };
             AddChild(ghost);
             _ghostCells.Add(ghost);
+
+            // Overlay aspect tile on ghost cell
+            if (i < localPositions.Count)
+            {
+                var localPos = localPositions[i];
+                var aspects = _selectedReagent.GetAspectsAtLocalPosition(localPos);
+                if (!aspects.IsEmpty && aspects.Aspects.Count > 0)
+                {
+                    var texture = UIThemeLoader.GetAspectTileTexture(aspects.Aspects[0].Id);
+                    if (texture != null)
+                    {
+                        var tileRect = new TextureRect
+                        {
+                            Texture = texture,
+                            Position = pixelPos,
+                            Size = new Vector2(GridConstants.CellSize, GridConstants.CellSize),
+                            ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                            StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                            TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+                            Modulate = new Color(1, 1, 1, 0.7f),
+                            ZIndex = 3,
+                            MouseFilter = MouseFilterEnum.Ignore,
+                        };
+                        AddChild(tileRect);
+                        _ghostTiles.Add(tileRect);
+                    }
+                }
+            }
         }
 
         // Compute and render highlight overlays
@@ -1409,10 +1440,11 @@ public partial class MetaGridView : Control
     private void ClearGhost()
     {
         foreach (var ghost in _ghostCells)
-        {
             ghost.QueueFree();
-        }
         _ghostCells.Clear();
+        foreach (var tile in _ghostTiles)
+            tile.QueueFree();
+        _ghostTiles.Clear();
         _highlightOverlay.Clear();
     }
 

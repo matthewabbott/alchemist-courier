@@ -3,6 +3,7 @@ using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
 using AlchemistCourier.Core.Grid;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -251,26 +252,29 @@ public partial class ShapePreview : Control
     {
         if (_reagent == null) return;
 
-        var shape = _reagent.Definition.Shape;
-        int rows = shape.GetLength(0);
-        int cols = shape.GetLength(1);
         var cellPositions = _reagent.Definition.GetLocalCellPositions();
 
         for (int i = 0; i < cellPositions.Count; i++)
         {
             var pos = cellPositions[i];
             var aspects = _reagent.Definition.AspectsPerCell;
-            Color color;
+            var rect = new Rect2(pos.Col * MiniCellSize, pos.Row * MiniCellSize, MiniCellSize, MiniCellSize);
+
+            string? aspectId = null;
             if (i < aspects.Count && !aspects[i].IsEmpty)
+                aspectId = aspects[i].Aspects[0].Id;
+
+            if (aspectId != null)
             {
-                color = GridConstants.GetAspectColor(aspects[i].Aspects[0].Id);
-            }
-            else
-            {
-                color = new Color(0.6f, 0.55f, 0.5f);
+                var texture = UIThemeLoader.GetAspectTileTexture(aspectId);
+                if (texture != null)
+                {
+                    DrawTextureRect(texture, rect, false);
+                    continue;
+                }
             }
 
-            var rect = new Rect2(pos.Col * MiniCellSize, pos.Row * MiniCellSize, MiniCellSize, MiniCellSize);
+            var color = aspectId != null ? GridConstants.GetAspectColor(aspectId) : new Color(0.6f, 0.55f, 0.5f);
             DrawRect(rect, color);
             DrawRect(rect, new Color(0, 0, 0, 0.3f), false, 1);
         }

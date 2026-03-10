@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -222,17 +223,23 @@ public partial class DetailShapePreview : Control
         for (int i = 0; i < cellPositions.Count; i++)
         {
             var pos = cellPositions[i];
-            Color color;
+            var rect = new Rect2(pos.Col * CellSize, pos.Row * CellSize, CellSize, CellSize);
+
+            string? aspectId = null;
             if (i < aspects.Count && !aspects[i].IsEmpty)
+                aspectId = aspects[i].Aspects[0].Id;
+
+            if (aspectId != null)
             {
-                color = GridConstants.GetAspectColor(aspects[i].Aspects[0].Id);
-            }
-            else
-            {
-                color = new Color(0.6f, 0.55f, 0.5f);
+                var texture = UIThemeLoader.GetAspectTileTexture(aspectId);
+                if (texture != null)
+                {
+                    DrawTextureRect(texture, rect, false);
+                    continue;
+                }
             }
 
-            var rect = new Rect2(pos.Col * CellSize, pos.Row * CellSize, CellSize, CellSize);
+            var color = aspectId != null ? GridConstants.GetAspectColor(aspectId) : new Color(0.6f, 0.55f, 0.5f);
             DrawRect(rect, color);
             DrawRect(rect, new Color(0, 0, 0, 0.3f), false, 1);
         }
