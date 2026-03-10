@@ -3,6 +3,7 @@ using Godot;
 using AlchemistCourier.Core.Chemistry;
 using AlchemistCourier.Core.Grid;
 using AlchemistCourier.Core.Reagents;
+using AlchemistCourier.Game.Visual;
 
 namespace AlchemistCourier.Game.Inventory;
 
@@ -135,6 +136,22 @@ public partial class AspectBar : HBoxContainer
         _threshold = threshold;
 
         AddThemeConstantOverride("separation", 6);
+
+        // Aspect tile sprite (if available)
+        var tileTex = UIThemeLoader.GetAspectTileTexture(aspectId);
+        if (tileTex != null)
+        {
+            var tileIcon = new TextureRect
+            {
+                Texture = tileTex,
+                CustomMinimumSize = new Vector2(BarHeight, BarHeight),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            };
+            tileIcon.SizeFlagsVertical = SizeFlags.ShrinkCenter;
+            AddChild(tileIcon);
+        }
 
         // Aspect label
         var label = new Label

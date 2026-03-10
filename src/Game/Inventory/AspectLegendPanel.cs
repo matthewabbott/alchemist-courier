@@ -142,7 +142,7 @@ public partial class AspectLegendEntry : VBoxContainer
     private readonly AspectMetadata _metadata;
     private readonly List<ReactionRule> _rules;
     private HBoxContainer _header = null!;
-    private ColorRect _icon = null!;
+    private Control _icon = null!;
     private Label _nameLabel = null!;
     private VBoxContainer _detail = null!;
     private bool _isExpanded;
@@ -196,13 +196,28 @@ public partial class AspectLegendEntry : VBoxContainer
         _header.AddThemeConstantOverride("separation", 6);
         _headerPanel.AddChild(_header);
 
-        // Colored square icon
+        // Aspect tile sprite (fallback to colored square)
         var iconContainer = new CenterContainer { CustomMinimumSize = new Vector2(16, 16) };
-        _icon = new ColorRect
+        var tileTex = UIThemeLoader.GetAspectTileTexture(_metadata.Id);
+        if (tileTex != null)
         {
-            CustomMinimumSize = new Vector2(16, 16),
-            Color = GridConstants.GetAspectColor(_metadata.Id),
-        };
+            _icon = new TextureRect
+            {
+                Texture = tileTex,
+                CustomMinimumSize = new Vector2(16, 16),
+                ExpandMode = TextureRect.ExpandModeEnum.IgnoreSize,
+                StretchMode = TextureRect.StretchModeEnum.KeepAspect,
+                TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+            };
+        }
+        else
+        {
+            _icon = new ColorRect
+            {
+                CustomMinimumSize = new Vector2(16, 16),
+                Color = GridConstants.GetAspectColor(_metadata.Id),
+            };
+        }
         iconContainer.AddChild(_icon);
         _header.AddChild(iconContainer);
 
