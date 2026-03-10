@@ -66,52 +66,14 @@ public static class UIThemeLoader
     /// Aspect tiles are 32x32 at base resolution.
     /// </summary>
     public static Texture2D? GetAspectTileTexture(string aspectName)
-    {
-        string cacheKey = $"tile:{aspectName}";
-        if (_textureCache.TryGetValue(cacheKey, out var cached))
-            return cached;
-
-        string path = $"{TilePath}{aspectName}.png";
-        if (ResourceLoader.Exists(path))
-        {
-            var tex = GD.Load<Texture2D>(path);
-            if (tex != null)
-            {
-                _textureCache[cacheKey] = tex;
-                return tex;
-            }
-        }
-
-        GD.PushWarning($"UIThemeLoader: Aspect tile texture not found: {path}");
-        _textureCache[cacheKey] = null;
-        return null;
-    }
+        => LoadTexture("tile", TilePath, aspectName);
 
     /// <summary>
     /// Returns Texture2D from decorations/{name}.png or null if not found.
     /// Decoration textures are 2x density.
     /// </summary>
     public static Texture2D? GetDecorationTexture(string name)
-    {
-        string cacheKey = $"decoration:{name}";
-        if (_textureCache.TryGetValue(cacheKey, out var cached))
-            return cached;
-
-        string path = $"{DecorationPath}{name}.png";
-        if (ResourceLoader.Exists(path))
-        {
-            var tex = GD.Load<Texture2D>(path);
-            if (tex != null)
-            {
-                _textureCache[cacheKey] = tex;
-                return tex;
-            }
-        }
-
-        GD.PushWarning($"UIThemeLoader: Decoration texture not found: {path}");
-        _textureCache[cacheKey] = null;
-        return null;
-    }
+        => LoadTexture("decoration", DecorationPath, name);
 
     /// <summary>
     /// Returns StyleBoxTexture from sliced/button_{state}.png with 9-patch margins,
@@ -158,12 +120,15 @@ public static class UIThemeLoader
     /// Bag textures are 1x density, intended for NinePatchRect rendering.
     /// </summary>
     public static Texture2D? GetBagThemeTexture(string bagType)
+        => LoadTexture("bag", SlicedPath, $"bag_{bagType}");
+
+    private static Texture2D? LoadTexture(string category, string basePath, string name)
     {
-        string cacheKey = $"bag:{bagType}";
+        string cacheKey = $"{category}:{name}";
         if (_textureCache.TryGetValue(cacheKey, out var cached))
             return cached;
 
-        string path = $"{SlicedPath}bag_{bagType}.png";
+        string path = $"{basePath}{name}.png";
         if (ResourceLoader.Exists(path))
         {
             var tex = GD.Load<Texture2D>(path);
@@ -174,7 +139,7 @@ public static class UIThemeLoader
             }
         }
 
-        GD.PushWarning($"UIThemeLoader: Bag theme texture not found: {path}");
+        GD.PushWarning($"UIThemeLoader: {category} texture not found: {path}");
         _textureCache[cacheKey] = null;
         return null;
     }
