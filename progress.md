@@ -1228,3 +1228,8 @@ Append-only log of Ralph loop iterations. Each completed task gets an entry belo
 - Reviewed commits: d134000..5f5d304 (VP.6, VP.7, VP.8)
 - Findings: 6 (P0: 0, P1: 2, P2: 1, P3: 3)
 - Fixed: 2, Tasks created: 1 (R2 — DRY aspect aggregation)
+
+## R2 — Extract shared aspect aggregation helper from 4 UI panels
+- Date: 2026-03-10
+- Commit: 06cc8c5
+- Notes: Added Reagent.GetAggregatedAspects() to Core, replacing identical 10-17 line aggregation loops in InfoColumnManager, ItemDetailPanel, ReagentProfilePanel, and FloatingDetailTooltip. Pure refactor — no Godot deps, no behavior change. 4 new unit tests (empty, single-cell, multi-cell sum, multi-aspect grouping). All 816 tests pass (812 existing + 4 new).

@@ -66,3 +66,7 @@ Commit: 5f5d304
 ## Code Review (VP.6–VP.8)
 Reviewed VP.6 through VP.8 commits. Found and fixed two P1 bugs: a QueueFree race in InfoColumnManager.RebuildAspectIcon (old+new icon children briefly coexist) and an unguarded timer callback in AspectLegendPanel.Flash that could fire on a freed node during scene transitions. Also identified a P2 DRY violation — the aspect aggregation loop is copy-pasted across 4 UI panel files — and created task R2 to extract it. Build and 812 unit tests pass.
 Commit: 833daba
+
+## R2: Extract shared aspect aggregation helper
+Pure deduplication: added `Reagent.GetAggregatedAspects()` in Core returning `Dictionary<string, (Aspect aspect, int totalMagnitude)>`. Replaced identical 10-17 line loops in InfoColumnManager, ItemDetailPanel, ReagentProfilePanel, and FloatingDetailTooltip with a single method call each. The method lives on Reagent (not a static helper) since it delegates to existing `GetLocalCellPositions()` and `GetAspectsAtLocalPosition()`. 4 new unit tests cover empty, single-cell, multi-cell magnitude summing, and multi-aspect grouping. Zero behavior change, zero Godot dependencies.
+Commit: 06cc8c5
