@@ -36,7 +36,7 @@ public partial class ViolationListPanel : PanelContainer
 
     private void BuildUI()
     {
-        CustomMinimumSize = new Vector2(0, 80);
+        CustomMinimumSize = new Vector2(0, 0);
 
         // Parchment texture with fallback to dark background
         AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
@@ -94,7 +94,7 @@ public partial class ViolationListPanel : PanelContainer
         btn.Alignment = HorizontalAlignment.Left;
         btn.Text = entry.Description;
         btn.ClipText = true;
-        btn.CustomMinimumSize = new Vector2(0, 40);
+        btn.CustomMinimumSize = new Vector2(0, 30);
 
         var textColor = entry.Severity switch
         {

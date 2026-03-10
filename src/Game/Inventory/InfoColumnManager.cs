@@ -21,6 +21,10 @@ public partial class InfoColumnManager : VBoxContainer
     // Back button (hidden in default view)
     private Button _backButton = null!;
 
+    // Scroll container wrapping all views to prevent overflow
+    private ScrollContainer _scrollContainer = null!;
+    private VBoxContainer _scrollContent = null!;
+
     // View containers — only one visible at a time
     private VBoxContainer _overviewView = null!;
     private VBoxContainer _reagentDetailView = null!;
@@ -62,11 +66,12 @@ public partial class InfoColumnManager : VBoxContainer
 
     public InfoColumnManager()
     {
-        SizeFlagsVertical = SizeFlags.ShrinkBegin;
-        AddThemeConstantOverride("separation", 10);
+        SizeFlagsVertical = SizeFlags.ExpandFill;
+        AddThemeConstantOverride("separation", 4);
         CustomMinimumSize = new Vector2(160, 0);
 
         BuildBackButton();
+        BuildScrollContainer();
         BuildOverviewView();
         BuildReagentDetailView();
         BuildAspectDetailView();
@@ -163,11 +168,27 @@ public partial class InfoColumnManager : VBoxContainer
         AddChild(_backButton);
     }
 
+    private void BuildScrollContainer()
+    {
+        _scrollContainer = new ScrollContainer
+        {
+            SizeFlagsVertical = SizeFlags.ExpandFill,
+            HorizontalScrollMode = ScrollContainer.ScrollMode.Disabled,
+            VerticalScrollMode = ScrollContainer.ScrollMode.Auto,
+        };
+        AddChild(_scrollContainer);
+
+        _scrollContent = new VBoxContainer();
+        _scrollContent.AddThemeConstantOverride("separation", 8);
+        _scrollContent.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        _scrollContainer.AddChild(_scrollContent);
+    }
+
     private void BuildOverviewView()
     {
         _overviewView = new VBoxContainer();
-        _overviewView.AddThemeConstantOverride("separation", 10);
-        AddChild(_overviewView);
+        _overviewView.AddThemeConstantOverride("separation", 8);
+        _scrollContent.AddChild(_overviewView);
 
         var objectiveWrapper = new PanelContainer();
         objectiveWrapper.AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
@@ -188,7 +209,7 @@ public partial class InfoColumnManager : VBoxContainer
         _reagentDetailView = new VBoxContainer();
         _reagentDetailView.AddThemeConstantOverride("separation", 6);
         _reagentDetailView.Visible = false;
-        AddChild(_reagentDetailView);
+        _scrollContent.AddChild(_reagentDetailView);
 
         // Header
         var header = new Label { Text = "REAGENT" };
@@ -227,7 +248,7 @@ public partial class InfoColumnManager : VBoxContainer
         _aspectDetailView = new VBoxContainer();
         _aspectDetailView.AddThemeConstantOverride("separation", 6);
         _aspectDetailView.Visible = false;
-        AddChild(_aspectDetailView);
+        _scrollContent.AddChild(_aspectDetailView);
 
         // Header row: icon + name
         var headerRow = new HBoxContainer();

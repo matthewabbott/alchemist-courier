@@ -24,7 +24,7 @@ public partial class AspectLegendPanel : PanelContainer
     {
         _rules = rules;
         ClipContents = true;
-        CustomMinimumSize = new Vector2(0, 120);
+        CustomMinimumSize = new Vector2(0, 0);
 
         // Parchment texture with fallback to dark background
         AddThemeStyleboxOverride("panel", UIThemeLoader.GetPanelStyleBox("parchment_plain"));
@@ -188,7 +188,7 @@ public partial class AspectLegendEntry : VBoxContainer
         };
 
         _headerPanel = new PanelContainer();
-        _headerPanel.CustomMinimumSize = new Vector2(0, 44);
+        _headerPanel.CustomMinimumSize = new Vector2(0, 36);
         _headerPanel.AddThemeStyleboxOverride("panel", _normalBg);
         AddChild(_headerPanel);
 
