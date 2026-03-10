@@ -1926,7 +1926,7 @@
         "SI.2"
       ],
       "verification": "dotnet build. Run component_inspector — AspectEntry components show tile sprites. Run web demo — aspect legend and status bar show tile sprites instead of colored squares.",
-      "status": "pending"
+      "status": "done"
     },
     {
       "id": "SI.5",

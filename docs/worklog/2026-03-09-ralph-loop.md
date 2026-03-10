@@ -41,3 +41,7 @@ Commit: f96277e
 ## SI.3: Panel background textures — parchment and leather
 First visible sprite integration into the actual game UI. Replaced inline StyleBoxFlat declarations with UIThemeLoader.GetPanelStyleBox() calls — header panel gets ornate parchment_bordered, info column panels get plain parchment, reagent tray gets dark_leather. The interesting trade-off was text contrast: the existing light-on-dark palette (white/gold text on near-black backgrounds) is unreadable against warm tan parchment, so all affected text shifted to dark brown/sepia tones. ObjectivePanel needed a PanelContainer wrapper in InfoColumnManager since it's a VBoxContainer with no native panel stylebox. Net effect: -20 lines (verbose StyleBoxFlat blocks replaced by one-liners).
 Commit: 5206d04
+
+## SI.4: Aspect tile sprites in legend and status bar
+Wired the 8 generated aspect tile sprites (32x32 pixel art PNGs) into the two UI components that show aspect icons. AspectLegendEntry switches from a plain colored square to a TextureRect with nearest-neighbor filtering, maintaining the same 16x16 display size. StatusBarPanel adds a tile icon before each aspect label. Both paths fall back to the existing procedural ColorRect when textures are missing, so the game still runs without art assets. Changed _icon field from ColorRect to Control to accommodate the polymorphic icon type.
+Commit: 0c40ede
